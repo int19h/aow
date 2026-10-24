@@ -3,8 +3,8 @@ unit aowDPlayComp;
 { The aowDPlayComp unit of aowDPlay.dpl: TGDPlay, the DirectPlay component behind the game's
   multiplayer (LAN/TCP, IPX, modem, serial and lobby launched games), written for the original
   compiler (Delphi 3.02) and compared function by function with the shipped module
-  (tools/match.py). Declarations follow the original instance layouts (notes/classes.json,
-  notes/rtti/aowDPlay.dpl.txt).
+  (tools/match.py). Declarations follow the original instance layouts (data/classes.json,
+  data/rtti/aowDPlay.dpl.txt).
 
   How it talks to DirectPlay: TGDPlay creates the DirectPlay 4 object (CLSID_DirectPlay,
   IDirectPlay4A, in process) and the lobby object (CLSID_DirectPlayLobby, IDirectPlayLobby3A) with

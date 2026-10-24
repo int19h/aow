@@ -1,7 +1,7 @@
 unit ItemSel;
 
 { Draft declarations of ItemSel, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Selection fields: $200 item type, $204 filtered GFX indexes, $208 selected index. }
 
 {$R+,Q+}

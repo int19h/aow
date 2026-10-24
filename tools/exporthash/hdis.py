@@ -14,7 +14,7 @@ for a in sys.argv[1:]:
 pe = pefile.PE(G + mod)
 base = pe.OPTIONAL_HEADER.ImageBase
 data = pe.get_memory_mapped_image()
-sigs = json.load(open('C:/git/int19h/aow/notes/signatures/%s.json' % mod))
+sigs = json.load(open('C:/git/int19h/aow/data/signatures/%s.json' % mod))
 names = {int(f['addr'], 16): strip(f['name']) for f in sigs}
 iat = {}
 for e in getattr(pe, 'DIRECTORY_ENTRY_IMPORT', []):

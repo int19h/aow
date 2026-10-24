@@ -1,7 +1,7 @@
 unit AoWMapEF;
 
 { Draft declarations of AoWMapEF, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Position $1F0, completion event $1F4, object $1FC, rollback stream $200. }
 
 {$R+,Q+}

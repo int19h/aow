@@ -4,7 +4,7 @@ unit HSEngine;
   hexagon sprites, map objects and their resources, the hex coordinate routines) written for the
   original compiler (Delphi 3.02), class by class: tools/match.py compares the code DCC32 generates
   for every method with the code in the game's module. Declarations follow the original instance
-  layouts and VMT orders (notes/classes.json). As in the original (D:\GEngine\HSENGINE\), the code
+  layouts and VMT orders (data/classes.json). As in the original (D:\GEngine\HSENGINE\), the code
   of the sprites, the map objects, the map and the library image sprites sits in the include files
   inc\HXSPRITE.PAS, inc\MAPOBJ.PAS, inc\HSMAP.PAS and inc\LibImgHS.PAS, whose names the Assert
   calls carry; their line numbers count through the includes, so the line layout is kept. }

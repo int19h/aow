@@ -1,7 +1,7 @@
 unit EPlaySample;
 
 { Draft declarations of EPlaySample, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   TPlaySampleEditForm $238 bytes; inherited $20C is the sample event. }
 
 interface

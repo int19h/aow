@@ -1,7 +1,7 @@
 unit EGems;
 
 { Draft declarations of EGems, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   TGemsEditForm $230 bytes, inherited $20C FMapObject. }
 
 {$R-,Q+}

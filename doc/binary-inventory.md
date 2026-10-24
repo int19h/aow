@@ -1,7 +1,7 @@
 # Age of Wonders 1.36: binary inventory
 
 Date: 2026-10-19. Source: the GOG installation in `D:\Games\GOG\Age of Wonders`.
-The scripts in `tools/` produced the symbol tables in `notes/symbols/`.
+The scripts in `tools/` produced the symbol tables in `data/symbols/`.
 
 ## Compiler
 
@@ -92,7 +92,7 @@ In a package, the export `Unit..TClass@hash` is the VMT address. From the VMTs t
 for all 1,438 classes in the game modules: the class name, the parent class (also across packages, through
 the import table), the instance size, the count of virtual methods, the published fields of forms,
 the published methods (event handlers), and the published properties with their types and the field
-offsets or accessor methods behind them. The output is in `notes/rtti/`.
+offsets or accessor methods behind them. The output is in `data/rtti/`.
 
 For the two executables, which export nothing, the RTTI is the main source of names. `AoW.exe` holds 84 classes,
 of which 78 are forms (`TDataModule` descendants drawn on DirectDraw). Their field tables name 2,862 UI components
@@ -116,7 +116,7 @@ turns those returns into branches (114 sites in Ilpack.dpl alone) and the decomp
 Decompiler quality on compiled Pascal is good: calls resolve to named methods, virtual calls show as VMT
 offsets, loops and conditions survive. Hand-written assembly (the blitters in `ImageLib`) decompiles to
 correct but hard-to-read pointer code; those routines are better rewritten from their purpose than translated.
-A reconstruction sample is in `notes/samples/ImageLib_LoadFromStream.pas`.
+A reconstruction sample is in `doc/samples/ImageLib_LoadFromStream.pas`.
 
 ## Installation state
 

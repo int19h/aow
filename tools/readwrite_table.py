@@ -4,7 +4,7 @@ Usage: readwrite_table.py <decomp dir> [out.md]
 
 Each ReadWrite calls the storage stream through its VMT:
     (**(code **)(*param_2 + 0x30))(param_2, param_1 + 0x26, 6)   ->  rwByte(Self+$26, id 6)
-The slot number names the rw method (TEStorageStream VMT, see notes/persistence.md), the second
+The slot number names the rw method (TEStorageStream VMT, see doc/persistence.md), the second
 argument is the field, the last one is the property id. Calls that go through a local variable or a
 nested object are listed as "indirect" so that nothing is silently dropped.
 """

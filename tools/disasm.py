@@ -3,7 +3,7 @@
 Usage: disasm.py <module.dpl> <signatures.json> <name substring> [...]
 
 Example:
-  disasm.py "D:\\Games\\GOG\\Age of Wonders\\Enginep.dpl" notes/signatures/Enginep.dpl.json \
+  disasm.py "D:\\Games\\GOG\\Age of Wonders\\Enginep.dpl" data/signatures/Enginep.dpl.json \
             TIntegerList.SaveToStream FUN_55514218
 
 Every function whose exported name contains one of the substrings is printed with capstone. Call and jump

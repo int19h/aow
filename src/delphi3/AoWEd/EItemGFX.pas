@@ -1,7 +1,7 @@
 unit EItemGFX;
 
 { Draft declarations of EItemGFX, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   TItemGFXEditForm $230 bytes; $22C FItemGFX is the edited resource. }
 
 interface

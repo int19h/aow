@@ -3,7 +3,7 @@ unit Video;
 { The Video unit of VideoP.dpl: TVideoPlayer, the component that plays the game's AVI movies
   (intro, cut scenes) on a GFXE surface, written for the original compiler (Delphi 3.02) and
   compared function by function with the shipped module (tools/match.py). Declarations follow the
-  original instance layout (notes/classes.json, notes/rtti/VideoP.dpl.txt).
+  original instance layout (data/classes.json, data/rtti/VideoP.dpl.txt).
 
   How it works: Open opens the video and the audio stream of an AVI file through the AVIFile API
   (VFW unit, loaded at run time). The video frames are decompressed with an installable

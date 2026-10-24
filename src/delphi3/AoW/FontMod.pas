@@ -1,7 +1,7 @@
 unit FontMod;
 
 { Draft declarations of FontMod, from AoW.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Stub bodies are placeholders for source recovery. }
 
 interface

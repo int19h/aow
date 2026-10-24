@@ -5,7 +5,7 @@ unit NetworkE;
   system that orders the game's token events and executes them on every system in the same order)
   written for the original compiler (Delphi 3.02), class by class: tools/match.py compares the code
   DCC32 generates for every method with the code in the game's module. Declarations follow the
-  original instance layouts and VMT orders (notes/classes.json); the field names are made up, the
+  original instance layouts and VMT orders (data/classes.json); the field names are made up, the
   module has no RTTI for them. Network.dpl was compiled with the default switches.
 
   A data package travels as a stored TEObject: TPlayerCommunicator.SendDataPackage stores it in a

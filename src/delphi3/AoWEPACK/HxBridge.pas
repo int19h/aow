@@ -1,6 +1,6 @@
 unit HxBridge;
 
-{ Hexagon bridges of AoWEPACK.dpl; layouts and VMT order from notes/classes.json. }
+{ Hexagon bridges of AoWEPACK.dpl; layouts and VMT order from data/classes.json. }
 
 interface
 

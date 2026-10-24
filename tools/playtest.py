@@ -360,7 +360,7 @@ class Debugger:
 
 
 def original_address(module, name):
-    functions = json.loads((REPO / 'notes/signatures' / (module + '.json')).read_text())
+    functions = json.loads((REPO / 'data/signatures' / (module + '.json')).read_text())
     return int(next(f['addr'] for f in functions if f['name'].split('@')[0] == name), 16)
 
 
@@ -720,7 +720,7 @@ def normalized_save(path):
 def dump_save(path, output, decomp):
     with output.open('w', encoding='utf-8') as stream:
         result = subprocess.run([sys.executable, str(REPO / 'tools/asg_dump.py'), str(path),
-            str(REPO / 'notes/classes.json'), str(decomp), '--depth', '256'],
+            str(REPO / 'data/classes.json'), str(decomp), '--depth', '256'],
             stdout=stream, stderr=subprocess.PIPE, text=True)
     if result.returncode:
         raise RuntimeError('asg_dump failed: ' + result.stderr)
@@ -728,7 +728,7 @@ def dump_save(path, output, decomp):
 
 def state_fields(path, decomp, ignore_timers=True):
     """Lossless leaf paths to locate a binary difference, alongside asg_dump."""
-    classes = json.loads((REPO / 'notes/classes.json').read_text())['classes']
+    classes = json.loads((REPO / 'data/classes.json').read_text())['classes']
     ids = {}
     for directory in decomp.split(';'):
         if Path(directory).is_dir():
@@ -786,7 +786,7 @@ def compare_runs(build, left, right):
     left, right = build / 'playtest' / left, build / 'playtest' / right
     output = build / 'playtest' / ('compare-' + left.name + '-' + right.name)
     output.mkdir(parents=True, exist_ok=True)
-    decomp = Path(r'C:\git\int19h\aow\notes\decomp')
+    decomp = Path(r'C:\git\int19h\aow\data\decomp')
     paths = ';'.join(str(decomp / name) for name in
                      ('Enginep-typed-all', 'HSEPack-typed-all', 'AoWEPACK-typed-all', 'AoWTCPCK-typed-all'))
     a, b = {p.name: p for p in left.glob('*day-*.asg')}, {p.name: p for p in right.glob('*day-*.asg')}
@@ -832,7 +832,7 @@ def check_modules(build, label, modules=None):
     results = {}
     for module in modules or buildgame.PACKAGES + buildgame.PROGRAMS:
         suffix = '.exe' if module in buildgame.PROGRAMS else '.dpl'
-        signature = REPO / 'notes/signatures' / (module + suffix + '.json')
+        signature = REPO / 'data/signatures' / (module + suffix + '.json')
         functions = json.loads(signature.read_text())
         owned = {unit.lower() for unit, flags in buildgame.package_info(buildgame.GAME / (module + suffix))[2]}
         units = sorted({f['name'].split('.')[0] for f in functions
@@ -899,7 +899,7 @@ def probe(build, variant, seconds, save=None, commands=''):
 
 
 def decomp_paths():
-    base = Path(r'C:\git\int19h\aow\notes\decomp')
+    base = Path(r'C:\git\int19h\aow\data\decomp')
     return ';'.join(str(base / name) for name in
                     ('Enginep-typed-all', 'HSEPack-typed-all', 'AoWEPACK-typed-all', 'AoWTCPCK-typed-all'))
 

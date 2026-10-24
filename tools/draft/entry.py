@@ -8,7 +8,7 @@ except ImportError:  # the Codex sandbox cannot see the user's site-packages
 import capstone
 from pathlib import Path
 G = ''
-R = str(Path(__file__).resolve().parents[2] / 'notes/signatures') + '/'
+R = str(Path(__file__).resolve().parents[2] / 'data/signatures') + '/'
 _pe = {}
 def module(mod):
     if mod not in _pe:

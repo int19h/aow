@@ -2,8 +2,8 @@ unit PlugInM;
 
 { The PlugInM unit of Enginep.dpl written for the original compiler (Delphi 3.02): TPlugInManager,
   a component that finds the plug-in packages below a directory and loads and unloads them.
-  Declarations follow the original instance layout (notes/classes.json) and the published
-  properties in notes/rtti; tools/match.py compares every method with the game's module. }
+  Declarations follow the original instance layout (data/classes.json) and the published
+  properties in data/rtti; tools/match.py compares every method with the game's module. }
 
 interface
 

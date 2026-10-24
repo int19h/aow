@@ -1,7 +1,7 @@
 unit RILTer;
 
 { Draft declarations of RILTer, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   The $308 inherited resource supplies terrain and overlay markers. }
 
 {$R+,Q+}

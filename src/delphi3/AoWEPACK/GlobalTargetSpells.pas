@@ -1,7 +1,7 @@
 unit GlobalTargetSpells;
 
 { Draft declarations of GlobalTargetSpells, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   All class bodies and registration routines are recovered below. Local declaration
   workarounds are marked needs; world pointer cells use the shared P1 globals. }
 

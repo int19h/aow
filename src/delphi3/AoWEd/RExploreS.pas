@@ -1,7 +1,7 @@
 unit RExploreS;
 
 { Draft declarations of RExploreS, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Resource and animation fields are inherited; the grids bind the resource collections. }
 
 {$R+,Q+}

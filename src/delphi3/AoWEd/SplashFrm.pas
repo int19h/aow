@@ -1,7 +1,7 @@
 unit SplashFrm;
 
 { Draft declarations of SplashFrm, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   No added instance fields; image and labels occupy $1DC through $1EC. }
 
 {$R+,Q+}

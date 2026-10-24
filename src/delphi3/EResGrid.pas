@@ -3,7 +3,7 @@ unit EResGrid;
 { The EResGrid unit of Enginep.dpl written for the original compiler (Delphi 3.02): the resource
   grid of the editors, a TImageListGrid whose cells are the TEResource objects of a TEResourceList
   of an engine. Declarations follow the original instance layouts and VMT orders
-  (notes/classes.json) and the published properties of the RTTI (notes/rtti/Enginep.dpl.txt);
+  (data/classes.json) and the published properties of the RTTI (data/rtti/Enginep.dpl.txt);
   tools/match.py compares every method with the module. }
 
 interface

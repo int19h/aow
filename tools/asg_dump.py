@@ -9,7 +9,7 @@ and every value read should make sense. Unknown ids are reported per class.
 
 Container: 'CFS\\0', version byte, zlib stream. Inflated: a 16-byte header record (Integer 16 = its size,
 'HSM\\0', Integer 0, Integer ClassID), then a root property table with one entry (id 0) that points at the
-map object (see notes/persistence.md).
+map object (see doc/persistence.md).
 """
 import json, os, re, struct, sys, zlib, collections
 

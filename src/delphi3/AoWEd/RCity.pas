@@ -1,7 +1,7 @@
 unit RCity;
 
 { Draft declarations of RCity, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   No added fields; resource and preview state are inherited. }
 
 {$R+,Q+}

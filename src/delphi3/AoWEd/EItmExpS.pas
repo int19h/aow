@@ -1,7 +1,7 @@
 unit EItmExpS;
 
 { Draft declarations of EItmExpS, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   TItemExplorationSiteEditForm $268 bytes, inherited $20C FMapObject. }
 
 {$R-,Q+}

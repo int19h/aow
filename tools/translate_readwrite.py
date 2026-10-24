@@ -586,7 +586,7 @@ def main():
             if '.ReadWrite_' in f and f.endswith('.c'):
                 tr.translate_file(os.path.join(d, f))
     # class ids from every typed dump next to the ReadWrite dumps
-    id_dirs = [p for p in ('notes/decomp/AoWEPACK-typed-all', 'notes/decomp/Enginep-typed-all', 'notes/decomp/HSEPack-typed-all')
+    id_dirs = [p for p in ('data/decomp/AoWEPACK-typed-all', 'data/decomp/Enginep-typed-all', 'data/decomp/HSEPack-typed-all')
                if os.path.isdir(p)]
     ids = classid_map(id_dirs)
 

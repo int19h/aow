@@ -1,7 +1,7 @@
 unit EFarm;
 
 { Draft declarations of EFarm, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   TFarmEditForm $238 bytes; inherited $20C is the farm. }
 
 interface

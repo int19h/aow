@@ -1,7 +1,7 @@
 unit FlagEvents;
 
 { Draft declarations of FlagEvents, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Trigger players, message text and help-file references recovered from the original. }
 
 interface

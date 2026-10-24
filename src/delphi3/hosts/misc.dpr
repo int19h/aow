@@ -7,7 +7,7 @@ program misc;
     C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B -U<src\delphi3> -O<src\delphi3> -E<out> -N<out> misc.dpr
   and compare with
     tools/match.py --alias src/delphi3/aliases/misc.json --units zlib,EList,PlugInM,DebMDlg
-      <out>/misc.exe <out>/misc.map <game>/Enginep.dpl notes/signatures/Enginep.dpl.json
+      <out>/misc.exe <out>/misc.map <game>/Enginep.dpl data/signatures/Enginep.dpl.json
       TCustomZlibStream TCompressionStream TDecompressionStream TListObject TObjectList
       TPlugInManager TDebugMessageDlg }
 

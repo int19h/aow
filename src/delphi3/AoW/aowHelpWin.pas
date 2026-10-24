@@ -1,7 +1,7 @@
 unit aowHelpWin;
 
 { Partly recovered aowHelpWin handlers, from AoW.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Any remaining stub bodies are placeholders for source recovery. }
 
 interface

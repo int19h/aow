@@ -1,7 +1,7 @@
 unit TerTSFrm;
 
 { Draft declarations of TerTSFrm, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   TTerrainTypeSelectionForm $1F4 bytes; $1F0 is the terrain selector. }
 
 interface

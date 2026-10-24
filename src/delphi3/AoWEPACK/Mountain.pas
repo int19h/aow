@@ -1,7 +1,7 @@
 unit Mountain;
 
 { Draft declarations of Mountain, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Mountain terrain and raised terrain bodies recovered from the original code. }
 
 interface

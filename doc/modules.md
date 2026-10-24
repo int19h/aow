@@ -3,7 +3,7 @@
 The dependencies come from the import tables of the shipped modules, counting only imported code
 and data: every package also imports the initialization and finalization of each unit of every
 package it `requires`, which says nothing about real use. Function counts and sizes come from
-`notes/signatures/*.json`.
+`data/signatures/*.json`.
 
 | module | units (functions) | uses code of | state |
 |---|---|---|---|

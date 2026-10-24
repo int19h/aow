@@ -1,4 +1,4 @@
-"""Build notes/classes.json: every Delphi class in every game module, with parent, size, VMT slot names,
+"""Build data/classes.json: every Delphi class in every game module, with parent, size, VMT slot names,
 and known fields. tools/ghidra/ApplyDelphiClasses.java turns this into Ghidra structs.
 
 Usage: build_classdb.py <game dir> <out.json> [layout.md ...]

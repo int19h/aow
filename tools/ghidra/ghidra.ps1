@@ -1,6 +1,6 @@
 # Wrapper for Ghidra headless runs against the aow project.
 # Examples:
-#   .\ghidra.ps1 -Process AoWEPACK.dpl -Script DecompileFunctions.java -ScriptArgs @('..\..\notes\decomp\x', 'name:AoWE.TUnit.')
+#   .\ghidra.ps1 -Process AoWEPACK.dpl -Script DecompileFunctions.java -ScriptArgs @('..\..\data\decomp\x', 'name:AoWE.TUnit.')
 #   .\ghidra.ps1 -Import 'D:\Games\GOG\Age of Wonders\Ilpack.dpl'
 # Paths for Ghidra, the JDK, and the project directory follow the machine setup from 2026-10-19.
 # ($Args is reserved in PowerShell, hence the name ScriptArgs.)

@@ -1,7 +1,7 @@
 unit AlgnmBox;
 
 { Draft declarations of AlgnmBox, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Recovered alignment selection and original alignment-set constants. }
 
 interface

@@ -1,7 +1,7 @@
 unit ESmokeC;
 
 { Draft declarations of ESmokeC, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Inherited $20C map object supplies lifetime $18 and drifting flag $1C. }
 
 interface

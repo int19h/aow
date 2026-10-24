@@ -2,7 +2,7 @@ unit SpinEdit;
 
 { STUB of the third-party unit SpinEdit of Vcladdon.dpl (not recovered), with only what SoundP
   uses: the TSpin edit control of the sound effect editor (SFXEdDlg) and its static
-  GetValue/SetValue. The instance layout follows notes/classes.json (instance size 336; +$130
+  GetValue/SetValue. The instance layout follows data/classes.json (instance size 336; +$130
   FMinValue, +$134 FMaxValue, +$138 FIncrement, +$13C the spin button, +$140 FEditorEnabled,
   +$144 FOnUpdate, +$14C not known); the method bodies are placeholders and are not compared. }
 

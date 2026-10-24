@@ -5,7 +5,7 @@ unit EngineLists;
   +$C FCapacity, +$10 FDefault. The stream form is: default value, Integer count, then the items,
   where a run of items equal to the default is stored as the default followed by the run length
   (Integer for TIntegerList, Byte for the byte lists, Word for TWordList). TBitList stores its bits
-  packed. Sources: notes/decomp/Enginep-typed-all. }
+  packed. Sources: data/decomp/Enginep-typed-all. }
 
 {$MODE DELPHI}{$H+}
 

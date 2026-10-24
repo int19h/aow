@@ -1,7 +1,7 @@
 unit ResEForm;
 
 { Draft declarations of ResEForm, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   $1EC engine, $1F0 completion event, $1F8 resource. }
 
 interface

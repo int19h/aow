@@ -5,7 +5,7 @@ unit DisplayC;
   window through GDI or full screen through DirectDraw, plus the frame update loop) written for
   the original compiler (Delphi 3.02), class by class: tools/match.py compares the code DCC32
   generates for every method with the code in the game's module. Declarations follow the original
-  instance layouts and VMT orders (notes/classes.json). The original was
+  instance layouts and VMT orders (data/classes.json). The original was
   D:\GEngine\GFXE\DisplayC\DisplayC.pas with inc\TDisplay.PAS included (the Assert in
   TCustomDisplay.CreateWnd names it); TMatrix came from a unit DCTypes (its error message says so)
   but is compiled into this unit: its VMT is the first of the unit and its methods the last.

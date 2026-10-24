@@ -1,7 +1,7 @@
 unit EItemHS;
 
 { Draft declarations of EItemHS, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Instance $234: $230 item sprite; controls at $204..$22C. }
 
 {$R+,Q+}

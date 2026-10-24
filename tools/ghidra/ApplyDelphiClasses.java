@@ -124,7 +124,7 @@ public class ApplyDelphiClasses extends GhidraScript {
     }
 
     // Parameter lists of the Engine.TEStorageStream virtual methods (after Self). "p" = pointer,
-    // "i" = int, "b" = byte, "w" = word, "c" = char. From notes/persistence.md.
+    // "i" = int, "b" = byte, "w" = word, "c" = char. From doc/persistence.md.
     static final Map<String, String[]> STORAGE_SIGS = new HashMap<>();
     static {
         STORAGE_SIGS.put("StorageMode", new String[] {});

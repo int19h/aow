@@ -4,7 +4,7 @@ unit aowFX;
   of TXYZ points: lines, arcs, swarms, lightning bolts) and the declarations of a particle
   system that has no code of its own, written for the original compiler (Delphi 3.02) and
   compared function by function with the shipped module (tools/match.py). Declarations follow
-  the original instance layouts (notes/classes.json, notes/rtti/aowFXpck.dpl.txt).
+  the original instance layouts (data/classes.json, data/rtti/aowFXpck.dpl.txt).
 
   The path routines append new TXYZ points to List (passed by reference, the caller owns it):
   MakeLinePath Steps points from (X1, Y1) to (X2, Y2); MakeArcPathXY the same with Z following a

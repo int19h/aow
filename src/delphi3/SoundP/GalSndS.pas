@@ -3,7 +3,7 @@ unit GalSndS;
 { The GalSndS unit of SoundP.dpl: the sound system on top of the Galaxy Sound System (Galaxy
   unit), written for the original compiler (Delphi 3.02) and compared function by function with
   the shipped module (tools/match.py). Declarations follow the original instance layouts and VMT
-  orders (notes/classes.json); the enumeration names come from the type info.
+  orders (data/classes.json); the enumeration names come from the type info.
 
   Volumes are 0..100 at the interface and 0..127 (music, sound effects) or 0..32767 (one
   sample) in Galaxy. Music is a module file (IT, S3M, ...) Galaxy loads and plays; PlaySongEx

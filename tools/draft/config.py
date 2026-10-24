@@ -7,11 +7,11 @@ def parser(description):
     p.add_argument('module', type=Path)
     p.add_argument('signatures', type=Path)
     p.add_argument('unit')
-    p.add_argument('--classes', type=Path, default=ROOT / 'notes/classes.json')
+    p.add_argument('--classes', type=Path, default=ROOT / 'data/classes.json')
     p.add_argument('--source-root', type=Path, default=ROOT / 'src/delphi3')
     p.add_argument('--decomp', type=Path)
     p.add_argument('--vcl-source', type=Path)
-    p.add_argument('--rtti', type=Path, help='class-to-unit RTTI dump (defaults to notes/rtti/<module>.txt)')
+    p.add_argument('--rtti', type=Path, help='class-to-unit RTTI dump (defaults to data/rtti/<module>.txt)')
     return p
 def class_layouts(args):
     """Use module-local layouts for executables with duplicate, unexported class names."""
@@ -24,7 +24,7 @@ def class_layouts(args):
         local = {}
         scan_module(str(args.module), args.module.name, local, [])
         layouts.update(local)
-        dump = args.rtti or ROOT / 'notes/rtti' / (args.module.name + '.txt')
+        dump = args.rtti or ROOT / 'data/rtti' / (args.module.name + '.txt')
         current = None
         for line in dump.read_text(encoding='latin1').splitlines():
             m = re.match(r'class (\w+)', line)

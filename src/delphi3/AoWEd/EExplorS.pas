@@ -1,7 +1,7 @@
 unit EExplorS;
 
 { Draft declarations of EExplorS, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Defender controls at $210..$23C edit the inherited $20C map object. }
 
 {$R+,Q+}

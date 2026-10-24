@@ -3,7 +3,7 @@ unit SFXEdDlg;
 { The SFXEdDlg unit of SoundP.dpl: the sound effect library editor (TSFXLibraryEditDlg), written
   for the original compiler (Delphi 3.02) and compared function by function with the shipped
   module (tools/match.py). The form's components are plain published fields (offsets from
-  notes/rtti/SoundP.dpl.txt); there is no DFM.
+  data/rtti/SoundP.dpl.txt); there is no DFM.
 
   Edit works on a copy of the library and assigns it back on OK (the copy is not freed). The
   sequence grid shows one sequence per row from row 1; PlaySeqClick plays the sequence with the

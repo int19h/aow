@@ -3,7 +3,7 @@ unit GFXE;
 { The GFXE unit of Gfxepack.dpl (the graphics engine of Age of Wonders: surfaces, blitters, blend
   tables, DirectDraw access) written for the original compiler (Delphi 3.02), class by class:
   tools/match.py compares the code DCC32 generates for every method with the code in the game's
-  module. Declarations follow the original instance layouts and VMT orders (notes/classes.json).
+  module. Declarations follow the original instance layouts and VMT orders (data/classes.json).
   The original was D:\GEngine\GFXE\GFXMAIN\GFXE.pas with inc\DIBSURF.PAS and inc\DDSurf.PAS
   included (the Assert line numbers tell); the DirectDraw interfaces and GUIDs are declared in
   this unit itself (their type info and typed constants sit in Gfxepack.dpl), without GUIDs on

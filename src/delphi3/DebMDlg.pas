@@ -3,7 +3,7 @@ unit DebMDlg;
 { The DebMDlg unit of Enginep.dpl written for the original compiler (Delphi 3.02): TDebugMessageDlg,
   the form that shows an engine's debug messages (TEngine.OutputDebugStr / OutputDebugMessage) in
   a memo and lets the user pick the debug IDs to see. The component fields and event handlers are
-  the published ones of the original (notes/rtti/Enginep.dpl.txt); no DFM is needed to compare the
+  the published ones of the original (data/rtti/Enginep.dpl.txt); no DFM is needed to compare the
   code, so the form resource is not linked. tools/match.py compares every method with the game's
   module. }
 

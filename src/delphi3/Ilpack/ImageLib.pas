@@ -5,7 +5,7 @@ unit ImageLib;
   library manager and the image sequences) written for the original compiler (Delphi 3.02), class
   by class: tools/match.py compares the code DCC32 generates for every method with the code in
   the game's module. Declarations follow the original instance layouts and VMT orders
-  (notes/classes.json) and the declaration order of the type information; names of private
+  (data/classes.json) and the declaration order of the type information; names of private
   fields and of implementation-only routines are invented. The editor units of the package
   (ILEdGrid, SubImgEd, ImgSetEd, SImgSEd, ILEdForm) are used by Register only. }
 

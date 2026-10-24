@@ -2,7 +2,7 @@ unit Engine;
 
 { Recovered from Enginep.dpl (Age of Wonders 1.36, Delphi 3), persistence part of the Engine unit.
 
-  Sources: notes/decomp/Enginep-typed-all (Ghidra, typed), notes/persistence.md.
+  Sources: data/decomp/Enginep-typed-all (Ghidra, typed), doc/persistence.md.
   Field names are the original ones where RTTI or accessors gave them, and descriptive names otherwise;
   the field order and sizes follow the original instance layout so that a Delphi 3 build can later be
   compared byte for byte. Method bodies are translated by hand from the decompiled code; each one names

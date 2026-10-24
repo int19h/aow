@@ -1,5 +1,5 @@
 # Generated decompiler output (large, derived from the game binaries; regenerate with tools/ghidra)
-notes/decomp/
+data/decomp/
 
 # Ghidra project files and script build output, in case they land here by accident
 *.gpr

@@ -2,7 +2,7 @@ unit EList;
 
 { The EList unit of Enginep.dpl written for the original compiler (Delphi 3.02): TListObject, an
   object a TObjectList owns and streams, and TObjectList itself. Declarations follow the original
-  instance layouts and VMT orders (notes/classes.json); tools/match.py compares every method with
+  instance layouts and VMT orders (data/classes.json); tools/match.py compares every method with
   the game's module. }
 
 interface

@@ -5,7 +5,7 @@ Usage: match.py [--show Method] [--alias aliases.json] [--quiet] <compiled.exe> 
 
 Example:
   match.py src/delphi3/matchtest.exe src/delphi3/matchtest.map "D:\\Games\\GOG\\Age of Wonders\\Enginep.dpl" \
-           notes/signatures/Enginep.dpl.json TPropertyTable TIntegerList
+           data/signatures/Enginep.dpl.json TPropertyTable TIntegerList
 
 For every method of each class found in the .map file, the original function with the same short name is
 looked up in the Ghidra signature export, both byte ranges are disassembled with capstone, and the

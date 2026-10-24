@@ -4,7 +4,7 @@ unit AdvancedDisplay;
   child control of a form and an exclusive full-screen DirectDraw window of 640x480 in 16 bits
   (Alt+Enter), written for the original compiler (Delphi 3.02) and compared function by function
   with the shipped module (tools/match.py). Declarations follow the original instance layout
-  (notes/classes.json, notes/rtti/Adcpack.dpl.txt); the class has no published properties. It is
+  (data/classes.json, data/rtti/Adcpack.dpl.txt); the class has no published properties. It is
   TZoomControl (ZoomControl unit) reworked: SetDisplayMode(dmFullScreen) does what
   MaximizeZoom does, with the window sized to the screen, and SwapDisplayMode then takes the
   DirectDraw object of GFXE (GFXE.DD) into exclusive full-screen mode.

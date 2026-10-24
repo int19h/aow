@@ -1,7 +1,7 @@
 unit RCILTer;
 
 { Draft declarations of RCILTer, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   TCombatILTerrainResourceEditForm $360 bytes; inherited $308 resource. }
 
 {$R+,Q+}

@@ -1,6 +1,6 @@
 unit AoWSetup;
 { Draft declarations of AoWSetup, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Setup, synchronization and map selection bodies are recovered. }
 interface
 uses

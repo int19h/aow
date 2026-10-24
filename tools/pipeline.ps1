@@ -1,7 +1,7 @@
 # One iteration of the naming loop for one package (default AoWEPACK.dpl):
 #   build classes.json -> apply structs in Ghidra -> dump the package -> snapshot classes.json next to the dump
 #   -> rebuild the field tables from the dump -> rebuild classes.json and engine-classes.md.
-# Usage: .\tools\pipeline.ps1 [-Module AoWEPACK.dpl] [-Rtti notes\rtti\AoWEPACK.dpl.txt] [-SkipGhidra]
+# Usage: .\tools\pipeline.ps1 [-Module AoWEPACK.dpl] [-Rtti data\rtti\AoWEPACK.dpl.txt] [-SkipGhidra]
 param(
     [string]$Module = 'AoWEPACK.dpl',
     [string]$Rtti = '',

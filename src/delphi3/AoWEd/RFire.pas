@@ -1,7 +1,7 @@
 unit RFire;
 
 { Draft declarations of RFire, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Fire type handlers use TFireResource.FFireType at inherited resource offset $308. }
 
 interface

@@ -1,7 +1,7 @@
 unit NewMapDialog;
 
 { Draft declarations of NewMapDialog, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   TNewMapDlg: published controls $1DC..$224; no additional fields. }
 
 interface

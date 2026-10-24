@@ -1,7 +1,7 @@
 unit ETCUnitPos;
 
 { Draft declarations of ETCUnitPos, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Direction uses inherited $1FC FEditObject and $20C FMapObject. }
 
 {$R+,Q+}

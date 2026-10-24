@@ -1,7 +1,7 @@
 unit PlayerBox;
 
 { Draft declarations of PlayerBox, from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Recovered item generation and selection; original field offsets are listed below. }
 
 interface

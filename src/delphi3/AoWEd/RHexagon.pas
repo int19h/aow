@@ -1,7 +1,7 @@
 unit RHexagon;
 
 { Draft declarations of RHexagon, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Form initialization and terrain-selection actions are recovered. }
 
 {$R+,Q+}

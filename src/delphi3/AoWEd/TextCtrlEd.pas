@@ -1,7 +1,7 @@
 unit TextCtrlEd;
 
 { Draft declarations of TextCtrlEd, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   $20C text control, $210 selected text control item. }
 
 {$R+,Q+}

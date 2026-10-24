@@ -2,8 +2,8 @@ unit ImgLComp;
 
 { The ImgLComp unit of Enginep.dpl written for the original compiler (Delphi 3.02): grids and
   panels that draw ImageLib images, with cut/copy/paste/delete through events and the clipboard.
-  Declarations follow the original instance layouts and VMT orders (notes/classes.json), the
-  published properties the RTTI (notes/rtti/Enginep.dpl.txt), the enumeration and event parameter
+  Declarations follow the original instance layouts and VMT orders (data/classes.json), the
+  published properties the RTTI (data/rtti/Enginep.dpl.txt), the enumeration and event parameter
   names the type info in the module. tools/match.py compares every method with the module. }
 
 interface

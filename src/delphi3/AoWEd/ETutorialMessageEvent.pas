@@ -1,7 +1,7 @@
 unit ETutorialMessageEvent;
 
 { Draft declarations of ETutorialMessageEvent, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   TTutorialMessageEventEditForm edits the inherited $20C map object. }
 
 interface

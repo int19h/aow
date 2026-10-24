@@ -16,7 +16,7 @@ find "$S" -name '*.dcu' -delete
 classes() {  # classes and units of a module, from its signature file: classes() <module> <units>
     python - "$1" "$2" <<'PY'
 import json, sys
-sig = json.load(open('notes/signatures/%s.json' % sys.argv[1], encoding='utf-8'))
+sig = json.load(open('data/signatures/%s.json' % sys.argv[1], encoding='utf-8'))
 units = set(sys.argv[2].split(','))
 print(' '.join(sorted({n['name'].split('@')[0].split('.')[1] for n in sig
                        if n['name'].count('.') == 2 and n['name'].split('.')[0] in units})))
@@ -39,7 +39,7 @@ check() {  # check <name> <dir> <dpr> <-U> <module> <units> <aliases...>
     cl=$(classes "$mod" "$units")
     printf '%-12s ' "$name"
     python tools/match.py --quiet --units "$units" $al "$out/$dpr.exe" "$out/$dpr.map" "$GAME/$mod" \
-        notes/signatures/$mod.json $cl 2>&1 | tail -1
+        data/signatures/$mod.json $cl 2>&1 | tail -1
 }
 
 ALL=${*:-Gfxepack Dcpack Ilpack Enginep EngineGrids EngineSmall aowDPlay VideoP Network SoundP Adcpack aowFXpck aowInt HSEPack}

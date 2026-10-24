@@ -1,7 +1,7 @@
 """Write a draft unit, preserving entry/field/VMT inference from the HSEPack tools.
 Usage: gen_unit.py <module.dpl> <signatures.json> <Unit> <out.pas>
 Optional --decomp supplies Ghidra field accesses; --vcl-source supplies Delphi source.
-For AoWE, implementation fragments follow notes/aowepack-plan.md P1 through P5.
+For AoWE, implementation fragments follow the work packages P1 through P5 (the AoWE include files).
 """
 import sys, io, re, os, glob, collections, contextlib, runpy
 from pathlib import Path
@@ -227,7 +227,7 @@ def generate(unit, output):
         text = "'" + val.replace("'", "''").replace('\r', "'#13'").replace('\n', "'#10'") + "'"
         resources.append('  %s = %s;' % (m.group(1),text))
     src = ['unit %s;' % unit,'','{ Draft declarations of %s, from %s.' % (unit,G.MOD),
-           '  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.',
+           '  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.',
            '  Stub bodies are placeholders for source recovery. }','','interface','',
            'uses','  '+', '.join(uses)+';',''] + (['type'] if own or types else []) + declarations
     if resources: src += ['','resourcestring']+resources

@@ -2,7 +2,7 @@
 import json, glob, os, re, sys, collections
 from pathlib import Path
 R = sys.argv[2]
-classes = json.load(open(sys.argv[4] if len(sys.argv)>4 else Path(__file__).resolve().parents[2] / 'notes/classes.json'))['classes']
+classes = json.load(open(sys.argv[4] if len(sys.argv)>4 else Path(__file__).resolve().parents[2] / 'data/classes.json'))['classes']
 sigs = {}
 for f in glob.glob(R + '/*.json'):
     mod = os.path.basename(f)[:-5]

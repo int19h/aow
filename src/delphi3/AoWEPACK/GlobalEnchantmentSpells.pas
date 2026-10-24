@@ -1,7 +1,7 @@
 unit GlobalEnchantmentSpells;
 
 { GlobalEnchantmentSpells, partially recovered from AoWEPACK.dpl.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Global enchantments and their spell effects recovered from the original code. }
 
 interface

@@ -1,7 +1,7 @@
 unit Ecity;
 
 { Draft declarations of Ecity, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   City controls at $230..$25C edit the inherited $20C map object. }
 
 {$R+,Q+}

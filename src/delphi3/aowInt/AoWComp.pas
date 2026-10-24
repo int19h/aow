@@ -5,8 +5,8 @@ unit AoWComp;
   (tools/match.py). TAoWComponent is the root of every control and window: it keeps the child
   list, the alignment rules, and two lists of dirty rectangles (the rectangles to redraw and the
   rectangles to blit to the screen), which AddDrawRect and AddBltRect keep free of overlaps.
-  Declarations follow the original instance layouts and VMT orders (notes/classes.json); the
-  published properties follow notes/rtti/aowInt.dpl.txt. }
+  Declarations follow the original instance layouts and VMT orders (data/classes.json); the
+  published properties follow data/rtti/aowInt.dpl.txt. }
 
 interface
 

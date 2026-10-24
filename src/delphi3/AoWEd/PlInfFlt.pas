@@ -1,7 +1,7 @@
 unit PlInfFlt;
 
 { Draft declarations of PlInfFlt, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   No added instance fields; published controls occupy $1DC through $260. }
 
 {$R+,Q+}

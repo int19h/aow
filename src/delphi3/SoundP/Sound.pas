@@ -3,7 +3,7 @@ unit Sound;
 { The Sound unit of SoundP.dpl: the sound system of Age of Wonders, written for the original
   compiler (Delphi 3.02) and compared function by function with the shipped module
   (tools/match.py). Declarations follow the original instance layouts and VMT orders
-  (notes/classes.json, notes/rtti/SoundP.dpl.txt); the enumeration names come from the type info.
+  (data/classes.json, data/rtti/SoundP.dpl.txt); the enumeration names come from the type info.
 
   How it works: a sound system (TSoundSystem, the only one is TGalaxySoundSystem in GalSndS)
   registers its class (RegisterSoundSystem); InitializeSoundSystem creates one and activates it

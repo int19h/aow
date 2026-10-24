@@ -848,11 +848,11 @@ Q+ increment checks, record-by-value copies and constant-loop examples.
 They do not test the claim about class declaration counts affecting otherwise
 identical methods. These probes compare compiled forms with each other; a
 rewrite of a game method still needs the original's call/data identities and
-control flow checked as required by [near-miss.md](briefs/near-miss.md).
+control flow checked with `tools/addrcheck.py` (see [match.md](match.md), "What a match proves").
 
 ## 9. Leftover-driven source forms (second round)
 
-The source comments beside unmatched functions, all 556 rows of `notes/equiv-review/*.tsv`, and the matching notes were surveyed. Repeated register permutations, ordinary spill counts, basic widths and branch inversions already have first-round entries. The remaining mechanisms are grouped into the **38 kinds** below, with the motivating function or note named for each. A kind is an experimental source mechanism, not a claim that its original leftover has now been matched.
+The source comments beside unmatched functions, all 556 rows of `data/equiv-review/*.tsv`, and the matching notes were surveyed. Repeated register permutations, ordinary spill counts, basic widths and branch inversions already have first-round entries. The remaining mechanisms are grouped into the **38 kinds** below, with the motivating function or note named for each. A kind is an experimental source mechanism, not a claim that its original leftover has now been matched.
 
 **143 additional pairs, 287 pair/switch configurations**: every pair has O+ and O- results, and the overflow guard also has O- Q+ R+. Four extra enum flag controls isolate the probe bug. All paired builds were repeated with the corrected probe. Sixteen representative first-round configurations were also rebuilt and remained unchanged (regression_checks.json). The deliberately broken numeric-CLI enum control is the stated exception. No game was run.
 
@@ -886,7 +886,7 @@ Review-only artifacts were kept separate: color immediates mistaken for image ad
 
 ### K01. Field tracking, bounds and repeated subscripts
 
-Reason: [match.md](match.md), field-store and FLists observations; [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TProductionControl.GetProduceUnitLevelMax.
+Reason: [match.md](match.md), field-store and FLists observations; [AoWEPACK review](../data/equiv-review/AoWEPACK.dpl.tsv), TProductionControl.GetProduceUnitLevelMax.
 
 A store can leave its value available for the following comparison; an intervening call forces a reload. Moving a field load across a guard reverses the observed comparison operands here. Conversely, naming the repeated `A and $FF` subscript did **not** change optimized code in this two-call example. A local is an experiment, not a guaranteed way to defeat reuse.
 
@@ -917,7 +917,7 @@ O-: A `Run: 0003: add esp, -0xc; ...; 0029: and eax, 0xff`; B `Run: 0003: add es
 
 ### K02. Global cell addresses, pointer contents and aliasing
 
-Reason: [AoWWinMan.pas](../src/delphi3/AoW/AoWWinMan.pas), TGeneral.SaveLayout; [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TPBEMPlayerControl.ValidateLoadedMap; [AoW review](equiv-review/AoW.exe.tsv), TVideoDialog.ApplyMode.
+Reason: [AoWWinMan.pas](../src/delphi3/AoW/AoWWinMan.pas), TGeneral.SaveLayout; [AoWEPACK review](../data/equiv-review/AoWEPACK.dpl.tsv), TPBEMPlayerControl.ValidateLoadedMap; [AoW review](../data/equiv-review/AoW.exe.tsv), TVideoDialog.ApplyMode.
 
 `T:=Obj` saves the current object across Sink. `Q:=@Obj` saves the address of the global cell but still reloads Q^ after Sink. Both can produce an extra saved register, but only the former freezes the receiver. The alias control stores through P and Q: replacing a final P^ load with A is wrong when P=Q. Do not classify a global or alias reload as redundant merely because the addresses look similar.
 
@@ -988,7 +988,7 @@ O-: A `Run: 0003: add esp, -8; ...; 0023: pop ecx`; B `Run: 0003: add esp, -0xc;
 
 ### K04. Receiver, field and untyped-argument scheduling
 
-Reason: [ExploreS.pas](../src/delphi3/AoWEPACK/ExploreS.pas), GetTerrainTypeImage; [Structur.PAS](../src/delphi3/AoWEPACK/inc/Structur.PAS), receiver/index comments; [Ilpack review](equiv-review/Ilpack.dpl.tsv), TBitMask.GrabImage.
+Reason: [ExploreS.pas](../src/delphi3/AoWEPACK/ExploreS.pas), GetTerrainTypeImage; [Structur.PAS](../src/delphi3/AoWEPACK/inc/Structur.PAS), receiver/index comments; [Ilpack review](../data/equiv-review/Ilpack.dpl.tsv), TBitMask.GrabImage.
 
 `with P` captures P before Fetch; the repeated-field form calls Fetch before loading Self.P in this context. An untyped const field argument passes its actual address; copying it first makes a private addressable slot instead. The var-argument control shows that an addressable incoming argument can force stack storage and xchg staging. These examples do not establish one global left-to-right rule; each expression kind is scheduled separately.
 
@@ -1040,7 +1040,7 @@ O-: A `Run: 0003: add esp, -0xc`; B `Run: 0003: add esp, -0x10; ...; 001c: mov e
 
 ### K06. Record size, packing and hidden result buffers
 
-Reason: [AoWTCPCK review](equiv-review/AoWTCPCK.dpl.tsv), UpdateMoveCursor/CanMoveOn; [AoWTC.pas](../src/delphi3/AoWTCPCK/AoWTC.pas), packed-temporary comments; [match.md](match.md), GetHeapStatus.
+Reason: [AoWTCPCK review](../data/equiv-review/AoWTCPCK.dpl.tsv), UpdateMoveCursor/CanMoveOn; [AoWTC.pas](../src/delphi3/AoWTCPCK/AoWTC.pas), packed-temporary comments; [match.md](match.md), GetHeapStatus.
 
 The return ABI follows the exact record size. The byte-array records of sizes 1,2,4 return in al,ax,eax; sizes 3,5,8,9 use a caller-provided destination (edx after the explicit Byte argument here). Packing `record B:Byte; W:Word end` changes size 4 to 3: it therefore **adds** a hidden buffer, with W read at buffer+1 instead of extracting the high word of eax. Naming that buffer did not change O+ code. Two GetHeapStatus field expressions call it twice and reserve two $28-byte records; the explicit snapshot calls once. Those are different heap snapshots, not interchangeable in every program.
 
@@ -1132,7 +1132,7 @@ O-: A `TObj.Run: 0003: add esp, -0x10; ...; 0021: mov edx, dword ptr [edx + 0xc]
 
 ### K08. Aggregate assignment, Move and callee copies
 
-Reason: [aowInt review](equiv-review/aowInt.dpl.tsv), DrawBack<TAOWPanel.Draw; [match.md](match.md), const-record copies.
+Reason: [aowInt review](../data/equiv-review/aowInt.dpl.tsv), DrawBack<TAOWPanel.Draw; [match.md](match.md), const-record copies.
 
 `D:=S` is specialized: the four-byte const record arrives as a value in eax, eight bytes copy two dwords, and 16/32 bytes use saved esi/edi plus `rep movsd` with count 4/8. `Move(S,D,SizeOf(S))` calls System.Move instead. A value 16-byte R copied again to L reserves/copies two records ($20 bytes); const R copied to L needs one ($10). Do not replace record assignment by Move when matching the copy instructions or parameter ABI.
 
@@ -1178,7 +1178,7 @@ O-: A `Run: 0003: add esp, -0x18; ...; 0023: mov eax, dword ptr [ebp - 8]`; B `R
 
 ### K09. Managed cleanup grouping and managed record fields
 
-Reason: [Arena.pas](../src/delphi3/AoWEPACK/Arena.pas), ExecuteTE; [Cave.pas](../src/delphi3/AoWEPACK/Cave.pas), EnterEx; [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TTeleport.Teleport.
+Reason: [Arena.pas](../src/delphi3/AoWEPACK/Arena.pas), ExecuteTE; [Cave.pas](../src/delphi3/AoWEPACK/Cave.pas), EnterEx; [AoWEPACK review](../data/equiv-review/AoWEPACK.dpl.tsv), TTeleport.Teleport.
 
 The shared body assigns a,b,c to S1/S2/S3, calls Sink, then sums their lengths. Three string locals finalize with `LStrArrayClr` and edx=3. Making S2 a distinct `TAlt=type string` splits them into three LStrClr calls, despite identical pointer representation. Inserting an **unused** Integer between declarations does not split them, even under O-. The record-field test changes S:string to S:ShortString: the managed case initializes/finalizes the record through type metadata; the ShortString case does not. Grouping is about allocated managed values and type identity, not just the printed var-list order.
 
@@ -1240,7 +1240,7 @@ generalize the reported EDX-to-ECX effect to every managed prologue.
 
 ### K10. String temporary destinations and lifetimes
 
-Reason: [AoW review](equiv-review/AoW.exe.tsv), TSendEmailGameDlg.ShowSendDialog; [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), path/managed-local leftovers.
+Reason: [AoW review](../data/equiv-review/AoW.exe.tsv), TSendEmailGameDlg.ShowSendDialog; [AoWEPACK review](../data/equiv-review/AoWEPACK.dpl.tsv), path/managed-local leftovers.
 
 Inlining `IntToStr` inside Copy reserves the Copy result pointer before calling IntToStr and uses the two private string slots in the opposite roles from explicit S. Both finally blocks still clear two strings together. By contrast, two separate `Length(IntToStr(...))` statements reuse one hidden string destination: naming and reassigning S gives the same code in both modes. A named temporary does not automatically lengthen lifetime or add cleanup; inspect the destination and clear sites.
 
@@ -1292,7 +1292,7 @@ O-: A `Run: 0003: add esp, -8; ...; 001d: pop ecx`; B `Run: 0003: add esp, 0xfff
 
 ### K12. String data addresses, nil conversion and uniqueness
 
-Reason: [ILToolsP review](equiv-review/ILToolsP.dpl.tsv), CopyStreamToClipboard/PasteStreamFromClipboard; [match.md](match.md), @S[1].
+Reason: [ILToolsP review](../data/equiv-review/ILToolsP.dpl.tsv), CopyStreamToClipboard/PasteStreamFromClipboard; [match.md](match.md), @S[1].
 
 For const S:string, both @S[1] and PChar(S) call LStrToPChar; Pointer(S) merely returns the incoming pointer. A writable **global** @S[1] instead passes the cell address to UniqueString, while Pointer(S) loads the pointer value. Storage and constness matter: do not transfer the global UniqueString observation to a const parameter. The Pointer(S)/Pointer(S) pair is the identical-source control.
 
@@ -1362,7 +1362,7 @@ omit bounds checks. Paste's writable var string still needs UniqueString.
 
 ### K13. Resource strings and typed constant cells
 
-Reason: [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), assertion constant-cell loads; [match.md](match.md), LoadResString.
+Reason: [AoWEPACK review](../data/equiv-review/AoWEPACK.dpl.tsv), assertion constant-cell loads; [match.md](match.md), LoadResString.
 
 For a string result, `const Text='hello'` loads a literal pointer and calls LStrLAsg. A resourcestring calls LoadResString with its descriptor; `const Text:string='hello'` loads a pointer from a constant cell. These are distinct references and call traces even when the visible text agrees. This is the source distinction behind LEA/immediate versus a cell load in diagnostic rewrites.
 
@@ -1430,7 +1430,7 @@ O-: Both `Run: 000a: push dword ptr [ebp + 8] 000d: mov eax, dword ptr [ebp - 4]
 
 ### K15. Class-method receivers and dynamic declaration order
 
-Reason: [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TCommandAbility.Command; [match.md](match.md), dynamic method numbering.
+Reason: [AoWEPACK review](../data/equiv-review/AoWEPACK.dpl.tsv), TCommandAbility.Command; [match.md](match.md), dynamic method numbering.
 
 An instance virtual Work calls through its VMT while leaving the instance in eax. A class virtual Work first replaces eax with [eax], then calls its slot: the callee receives the class, not the instance. For dynamic A/B methods, swapping declaration order changes A's bx selector from $FFFF to $FFFE before CallDynaInst. Same-sized classes can therefore call different methods with identical ordinary argument setup.
 
@@ -1452,7 +1452,7 @@ O-: A `Run: 000b: mov bx, 0xffff`; B `Run: 000b: mov bx, 0xfffe`.
 
 ### K16. Constructor/destructor flags and inherited results
 
-Reason: [AoWEd review](equiv-review/AoWEd.exe.tsv), TAoWMapEditForm.vmt90 and TAoWResourceEditForm.Destroy; [match.md](match.md), stub inherited result.
+Reason: [AoWEd review](../data/equiv-review/AoWEd.exe.tsv), TAoWMapEditForm.vmt90 and TAoWResourceEditForm.Destroy; [match.md](match.md), stub inherited result.
 
 Free is a direct TObject.Free call; Destroy supplies dl=1 and dispatches through VMT[-4]. Creating through an instance supplies allocation flag zero, while a class constructor call supplies one. The constructor-keyword control moves explicit X from edx to ecx and adds ClassCreate/FS handling. A destructor preserves the flag, masks dl with $FE for inherited Destroy, conditionally calls ClassDestroy, and returns Self. A procedure calling inherited Destroy instead passes -1. Finally, discarding an inherited function result keeps an extra ebx save/reload; `Result:=inherited Work(X)` avoids it. An unset function result is not a harmless stub contract.
 
@@ -1544,7 +1544,7 @@ O-: Both `Run: 0018: lea ecx, [ebp - 0x10] 001b: mov edx, dword ptr [ebp - 8] 00
 
 ### K18. Open-array highs and array-of-const descriptors
 
-Reason: [Enginep review](equiv-review/Enginep.dpl.tsv), SortStringsEx; [AoW review](equiv-review/AoW.exe.tsv), resource formatting.
+Reason: [Enginep review](../data/equiv-review/Enginep.dpl.tsv), SortStringsEx; [AoW review](../data/equiv-review/AoW.exe.tsv), resource formatting.
 
 An open Integer array arrives as data pointer eax and high index edx. `High(X)>=0` uses test edx/ jl; the fully unsigned comparison uses test edx/ jb, whose carry condition cannot be true after TEST. It preserves the original empty-array bug rather than fixing it. Format('%d',[A]) builds an Integer TVarRec; preconverting to S and formatting %s adds IntToStr, a managed slot and a different descriptor type. The array-of-const call contains a hidden high index (zero for one element) as well as the descriptor address.
 
@@ -1580,7 +1580,7 @@ O-: A `Run: (no corresponding instruction) / Get: (no corresponding instruction)
 
 ### K20. Typed handlers, consuming handlers and empty protected regions
 
-Reason: [Enginep review](equiv-review/Enginep.dpl.tsv), TCompareStorageStream.rwCreateEObject; [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TAIMoveExecuterMove.Destroy.
+Reason: [Enginep review](../data/equiv-review/Enginep.dpl.tsv), TCompareStorageStream.rwCreateEObject; [AoWEPACK review](../data/equiv-review/AoWEPACK.dpl.tsv), TAIMoveExecuterMove.Destroy.
 
 Catch-all except uses HandleAnyException and DoneExcept; adding raise calls RaiseAgain. An on E:Exception handler selects HandleOnException and adds a class/target table. An empty try/finally still installs and removes a frame and emits its handler; replacing it by the cleanup statement removes that machinery. These constructs differ in exception behavior, not merely layout. The displayed .handlers class address is masked by match.py; read the table identity when comparing different exception classes.
 
@@ -1650,7 +1650,7 @@ O-: A `Run: 0014: mov dword ptr [ebp - 0x10], eax; ...; 002b: mov dword ptr [ebp
 
 ### K22. Assertion source position, includes and explicit diagnostics
 
-Reason: [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TCombatPredictor.AddWall and TAIGroup.Deactivate; [HSEPack review](equiv-review/HSEPack.dpl.tsv), THSMap.UnlockTerrainChangedEvent.
+Reason: [AoWEPACK review](../data/equiv-review/AoWEPACK.dpl.tsv), TCombatPredictor.AddWall and TAIGroup.Deactivate; [HSEPack review](../data/equiv-review/HSEPack.dpl.tsv), THSMap.UnlockTerrainChangedEvent.
 
 Splitting Assert across a line moves its ecx line argument from $0F to $10. Putting the same statement in r2_assert_fragment.inc changes the embedded filename; the Assert call/register forms are otherwise unchanged (literal positions move because the filenames have different lengths). An explicit three-argument import of System.@Assert@E17CE8DC preserves the original filename/line without rearranging source. Both calls use eax=message, edx=filename, ecx=line. These diagnostics are observable; matching only masked pointers is insufficient.
 
@@ -1718,7 +1718,7 @@ O-: A `Run: 000b: mov al, byte ptr [ebp - 1]`; B `Run: (no corresponding instruc
 
 ### K24. Integer reassociation, operand order and complementary operations
 
-Reason: [HSEPack review](equiv-review/HSEPack.dpl.tsv), TAbstractRoad.GetShowPriority; [AoW review](equiv-review/AoW.exe.tsv), TRelWindow.HighlightRace.
+Reason: [HSEPack review](../data/equiv-review/HSEPack.dpl.tsv), TAbstractRoad.GetShowPriority; [AoW review](../data/equiv-review/AoW.exe.tsv), TRelWindow.HighlightRace.
 
 The constant-add reassociation and splitting `A+36` into Result assignment plus Inc collapse to the same O+ code here, but O- preserves their operation/store order. A+B versus B+A still changes add direction and the result move. XOR $FFFFFFFF and NOT have distinct opcodes. Both alternative doublings match `2*(A-B)` in both modes. Do not assume a split expression forces MOV/ADD rather than LEA; that depends on the rest of the allocation context.
 
@@ -1805,7 +1805,7 @@ removal, and Q+ overflow behavior was not tested.
 
 ### K25. Signed division, x87 helpers and precision barriers
 
-Reason: [PrdPlace.pas](../src/delphi3/AoWEPACK/PrdPlace.pas), GetIncome; [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TAbstractUnit.ExecuteDamageRole; [match.md](match.md), reciprocal division and Comp records.
+Reason: [PrdPlace.pas](../src/delphi3/AoWEPACK/PrdPlace.pas), GetIncome; [AoWEPACK review](../data/equiv-review/AoWEPACK.dpl.tsv), TAbstractUnit.ExecuteDamageRole; [match.md](match.md), reciprocal division and Comp records.
 
 Signed A div 2 uses `sar; jns; adc` to round toward zero, unlike logical shr. Unsigned div 8 equals shr 3 in both modes; X/4 equals X*0.25 and uses the same reciprocal multiplication. Round and Trunc call different RTL helpers. A Single intermediate adds fstp dword/wait/fld and therefore a rounding boundary to a Double expression. Comp casts of the two eight-byte records compare with fild/fcompp/fnstsw/sahf; fieldwise Integer comparison does not. Typed Scale:Single versus Scale:Double changes FMUL from dword to qword; Scale:Extended instead uses FLD xword then multiplies the Double argument. Changing only the untyped literal 0.005 to 0.01 leaves both instruction streams identical, but the xword literal bytes change from `0a d7 a3 70 3d 0a d7 a3 f7 3f` to `0a d7 a3 70 3d 0a d7 a3 f8 3f` (float_literal_data.json). This is the TWorldFXHS.NewFrame kind of wrong-number bug in the AoWEPACK review: an instruction match alone cannot establish a floating value.
 
@@ -1883,7 +1883,7 @@ O-: Both `Run: 0006: fld xword ptr [+0x1c] 000c: fmul qword ptr [ebp + 8] 000f: 
 
 ### K26. Set constants, Include, membership and literal type inference
 
-Reason: [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TMine.SetRazed, TArmy.Desert and TAbstractUnit.ExecuteDamageEffects; [MoveT.PAS](../src/delphi3/AoWEPACK/inc/MoveT.PAS), set-expression leftover.
+Reason: [AoWEPACK review](../data/equiv-review/AoWEPACK.dpl.tsv), TMine.SetRazed, TArmy.Desert and TAbstractUnit.ExecuteDamageEffects; [MoveT.PAS](../src/delphi3/AoWEPACK/inc/MoveT.PAS), set-expression leftover.
 
 Include(S,2) ORs immediate 4 into the byte slot; S:=S+[2] loads a constant then ORs. A typed set constant loads a data cell rather than the local literal pool. Integer bit tests differ from set intersection/equality and variable membership uses a bound guard plus BT instead of SHL/AND. A two-byte S combined with untyped [0,2] and [] expands to 32-byte sets and SetExpand/SetIntersect/SetEq in this expression. Declaring Mask and Empty as the same TS instead yields word AND/CMP. The attempted direct literal typecasts were rejected; typed constant declarations are the tested small-set form.
 
@@ -1937,7 +1937,7 @@ O-: A `Run: 0003: add esp, -0x44; ...; 0050: mov esp, ebp`; B `Run: 0003: push e
 
 ### K27. Exact True, enum storage and normalization width
 
-Reason: [AoW review](equiv-review/AoW.exe.tsv), TMultiWindow.JoinBtnClick and TUnitSelectionDlg.DrawUnit; [Enginep review](equiv-review/Enginep.dpl.tsv), TCompressStream.SaveToStreamEx.
+Reason: [AoW review](../data/equiv-review/AoW.exe.tsv), TMultiWindow.JoinBtnClick and TUnitSelectionDlg.DrawUnit; [Enginep review](../data/equiv-review/Enginep.dpl.tsv), TCompressStream.SaveToStreamEx.
 
 `if B` tests nonzero, while `B=True` compares al with 1; values 2..255 distinguish them. Explicit source Z1 versus Z4 changes SizeOf of TE=(e0,e1,e2) from 1 to 4. With valid one-byte enum storage, passing a Byte cast to TE gives the same caller as a Byte formal in this control: it did not reproduce the original extra eax copy. The two Byte/mask placements also normalize to the same code. Those controls did not explain the original conversion/register choice; the constructor/enum-local refinement below now reproduces the extra EAX copy.
 
@@ -2013,7 +2013,7 @@ compiler build.
 
 ### K28. Equivalent thresholds, overflow-sensitive guards and mask timing
 
-Reason: [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), CompareCityProductions; [AoW review](equiv-review/AoW.exe.tsv), TUnitWindow.ShowUnit and TArmyInfoDlg.DrawUnit.
+Reason: [AoWEPACK review](../data/equiv-review/AoWEPACK.dpl.tsv), CompareCityProductions; [AoW review](../data/equiv-review/AoW.exe.tsv), TUnitWindow.ShowUnit and TArmyInfoDlg.DrawUnit.
 
 A<4 uses cmp 4/jge; A<=3 uses cmp 3/jg. A>0 uses test/jle, whereas A-1>=0 uses dec/js, with different behavior at INT_MIN when checks are off. Q+ adds IntOver to the subtraction form. Moving the $7F mask before the unsigned Byte guard moves the AND before CMP and changes which inputs reach the body. These are distinct kinds: threshold spelling is equivalent; overflow and early masking need a domain proof.
 
@@ -2090,7 +2090,7 @@ O-: A `Run: 0003: add esp, -0xc; ...; 001f: test eax, eax`; B `Run: 0003: add es
 
 ### K30. Dead stores, retained conditions and undefined results
 
-Reason: [AoW review](equiv-review/AoW.exe.tsv), TTCUnit.UAbilLBMouseMove; [HSEPack review](equiv-review/HSEPack.dpl.tsv), THSMEdit.UpdateMouseCoordinates; [Gfxepack review](equiv-review/Gfxepack.dpl.tsv), alignment benchmarks.
+Reason: [AoW review](../data/equiv-review/AoW.exe.tsv), TTCUnit.UAbilLBMouseMove; [HSEPack review](../data/equiv-review/HSEPack.dpl.tsv), THSMEdit.UpdateMouseCoordinates; [Gfxepack review](../data/equiv-review/Gfxepack.dpl.tsv), alignment benchmarks.
 
 A dead B:=3 assignment is removed, yet its `test eax,eax` remains under O+. A dead local result of Tick does not remove the call. A missing Result initialization leaves the incoming eax on the untaken branch here; adding Result:=0 introduces an accumulator/zero. Such paths cannot be judged equivalent merely because all defined-result paths agree. O- exposes actual stale slots instead of these register choices.
 
@@ -2166,7 +2166,7 @@ O-: A `Run: 0004: mov dword ptr [ebp - 4], 0x3f`; B `Run: 0004: mov dword ptr [e
 
 ### K32. Getter calls versus fields and unchecked backing arrays
 
-Reason: [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TAIMoveTargetSelector.ProcessStates; [Unit.PAS](../src/delphi3/AoWEPACK/inc/Unit.PAS), raw backing-array note; [AoW review](equiv-review/AoW.exe.tsv), pure Count getter caching.
+Reason: [AoWEPACK review](../data/equiv-review/AoWEPACK.dpl.tsv), TAIMoveTargetSelector.ProcessStates; [Unit.PAS](../src/delphi3/AoWEPACK/inc/Unit.PAS), raw backing-array note; [AoW review](../data/equiv-review/AoW.exe.tsv), pure Count getter caching.
 
 TList L[I] calls Classes.TList.Get, including its bounds behavior; L.List^[I] loads the backing pointer at +4 and indexes directly. A field-backed Value property compiles to a field load, while an otherwise identical getter-backed property calls Get, even though Get is only Result:=F. The getter is not inlined. A getter's apparent purity may justify an equivalence argument, but it does not give the same call trace or code.
 
@@ -2188,7 +2188,7 @@ O-: A `Run: 000c: mov eax, dword ptr [eax + 4]`; B `Run: 000c: call TTarget.Get`
 
 ### K33. Checked class casts and exact versus descendant type tests
 
-Reason: [CitySpells.pas](../src/delphi3/AoWEPACK/CitySpells.pas), animation-cast comments; [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TCombatUnit.ObjectDestroyed.
+Reason: [CitySpells.pas](../src/delphi3/AoWEPACK/CitySpells.pas), animation-cast comments; [AoWEPACK review](../data/equiv-review/AoWEPACK.dpl.tsv), TCombatUnit.ObjectDestroyed.
 
 `O as TStringList` adds the target-class load and AsClass helper before Count; the hard cast omits them. `O is TStringList` calls IsClass, while ClassType=TStringList calls ClassType then compares the exact VMT. Nil and subclass cases differ. These checked forms are not substitutes for redundant hard casts used only to perturb allocation.
 
@@ -2210,7 +2210,7 @@ O-: A `Run: 000c: mov edx, dword ptr [image+0x4104]; ...; 0017: mov byte ptr [eb
 
 ### K34. Typed deallocation and clear-before-free order
 
-Reason: [match.md](match.md), Dispose/FreeMem; [Ilpack review](equiv-review/Ilpack.dpl.tsv), old-image freeing/reloads.
+Reason: [match.md](match.md), Dispose/FreeMem; [Ilpack review](../data/equiv-review/Ilpack.dpl.tsv), old-image freeing/reloads.
 
 Dispose of the plain eight-byte record loads edx=8 before FreeMem; explicit FreeMem(P,SizeOf(P^)) omits that size argument in the emitted helper call. Dispose of a record containing string calls @Dispose with type metadata; raw FreeMem does not finalize that string. `P.Free; P:=nil` clears after the call; saving P, clearing it, then freeing T clears before the callback/destructor. Delphi 3 has no FreeAndNil helper in this installation; the latter is the explicitly written pattern, not a presumed library call.
 
@@ -2277,7 +2277,7 @@ O-: A `Finalization<ProbeUnit: (no corresponding instruction)`; B `Finalization<
 
 ### K37. Shared failure returns and Boolean branch materialization
 
-Reason: [Cave.pas](../src/delphi3/AoWEPACK/Cave.pas), CanEnter shared-return comment; [City.pas](../src/delphi3/AoWEPACK/City.pas), ValidUpgradeBudgetCity; [AoW review](equiv-review/AoW.exe.tsv), TFileDlgWindow.FileLBChange.
+Reason: [Cave.pas](../src/delphi3/AoWEPACK/Cave.pas), CanEnter shared-return comment; [City.pas](../src/delphi3/AoWEPACK/City.pas), ValidUpgradeBudgetCity; [AoW review](../data/equiv-review/AoW.exe.tsv), TFileDlgWindow.FileLBChange.
 
 Two explicit early failure returns versus a short-circuit Boolean assignment share different return blocks and branch targets. A separate `if A=B then Result:=True else Result:=False` uses branches and explicit constants; `Result:=A=B` uses SETE. This extends the first-round Exit/else negative result: identical epilogues in one shape do not imply that every equivalent Boolean return structure canonicalizes.
 
@@ -2299,7 +2299,7 @@ O-: A `Run: 0012: jne +0x1a; ...; 001a: mov byte ptr [ebp - 9], 0`; B `Run: 0012
 
 ### K38. Single-label cases and explicit empty arms
 
-Reason: [match.md](match.md), single-enum-label and empty-arm observations; [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), TAIGroupTargetSelector.Setup; [MainAG.pas](../src/delphi3/AoWEPACK/MainAG.pas), ProcessStates.
+Reason: [match.md](match.md), single-enum-label and empty-arm observations; [AoWEPACK review](../data/equiv-review/AoWEPACK.dpl.tsv), TAIGroupTargetSelector.Setup; [MainAG.pas](../src/delphi3/AoWEPACK/MainAG.pas), ProcessStates.
 
 For source-sized TE=(e0,e1,e2), case E of e1 uses DEC al/JNE, while an equivalent if E=e1 uses CMP al,1/JNE. An explicit empty label is removed when the implicit default does nothing: the four-action cases with and without label 1 match. Once there is an else action, label 1 must bypass it. The five-label version then uses a table with offsets `27 61 33 3f 4b`, where label 1 targets the statement end at +61; removing that empty arm selects a four-label comparison chain instead. Removing it also changes input 1 behavior, so it is not a safe rewrite merely to obtain a chain.
 

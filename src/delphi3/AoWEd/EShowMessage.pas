@@ -1,7 +1,7 @@
 unit EShowMessage;
 
 { Draft declarations of EShowMessage, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   TShowMessageEditForm edits the inherited $20C map object. }
 
 interface

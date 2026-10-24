@@ -1,6 +1,6 @@
 # Byte-matching the original compiler
 
-The game modules were built with Delphi 3.02 (`notes/binary-inventory.md`). With the same compiler
+The game modules were built with Delphi 3.02 (`doc/binary-inventory.md`). With the same compiler
 installed (`C:\Tools\Delphi3`, see the README), a recovered method can be compiled and its machine
 code compared with the code in the game's module. When the instruction streams are identical, the
 source is right in every detail the compiler can see: field layout, VMT order, evaluation order,
@@ -10,15 +10,15 @@ local variable order, loop shape.
 
 1. Read the original: `tools/disasm.py <module> <signatures.json> <names...>` prints functions by
    name with capstone, `--range=lo-hi` prints raw bytes (exception handlers that Ghidra left out of
-   a function). The decompiled C in `notes/decomp/` gives the logic; the disassembly gives the shape.
+   a function). The decompiled C in `data/decomp/` gives the logic; the disassembly gives the shape.
 2. Write the method in `src/delphi3/*.pas` (Delphi 3 syntax, CRLF line endings, `uses Consts` for the
-   list error strings). Keep the original instance layout and VMT order from `notes/classes.json`.
+   list error strings). Keep the original instance layout and VMT order from `data/classes.json`.
 3. Build: `C:\Tools\Delphi3\BIN\DCC32.EXE -GD -B "-UIlpack;Gfxepack" matchtest.dpr` in `src/delphi3` (ImageLib comes from the Ilpack sources). The host program
    references every class so that smart linking keeps the methods; a method that is not referenced
    shows up as "not in map".
 4. Compare: `python tools/match.py --quiet --alias src/delphi3/match-aliases.json
    src/delphi3/matchtest.exe src/delphi3/matchtest.map "<game dir>\Enginep.dpl"
-   notes/signatures/Enginep.dpl.json TPropertyTable TIntegerList ...`. Call, jump and absolute
+   data/signatures/Enginep.dpl.json TPropertyTable TIntegerList ...`. Call, jump and absolute
    addresses are masked; on-exception tables after `jmp @HandleOnException` are skipped. `--show
    Method` prints both streams side by side. The alias file maps nested functions and unit
    procedures that Ghidra named `FUN_xxxxxxxx` to map symbols (`"DefaultRun<TByteList.SaveToStream"`
@@ -294,19 +294,16 @@ date and version as `DCC32.EXE`), and Delphi 3 builds other than 3.0 and 3.01.
 - `GetEngine`, `GetPlugIn`: the same source compiles with Index in ebx for one and in eax for the
   other in the original.
 - Every unit of Enginep.dpl and thirteen more packages are done (the state table above and
-  `tools/checkall.sh`). `notes/handoff.md` (2026-10-20) has the per-package leftovers, the open
-  declaration work (export hashes, the EngineLists fold, the access classes, the Assert layout)
-  and the order of the remaining modules, AoWEPACK.dpl first.
+  `tools/checkall.sh`). `doc/open-items.md` lists the declaration work still open.
 
 ## AoWEPACK.dpl (2026-10-20)
 
-About 6,155 of 6,872 functions identical, recovered by Codex sessions (notes/model-comparison.md,
-notes/briefs/). The AoWE unit is one interface cut into per-package include runs and one
+About 6,155 of 6,872 functions identical, recovered by Codex sessions. The AoWE unit is one interface cut into per-package include runs and one
 implementation file `inc\AoWEimpl.inc` in the original's address order; 46 of its 52 Asserts are on
 the original lines (the other six need more lines than our code leaves between them). Of the roughly
 690 functions that differ, about 490 differ first in a register, a saved register or the frame size,
 the pattern no source variant changes in any package; the others were reviewed once
-(notes/briefs/review-differing.md) and the fixable causes fixed.
+and the fixable causes fixed.
 
 New compiler observations from this package: moving whole routines within a unit can change the
 exception cleanup of an unrelated routine (`Format` lost its match when the implementation was put
@@ -341,7 +338,7 @@ Two tools close the gap. Both take the arguments of `tools/match.py`:
   are state correspondences it cannot infer (230) and global addresses it cannot pair (71).
 
 "Register choice" leftovers are not proven equivalent by default. Rewriting a near miss until it
-matches is cheaper than proving it, and finds bugs (`notes/briefs/near-miss.md`): the first round
+matches is cheaper than proving it, and finds bugs: the first round
 fixed 96 of 171 functions and about 20 real behavior differences. A rewrite counts only when the
 address check stays clean for it.
 

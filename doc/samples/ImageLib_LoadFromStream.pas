@@ -1,5 +1,5 @@
 { Reconstruction sample: ImageLib.TCustomImageLibrary.LoadFromStream from Ilpack.dpl (VA 5521A9C0).
-  Source: Ghidra decompilation (notes/decomp/Ilpack) plus RTTI (notes/rtti/Ilpack.dpl.txt).
+  Source: Ghidra decompilation (data/decomp/Ilpack) plus RTTI (data/rtti/Ilpack.dpl.txt).
   Field names marked (RTTI) come from published properties; the others are inferred from use.
 
   Instance layout seen so far (TCustomImageLibrary, size 80):

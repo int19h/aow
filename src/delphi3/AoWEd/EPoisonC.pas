@@ -1,7 +1,7 @@
 unit EPoisonC;
 
 { Draft declarations of EPoisonC, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Poison cloud settings use inherited $20C FMapObject. }
 
 {$R+,Q+}

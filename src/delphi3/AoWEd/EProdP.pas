@@ -1,7 +1,7 @@
 unit EProdP;
 
 { Draft declarations of EProdP, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Defender level uses TProductionPlace at inherited $20C FMapObject. }
 
 {$R+,Q+}

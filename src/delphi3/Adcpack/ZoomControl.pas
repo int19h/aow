@@ -3,8 +3,8 @@ unit ZoomControl;
 { The ZoomControl unit of Adcpack.dpl: TZoomControl, a window that can be "zoomed" from a child
   control of a form to a top-most 320x240 popup window and back (Alt+Enter), written for the
   original compiler (Delphi 3.02) and compared function by function with the shipped module
-  (tools/match.py). Declarations follow the original instance layout (notes/classes.json,
-  notes/rtti/Adcpack.dpl.txt); the class has no published properties.
+  (tools/match.py). Declarations follow the original instance layout (data/classes.json,
+  data/rtti/Adcpack.dpl.txt); the class has no published properties.
 
   How it works: MaximizeZoom hides every visible form of the application, takes the control's
   window out of its parent (SetParent 0), makes it a top-most popup (WS_POPUP or WS_SYSMENU,

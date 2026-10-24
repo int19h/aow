@@ -2,7 +2,7 @@ unit Engine;
 
 { The Engine unit of Enginep.dpl written for the original compiler (Delphi 3.02), class by class:
   tools/match.py compares the code DCC32 generates for every method with the code in the game's
-  module. Declarations follow the original instance layouts and VMT orders (notes/classes.json); a
+  module. Declarations follow the original instance layouts and VMT orders (data/classes.json); a
   method whose body is still a stub is marked "stub". The hash classes come from
   inc\HashTab.PAS as in the original. }
 

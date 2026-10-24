@@ -1,7 +1,7 @@
 unit EChangeSong;
 
 { Draft declarations of EChangeSong, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   $238 song list; the song filename is in inherited $20C FMapObject. }
 
 {$R+,Q+}

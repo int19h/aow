@@ -6,7 +6,7 @@ program matchtest;
   -GD writes matchtest.map with the address of every method; compare from the repository root:
     python tools/match.py --quiet --units DisplayC --alias src/delphi3/Dcpack/match-aliases.json
       <outdir>/matchtest.exe <outdir>/matchtest.map "D:/Games/GOG/Age of Wonders/Dcpack.dpl"
-      notes/signatures/Dcpack.dpl.json TMatrix TAbstractDC TDisplayCtrl TDDrawFSWinControl
+      data/signatures/Dcpack.dpl.json TMatrix TAbstractDC TDisplayCtrl TDDrawFSWinControl
       TCustomDisplay TDisplay TUpdateFrameThread TDisplayGDISurface TWindowsDC TWindows08DC
       TWindows16DC TWindows24DC TWindows32DC TDDrawDCSurface TDDrawDC TDDrawFullScrDC
       TDDrawFullScr16DC TDDrawFullScr24DC TDDrawFullScr32DC

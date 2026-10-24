@@ -15,9 +15,9 @@ As a result, every persisted field of every engine class is listed, in order and
 `ReadWrite`. Decompiling the `ReadWrite` methods of the `AoWE` unit yields the data model. Only one class in
 AoWEPACK uses a plain `LoadFromStream`/`SaveToStream` pair.
 
-`tools/readwrite_table.py` extracts those calls from the decompiled output into `notes/persisted-fields.md`
+`tools/readwrite_table.py` extracts those calls from the decompiled output into `data/persisted-fields.md`
 (218 classes), `tools/field_names.py` names offsets from trivial getters and setters, and `tools/class_layout.py`
-merges both with the RTTI sizes into `notes/engine-classes.md`.
+merges both with the RTTI sizes into `doc/engine-classes.md`.
 
 ### TEStorageStream VMT
 
@@ -118,7 +118,7 @@ and it lists every property id the schema does not explain. Remaining gaps are i
 Ghidra dropped from the call (`rwIntegerEx`, `rwData`) and `rwStreamProc` payloads.
 
 With this, a Python reader for `.asg` and `.hsm` files is a straightforward next tool: inflate, read the root
-object's table, and walk `TAoWHSMap.ReadWrite` using `notes/persisted-fields.md` as the schema.
+object's table, and walk `TAoWHSMap.ReadWrite` using `data/persisted-fields.md` as the schema.
 
 ### Worked example: THero
 

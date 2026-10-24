@@ -1,7 +1,7 @@
 unit RMultiHx;
 
 { Draft declarations of RMultiHx, from AoWEd.exe.
-  Layouts and VMT order follow notes/classes.json; guessed signatures are marked draft.
+  Layouts and VMT order follow data/classes.json; guessed signatures are marked draft.
   Multi-hex editor fields: $334 last selected hexagon; $338 tool (0 select, 1 drag, 2 main point). }
 
 {$R+,Q+}
