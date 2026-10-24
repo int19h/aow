@@ -48,7 +48,7 @@ class PublicEvents(unittest.TestCase):
         self.assertNotIn('H8',c.last_contracts['hypotheses'])
     def test_equal_ordered_reads_need_no_coarsening(self):
         c,f=build('8b088b1089c831d2c3','8b088b1089d031d2c3')
-        self.assertEqual('PROVEN',c.check(f)[0])
+        self.assertEqual('PROVEN under H6',c.check(f)[0])
         self.assertNotIn('H8',c.last_contracts['hypotheses'])
     def test_intervening_write_prevents_coarsening(self):
         c,f=build('8b0a890a8b0ac3','8b0a890ac3')
@@ -110,7 +110,7 @@ class PublicEvents(unittest.TestCase):
 
     def test_pointer_cell_is_constant_among_ordered_public_writes(self):
         c,f=ordered_pointer_cell()
-        self.assertEqual('PROVEN under H5',c.check(f)[0])
+        self.assertEqual('PROVEN under H5,H6',c.check(f)[0])
         self.assertNotIn('H8',c.last_contracts['hypotheses'])
         self.assertNotIn(0x402000,c.inp.addresses.forward)
 
@@ -128,5 +128,5 @@ class PublicEvents(unittest.TestCase):
         for code,other in [(b'\xa1'+p32(A)+bytes.fromhex('8901c3'),bytes.fromhex('b8010000008901c3')),
                            (bytes.fromhex('b8010000008901c3'),b'\xa1'+p32(B)+bytes.fromhex('8901c3'))]:
             c,f=setup(code,other)
-            self.assertEqual('PROVEN under H5',c.check(f)[0])
+            self.assertEqual('PROVEN under H5,H6',c.check(f)[0])
             self.assertNotIn('H8',c.last_contracts['hypotheses'])

@@ -93,8 +93,8 @@ class ModuleSummaries:
                     occupied.update(span)
                     node['decoded_bytes']=len(occupied)
                     decoded[pc]=ins;op=ins.operands[0] if ins.operands else None
-                    if ins.mnemonic in ('fstenv','fnstenv','fsave','fnsave') or (ins.mnemonic=='call' and op.type==e.X.X86_OP_IMM and op.imm==pc+ins.size):
-                        node['hazard']=(False,'callee unmodeled instruction-location observation')
+                    if ins.mnemonic in ('fstenv','fnstenv','fsave','fnsave','fldenv','frstor') or (ins.mnemonic=='call' and op.type==e.X.X86_OP_IMM and op.imm==pc+ins.size):
+                        node['hazard']=(False,'callee unmodeled instruction-location observation at '+hex(pc)+' ('+ins.mnemonic+')')
                         raise e.Unsupported(node['hazard'][1])
                     dest=None;kind='direct-summary'
                     if pc==start and ins.mnemonic=='jmp':

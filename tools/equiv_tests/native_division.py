@@ -24,7 +24,7 @@ for signed,op in [(False,bytes.fromhex('f7f1')),(True,bytes.fromhex('f7f9'))]:
             q=(abs(dividend)//abs(divisor))*(-1 if (dividend<0)!=(divisor<0) else 1)
             fault=not (-(1<<31)<=q<(1<<31) if signed else 0<=q<(1<<32))
         else:fault=True
-        st=e.State({r:e.bv(a if r=='eax' else d if r=='edx' else v if r=='ecx' else 0) for r in e.REGS},{f:e.z3.BoolVal(False) for f in e.FLAGS},e.z3.Array('m',e.BV32,e.BYTE),e.z3.Array('fs',e.BV32,e.BYTE),e.bv(0,e.FP_BITS))
+        st=e.State({r:e.bv(a if r=='eax' else d if r=='edx' else v if r=='ecx' else 0) for r in e.REGS},{f:e.z3.BoolVal(False) for f in e.FLAGS},e.z3.Array('m',e.BV32,e.BYTE),e.bv(0),e.bv(0,e.FP_BITS))
         m.step(st,ins)
         assert e.z3.is_true(e.simp(st.events[0][1]))==fault,(signed,a,d,v,'fault')
         if not fault:

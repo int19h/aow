@@ -49,7 +49,7 @@ class PointerCells(unittest.TestCase):
         entry['compiled']['cells'].append(dict(address='0x402020',section='DATA'))
         self.install(checker,[entry])
         self.assertNotIn(0x402000,checker.inp.addresses.forward)
-        self.assertEqual('PROVEN',checker.check(fn)[0])
+        self.assertEqual('PROVEN under H6',checker.check(fn)[0])
         self.assertEqual(2,len(checker.inp.addresses.pointer_cells[1]))
 
     def test_wrong_named_pointee_rejects(self):
@@ -64,7 +64,7 @@ class PointerCells(unittest.TestCase):
         entry['original']['immutability']['class'] = 'loader-iat'
         self.install(checker,[entry])
         self.assertNotIn(0x402000,checker.inp.addresses.forward)
-        self.assertEqual('PROVEN',checker.check(fn)[0])
+        self.assertEqual('PROVEN under H6',checker.check(fn)[0])
 
     def test_any_cell_write_even_unreachable_or_aliased_is_unsupported(self):
         for tail in (b'\xc3\xa3'+p32(0x402000), bytes.fromhex('8901')):
@@ -73,7 +73,7 @@ class PointerCells(unittest.TestCase):
                 checker.inp.new.data[0x1000:0x1000+fn.nsize] = b'\xa1'+p32(0x402010)+b'\xc3\xa3'+p32(0x402010)+b'\xc3'
             self.install(checker,[entry])
             status,reason = checker.check(fn)
-            self.assertEqual('UNSUPPORTED' if tail[0] == 0xc3 else 'PROVEN under H5',status)
+            self.assertEqual('UNSUPPORTED' if tail[0] == 0xc3 else 'PROVEN under H5,H6',status)
             if tail[0] == 0xc3: self.assertIn('pointer cell',reason)
             else: self.assertIn('H5',checker.last_contracts['hypotheses'])
 

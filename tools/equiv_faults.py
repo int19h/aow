@@ -3,7 +3,7 @@ from equiv_garbage import model
 
 
 CONTRACT = dict(
-    validity='valid(address,width,read/write/FS-kind); stable between boundaries',
+    validity='valid(linear address,width,kind); FS kind includes selector/descriptor context; stable between boundaries',
     private_domain='owned stack access validity is an explicit H6 premise; validated constants are H5',
     observations='first fault kind, access information, pre-fault public memory/FS/FP',
     exclusions='page permissions, stack exhaustion, partial progress, raw exception registers',
@@ -11,13 +11,16 @@ CONTRACT = dict(
 
 
 def remember(st, index, predicate, before=None):
+    owner=getattr(st,'ownership',None)
+    if owner is not None:owner.checker.fault_emitted=True
     st.faults = getattr(st, 'faults', {})
     st.faults[index] = (predicate, *(before or (st.memory, st.fs, st.fp)))
 
 
 def access(st, tag, address, width, before=None):
     e=model()
-    valid=e.z3.Function('H6_valid_'+tag, e.BV32, e.BV32, e.z3.BoolSort())
+    args=[address,e.bv(width)]+([st.fs] if tag.endswith('-fs') else [])
+    valid=e.z3.Function('H6_valid_'+tag,*[v.sort() for v in args],e.z3.BoolSort())
     private=len(st.events) in getattr(st,'private_indices',())
     if private:
         owner=st.ownership;checker=owner.checker
@@ -25,8 +28,8 @@ def access(st, tag, address, width, before=None):
         key=(owner.side,st.access_ins.address,tag,width,e.simp(address).sexpr(),owner.base.sexpr(),owner.lowest)
         instances[key]=dict(side=owner.side,pc=hex(st.access_ins.address),kind=tag,
             width=width,address=e.simp(address).sexpr(),low=owner.lowest,
-            entry_esp=owner.base.sexpr(),predicate=valid(address,e.bv(width)).sexpr())
-    predicate=e.z3.BoolVal(False) if private else e.z3.Not(valid(address,e.bv(width)))
+            entry_esp=owner.base.sexpr(),predicate=valid(*args).sexpr())
+    predicate=e.z3.BoolVal(False) if private else e.z3.Not(valid(*args))
     remember(st, len(st.events), predicate, before)
 
 
@@ -75,7 +78,7 @@ def finish(states, sequences):
                     memory=projected[key]
                 zero=e.z3.K(e.BV32,e.bv(0,8))
                 event=(*event,predicate,e.z3.If(predicate,e.simp(memory),zero),
-                       e.z3.If(predicate,fs,zero),e.z3.If(predicate,fp,e.bv(0,e.FP_BITS)))
+                       e.z3.If(predicate,fs,e.bv(0,fs.size())),e.z3.If(predicate,fp,e.bv(0,e.FP_BITS)))
             st.fault_event_indices[id(event)]=index
             out.append(event)
         result.append(out)

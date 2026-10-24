@@ -29,7 +29,7 @@ class Calls(unittest.TestCase):
             status,_ = checker.check(fn); self.assertEqual(status.startswith('PROVEN'),expected)
             if expected: self.assertNotIn(['r','ebx',0],checker.last_contracts['hypotheses']['H3'][0]['inputs'])
     def test_unknown_indirect_uses_explicit_H3c_and_concrete_R2_cleanup(self):
-        checker,fn = build('ff10c3','ff10c3'); self.assertEqual('PROVEN under H3c',checker.check(fn)[0])
+        checker,fn = build('ff10c3','ff10c3'); self.assertEqual('PROVEN under H3c,H6',checker.check(fn)[0])
         c = checker.last_contracts['hypotheses']['H3c'][0]; self.assertEqual('H3c-register-convention',c['mode']); self.assertNotIn(['r','ebx',0],c['inputs']); self.assertNotIn(['f','cf'],c['inputs']); self.assertEqual(0,c['cleanup']); self.assertEqual('R2',c['cleanup_rule']); self.assertEqual('0',c['cleanup_symbol'])
     def test_restore_and_df_are_individual_obligations_on_all_routes(self):
         for a,b in [('bb01000000c3','bb01000000c3'),('fdc3','fdc3'),
@@ -96,7 +96,7 @@ class Calls(unittest.TestCase):
         self.assertIsNone(e.callee_cleanup(checker,0,0x401100))
     def test_R2_unreadable_direct_callee_and_negative_count(self):
         body = call(0,0x500000)+bytes.fromhex('c3')
-        checker,fn = build(body,body,bindings=[(0x500000,0x500000)]); self.assertEqual('PROVEN under H3c',checker.check(fn)[0])
+        checker,fn = build(body,body,bindings=[(0x500000,0x500000)]); self.assertEqual('PROVEN under H3c,H6',checker.check(fn)[0])
         self.assertEqual('R2',checker.last_contracts['hypotheses']['H3c'][0]['cleanup_rule'])
         checker,fn = build('535159ff105bc3','535159ff105bc3'); self.assertEqual('PROVEN under H1,H3c,H6',checker.check(fn)[0])
         c = checker.last_contracts['hypotheses']['H3c'][0]

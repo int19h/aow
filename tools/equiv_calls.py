@@ -13,6 +13,7 @@ class CallContracts:
         self.cache, self.sites, self.dependencies = {}, {}, set()
         self.summary_budgets={}
         self.h5, self.h1 = set(), set()
+        self.h9 = {}
         self.ready = False
         self.observed_flags = {}
     def lanes(self, ins, reg):
@@ -66,8 +67,8 @@ class CallContracts:
                 read,written = ins.raw.regs_access()
                 if any(ins.reg_name(r) not in self.e.ALIASES and ins.reg_name(r) not in ('eflags','fpsw','eip','cs','ds','es','ss','fs','gs') and not ins.reg_name(r).startswith('st') for r in set(read)|set(written)):
                     raise self.e.Unsupported('callee unmodeled register/context input')
-                if ins.mnemonic in ('fstenv','fnstenv','fsave','fnsave') or (ins.mnemonic == 'call' and ins.operands[0].type == self.e.X.X86_OP_IMM and ins.operands[0].imm == ins.address+ins.size):
-                    raise self.e.Unsupported('callee unmodeled instruction-location observation')
+                if ins.mnemonic in ('fstenv','fnstenv','fsave','fnsave','fldenv','frstor') or (ins.mnemonic == 'call' and ins.operands[0].type == self.e.X.X86_OP_IMM and ins.operands[0].imm == ins.address+ins.size):
+                    raise self.e.Unsupported('callee unmodeled instruction-location observation at '+hex(ins.address)+' ('+ins.mnemonic+')')
                 if (ins.mnemonic not in self.e.INTEGER_OPS and not ins.mnemonic.startswith(('j','set'))
                         or (ins.mnemonic == 'call' and nested is None) or ins.raw.addr_size != 4 or any(ins.raw.prefix)):
                     return None

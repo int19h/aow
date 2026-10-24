@@ -92,6 +92,7 @@ class Ownership:
     def copy(self):
         other=Ownership(self.checker,self.info,self.base,self.head)
         other.premises=list(self.premises);other.records=list(self.records);other.instances=list(self.instances);other.loaded=list(self.loaded);other.obligations=list(self.obligations);other.pc=self.pc;other.pushes=list(self.pushes)
+        if hasattr(self,'fdp_source'):other.fdp_source=self.fdp_source
         return other
     def load(self,st,addr,size,value):
         if size==4:
@@ -151,6 +152,8 @@ def premise(states):
 
 
 def guarded(states,goals):
+    from equiv_context import boundary
+    for st in states:boundary(st)
     e=model()
     if e.prove(goals):return goals
     for st in states:

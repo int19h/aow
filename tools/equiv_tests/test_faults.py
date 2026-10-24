@@ -74,7 +74,7 @@ class Faults(unittest.TestCase):
         self.assertEqual([0,1,2,3],list(st.faults))
         self.assertEqual([4]*4,[x[2].as_long() for x in st.events])
 
-    def test_validity_distinguishes_width_kind_and_FS(self):
+    def test_validity_distinguishes_width_kind_with_unified_FS(self):
         st=self.execute('8b018a01648b018901')
         names=[value[0].arg(0).decl().name() for value in st.faults.values()]
         self.assertEqual(['H6_valid_read','H6_valid_read','H6_valid_read-fs','H6_valid_write'],names)
@@ -94,7 +94,7 @@ class Faults(unittest.TestCase):
         self.assertTrue(h['instances'])
         self.assertTrue(all('H6_valid_' in v['predicate'] and v['pc'] for v in h['instances']))
         c=self.check_pair('8b01c3','908b01c3',True)
-        self.assertNotIn('H6',c.last_contracts['hypotheses'])
+        self.assertIn('H6',c.last_contracts['hypotheses'])
 
     def test_private_rep_records_each_validity_assumption(self):
         code='5783ec0889e7b800000000b902000000f3ab83c4085fc3'

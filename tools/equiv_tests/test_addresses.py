@@ -13,8 +13,8 @@ class Addresses(unittest.TestCase):
                 checker.inp.addresses.consulted.add((0x401001,0x401001,'local-cfg'))
                 raise e.NotProven('dynamically consulted identity')
             with patch.object(checker,route,side_effect=failure), \
-                 patch.object(e,'verify_frames',return_value=('PROVEN','')) as frames, \
-                 patch.object(checker,'houdini',return_value=('PROVEN','')) as inference:
+                 patch.object(e,'verify_frames',return_value=('PROVEN under H6','')) as frames, \
+                 patch.object(checker,'houdini',return_value=('PROVEN under H6','')) as inference:
                 self.assertEqual('NOT PROVEN',checker.check(fn)[0])
                 frames.assert_not_called()
                 inference.assert_not_called()
@@ -43,7 +43,7 @@ class Addresses(unittest.TestCase):
                 self.assertEqual({(hex(a),hex(b),p) for a,b,p in addr.consulted},
                                  {(r['original'],r['compiled'],r['source']) for r in proof['consulted']})
                 with patch.object(checker,'verify_fast',side_effect=e.NotProven('route guard')), \
-                     patch.object(e,'verify_frames',return_value=('PROVEN','')):
+                     patch.object(e,'verify_frames',return_value=('PROVEN under H6','')):
                     self.assertEqual('UNSUPPORTED',checker.check(fn)[0])
 
     def test_relocated_displacements(self):
@@ -53,11 +53,11 @@ class Addresses(unittest.TestCase):
             checker, fn = build(a, b, bindings=[(0x402000, 0x402010)], relocs=([site], [site]))
             checker.inp.addresses.names[0][0x402000]='Fixture.MutableGlobal'
             status,reason=checker.check(fn)
-            self.assertEqual('PROVEN',status)  # Mutable globals require identity and accessed width.
+            self.assertEqual('PROVEN under H6',status)  # Mutable globals require identity and accessed width.
             checker.inp.addresses.storage_objects=[(0x402000,0x402010,8,'mutable-data','fixture array type')]
-            self.assertEqual('PROVEN',checker.check(fn)[0])
+            self.assertEqual('PROVEN under H6',checker.check(fn)[0])
             checker, fn = build(a, b, bindings=[(0x402000, 0x402010)])
-            self.assertNotEqual('PROVEN', checker.check(fn)[0], 'unrelocated offset must stay literal')
+            self.assertNotEqual('PROVEN under H6', checker.check(fn)[0], 'unrelocated offset must stay literal')
             checker, fn = build(a, b, relocs=([site], [site]))
             self.assertEqual('UNSUPPORTED', checker.check(fn)[0])
             self.assertTrue(checker.inp.addresses.unresolved)
@@ -110,5 +110,5 @@ class Addresses(unittest.TestCase):
         addr = checker.inp.addresses
         before = dict(addr.forward), dict(addr.reverse), dict(addr.provenance)
         statuses = [checker.check(f)[0] for f in (fn, other, other, fn)]
-        self.assertEqual(['PROVEN', 'UNSUPPORTED', 'UNSUPPORTED', 'PROVEN'], statuses)
+        self.assertEqual(['PROVEN under H6', 'UNSUPPORTED', 'UNSUPPORTED', 'PROVEN under H6'], statuses)
         self.assertEqual(before, (addr.forward, addr.reverse, addr.provenance))

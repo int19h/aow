@@ -32,7 +32,7 @@ for name,h in operations.items():
     for a,b in pairs:
         bits=randomizer.getrandbits(12)&0x8d5 | 2
         out=(ctypes.c_uint32*3)();fn(a,b,bits,out)
-        st=e.State({r:e.bv(a if r=='eax' else b if r in ('edx','ecx') else 0) for r in e.REGS},{f:e.z3.BoolVal(bool(bits>>i&1)) for f,i in flags.items()},e.z3.Array('m',e.BV32,e.BYTE),e.z3.Array('fs',e.BV32,e.BYTE),e.bv(0,e.FP_BITS))
+        st=e.State({r:e.bv(a if r=='eax' else b if r in ('edx','ecx') else 0) for r in e.REGS},{f:e.z3.BoolVal(bool(bits>>i&1)) for f,i in flags.items()},e.z3.Array('m',e.BV32,e.BYTE),e.bv(0),e.bv(0,e.FP_BITS))
         machine.step(st,ins)
         assert e.simp(st.regs['eax']).as_long()==out[0],(name,a,b,'eax',out[0],st.regs['eax'])
         assert e.simp(st.regs['edx']).as_long()==out[1],(name,a,b,'edx',out[1],st.regs['edx'])

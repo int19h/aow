@@ -8,24 +8,26 @@ from .support import Case, build, call, fixture, p32
 def cases():
     for name,a,b,expected in [
         ('fault_write_read_swap','8b0a890731c9c3','89078b0a31c9c3','reject'),
-        ('fault_bound_equal','620131c0c3','90620131c0c3','prove'),
+        ('fault_bound_equal','620131c0c3','90620131c0c3','prove:H6'),
         ('fault_bound_missing','620131c0c3','31c0c3','reject'),
-        ('fault_div_equal','31d2f7f1c3','31d290f7f1c3','prove'),
-        ('fault_wait_equal','9b90c3','909bc3','prove'),
+        ('fault_div_equal','31d2f7f1c3','31d290f7f1c3','prove:H6'),
+        ('fault_wait_equal','9b90c3','909bc3','prove:H6'),
         ('fault_wait_missing','9bc3','90c3','reject'),
         ('fault_wait_write_order','9b8901c3','89019bc3','reject'),
+        ('fp_private_DP','83ec08d9eed95c240083c408c3','83ec08d9eed95c240483c408c3','reject'),
+        ('fp_private_DP_control','83ec08d9eed95c240083c408c3','83ec08d9eed95c240083c408c3','prove:H1,H6,H9'),
         ('fault_access_width','8b0831c9c3','0fb60831c9c3','reject'),
         ('fault_access_kind','8b0831c9c3','890831c9c3','reject')]:
         yield fixture(name,a,b,'Bounded synchronous fault predicates and pre-fault public state.',expected)
     from .test_resources import fixture as resource_fixture
-    for name,kwargs,expected in [('resourcestring_equal_ids_differ',{},'prove:H1,H3,H5'),('resourcestring_text_differs',{'value':'other'},'reject'),('resourcestring_unresolved',{'missing':True},'reject')]:
+    for name,kwargs,expected in [('resourcestring_equal_ids_differ',{},'prove:H1,H3,H5,H6'),('resourcestring_text_differs',{'value':'other'},'reject'),('resourcestring_unresolved',{'missing':True},'reject')]:
         yield Case(name,lambda kwargs=kwargs:(lambda c,f:c.check(f))(*resource_fixture(**kwargs)),expected,'Resourcestring IDs have meaning only through each module own RT_STRING table.')
     from .test_event_ownership import cases as event_ownership_cases
     yield from event_ownership_cases()
     from .test_public_events import published_private_writes,ordered_pointer_cell,temporary_below_prologue
     yield Case('published_private_write_order',lambda:(lambda c,f:c.check(f))(*published_private_writes()),'reject','Publishing a frame pointer makes subsequent writes observable.')
-    for name,factory,premise in [('ordered_pointer_cell',ordered_pointer_cell,'H5'),('temporary_below_prologue',temporary_below_prologue,'H1,H6')]:
-        yield Case(name,lambda factory=factory:(lambda c,f:c.check(f))(*factory()),'prove:'+premise if premise else 'prove','Constants and unpublished stack temporaries are not ordered public reads/writes.')
+    for name,factory,premise in [('ordered_pointer_cell',ordered_pointer_cell,'H5,H6'),('temporary_below_prologue',temporary_below_prologue,'H1,H6')]:
+        yield Case(name,lambda factory=factory:(lambda c,f:c.check(f))(*factory()),'prove:'+premise if premise else 'prove:H6','Constants and unpublished stack temporaries are not ordered public reads/writes.')
     from .test_ownership import cases as ownership_cases
     yield from ownership_cases()
     from .test_must_write import cases as must_write_cases
@@ -35,11 +37,11 @@ def cases():
     yield fixture('extra_identical_write','8908c3','89088908c3',
                   'Even a redundant public write is an event.')
     yield fixture('repeated_load_H8','8b0a8b0ac3','8b0ac3',
-                  'Only the explicit H8 repeated-load rule permits this.','prove:H8')
+                  'Only the explicit H8 repeated-load rule permits this.','prove:H6,H8')
     yield fixture('write_blocks_read_coarsening','8b0a890a8b0ac3','8b0a890ac3',
                   'An intervening public write ends the repeated-read interval.')
     yield fixture('equal_ordered_reads','8b088b1089c831d2c3','8b088b1089d031d2c3',
-                  'Equal ordered reads require no repeated-load coarsening.','prove')
+                  'Equal ordered reads require no repeated-load coarsening.','prove:H6')
     for changed in (False, True):
         a, ar = finally_program()
         b, br = finally_program(True, changed)
@@ -106,7 +108,7 @@ def cases():
                   'c70103000000 9b c70102000000 c3', 'A pending FP exception sees different public memory.')
     yield fixture('x87_operand_pointer', 'c70100000000 c70200000000 d901 31c0 31d2 c3',
                   'c70100000000 c70200000000 d902 31c0 31d2 c3',
-                  'Equal loaded numbers leave different observable FP operand pointers; needs explicit H9.', expected='conditional:H9')
+                  'Equal loaded numbers leave different observable FP operand pointers.', expected='reject')
     yield Case('builtin_mutant_EBX', mutant, 'reject', 'Built-in constant mutation changes the helper result.')
     yield fixture('FS_linear_alias', fs_program(True), fs_program(False),
                   'With FS.base=0x10000, moving the store changes the restored exception chain.',
@@ -114,9 +116,9 @@ def cases():
     yield fixture('swapped_exception_classes', on_exception_program(False), on_exception_program(True),
                   'Swapping exception classes selects a different returning handler.',
                   names=[(0x401300, 'System.@HandleOnException')])
-    yield fixture('positive_identical', '89c8 c3', '89c8 c3', 'Identical initialized behavior.', 'prove')
+    yield fixture('positive_identical', '89c8 c3', '89c8 c3', 'Identical initialized behavior.', 'prove:H6')
     yield fixture('positive_equivalent_encoding', 'b800000000 c3', '31c0 c3',
-                  'Both return zero; arithmetic flags are not return values.', 'prove')
+                  'Both return zero; arithmetic flags are not return values.', 'prove:H6')
     yield fixture('positive_changed_return_rejected', 'b801000000 c3', 'b802000000 c3',
                   'A straightforward different return must be rejected.')
     yield fixture('positive_direct_contents_rejected', b'\xa1' + p32(0x402000) + b'\xc3',
@@ -129,7 +131,7 @@ def cases():
     yield fixture('excluded_raw_divide_context',
                   'b901000000 31d2 b801000000 f7f2 b900000000 c3',
                   'b902000000 31d2 b801000000 f7f2 b900000000 c3',
-                  'Raw OS ECX snapshots are excluded by the coordinator; this is a domain control.', 'prove')
+                  'Raw OS ECX snapshots are excluded by the coordinator; this is a domain control.', 'prove:H6')
 
 
 def alias_route(route):
@@ -140,7 +142,7 @@ def alias_route(route):
         if route == 'acyclic':
             result=checker.acyclic(a, b)
         else:result=e.verify_frames(checker, a, b, finite=route == 'finite_frames')
-        premises=(['H1'] if checker.contracts.h1 else [])+(['H6'] if getattr(checker,'fault_private',{}) else [])+(['H8'] if getattr(checker,'h8_reads',{}) else [])
+        premises=(['H1'] if checker.contracts.h1 else [])+(['H6'] if getattr(checker,'fault_emitted',False) else [])+(['H8'] if getattr(checker,'h8_reads',{}) else [])+(['H9'] if checker.contracts.h9 else [])
         return ('PROVEN under '+','.join(premises),result[1]) if result[0]=='PROVEN' and premises else result
     except (e.NotProven, e.Unsupported) as exc:
         return ('NOT PROVEN' if isinstance(exc, e.NotProven) else 'UNSUPPORTED'), str(exc)

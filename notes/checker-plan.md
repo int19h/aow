@@ -162,6 +162,8 @@ Acceptance: the TIB-alias fixture, differing x87 operand-pointer state and pendi
 
 Report: segment/FP assumptions, unsupported forms and counts/timings.
 
+Result (tools/equiv_context.py, Fable approved after one revision): FS accesses become memory[FS.base+off], so FS and linear accesses to the same TIB byte alias; no TIB-separation premise. x87 state carries FIP/FOP/FDP and FCW/FSW/FTW and is compared in full at every call, boundary and fault. H9 is instantiated only by an FDP boundary obligation (FDP outside the private extent or not frame-derived); no game proof uses it. Counts unchanged; 288,371 queries uncached and cold.
+
 ### Step 9 - Bounded replay and mutation adjudication
 
 Design box: one session; second validator entry point at most about 600 lines, plus at most 150 test lines.

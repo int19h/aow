@@ -45,6 +45,7 @@ import equiv_cache as verdict_cache
 import equiv_image as image_relation
 import equiv_events as public_events
 import equiv_faults as faults
+import equiv_context as context
 from equiv_ownership import Ownership, outside, guarded, premise as ownership_premise, clone_ownership
 
 try:
@@ -73,7 +74,7 @@ STRING_OPS = frozenset(('rep movsd', 'rep movsb', 'rep stosd', 'rep stosb'))
 BV32 = z3.BitVecSort(32)
 BYTE = z3.BitVecSort(8)
 MEM = z3.ArraySort(BV32, BYTE)
-FP_BITS = 80 * 8 + 64
+FP_BITS = context.FP_BITS
 ALL = frozenset((a, b, lane) for a in REGS for b in REGS for lane in range(4))
 DIAG = frozenset((a, a, lane) for a in REGS for lane in range(4))
 
@@ -874,7 +875,8 @@ class State:
             self.regs[root] = simp(z3.Concat(parts))
 
     def load(self, addr, size, fs=False, raw_address=None):
-        mem = self.fs if fs else self.memory
+        addr=context.linear(self,addr,fs)
+        mem = self.memory
         value = image_relation.ACTIVE.read(addr,size) if image_relation.ACTIVE is not None and not fs else None
         if value is None:value = simp(z3.Concat([z3.Select(mem, addr + bv(i)) for i in reversed(range(size))])) if size > 1 else z3.Select(mem, addr)
         recording=getattr(self,"record_access",False);self.record_access=False
@@ -885,6 +887,7 @@ class State:
         return value
 
     def store(self, addr, value, fs=False):
+        addr=context.linear(self,addr,fs)
         before=(self.memory,self.fs,self.fp) if getattr(self,'record_access',False) else None
         if hasattr(self, 'cell_guard'):
             self.cell_guard(addr, value.size() // 8, fs)
@@ -892,13 +895,10 @@ class State:
         try:
             if hasattr(self,'ownership') and not getattr(self,'ownership_internal',False):self.ownership.store(self,addr,value)
         finally:self.record_access=recording
-        mem = self.fs if fs else self.memory
+        mem = self.memory
         for i in range(value.size() // 8):
             mem = z3.Store(mem, simp(addr + bv(i)), z3.Extract(i * 8 + 7, i * 8, value))
-        if fs:
-            self.fs = simp(mem)
-        else:
-            self.memory = simp(mem)
+        self.memory = simp(mem)
         public_events.record(self,'write',addr,value.size()//8,value,fs,before=before)
 
 
@@ -929,23 +929,21 @@ def arbitrary(candidates, flag_candidates):
         ff.append({f: z3.Bool('f_%d_%s' % (0 if f in flag_candidates else s, f)) for f in FLAGS})
         ff[-1]['df'] = z3.BoolVal(False)  # Ordinary entry; ABI gate rejects all DF-setting code.
     memory = z3.Array('memory', BV32, BYTE)
-    fs = z3.Array('fs_memory', BV32, BYTE)
-    # An opaque x87 machine includes the 80-bit stack and control/status state.
-    fp = z3.BitVec('x87_machine', 80 * 8 + 64)
+    fs = z3.BitVec('fs_context',context.FS_BITS)
+    # Opaque arithmetic/control/tag core plus explicit IP/opcode/data-pointer fields.
+    fp = z3.BitVec('x87_machine', FP_BITS)
     return [State(regs[s], ff[s], memory, fs, fp) for s in (0, 1)]
 
 
 class Machine:
     def guard_pointer_cells(self, address, size, fs=False):
         concrete = simp(address)
-        if not fs and z3.is_bv_value(concrete):
+        if z3.is_bv_value(concrete):
             for cell,width in self.addresses.protected(self.side).items():
                 canonical_cell = cell if self.side == 0 else self.addresses.reverse.get(cell,cell)
                 if any((concrete.as_long()+i) & 0xffffffff == (canonical_cell+k) & 0xffffffff
                        for i in range(size) for k in range(width)):
                     raise Unsupported('write to accepted pointer cell 0x%x' % cell)
-        if fs and getattr(self.addresses, 'active_cells', ((),()))[self.side]:
-            raise Unsupported('FS write may alias accepted pointer cell (segment relation unproved)')
         for cell in sorted(getattr(self.addresses, 'active_cells', ((),()))[self.side]):
             canonical_cell = cell if self.side == 0 else self.addresses.reverse.get(cell, cell)
             if not prove([z3.And(*(address+bv(i) != bv(canonical_cell+k)
@@ -1308,6 +1306,7 @@ class Machine:
                 # prove them, even when the helper's own address agrees.
                 raise Unsupported('Delphi dynamic dispatch: implicit register arguments')
             target = rd(0)
+            context.boundary(st)
             canonical_dynamic = self.addresses._dynamic_targets[0] | {
                 self.addresses.reverse[a] for a in self.addresses._dynamic_targets[1]
                 if a in getattr(self.addresses, 'reverse', {})}
@@ -1324,14 +1323,15 @@ class Machine:
                 st.flags[f] = z3.Bool('call_' + tag + '_' + f)
             st.flags['df'] = z3.BoolVal(False)  # Explicit H3 postcondition.
             st.memory = z3.Array('call_memory_' + tag, BV32, BYTE)
-            st.fs = z3.Array('call_fs_' + tag, BV32, BYTE)
-            st.fp = z3.BitVec('call_x87_' + tag, 80 * 8 + 64)
+            st.fs = z3.BitVec('call_fs_context_' + tag,context.FS_BITS)
+            st.fp = z3.BitVec('call_x87_' + tag, FP_BITS)
             # R1/R2 use the ABI pass's concrete count; only R3 stays symbolic.
             contract['cleanup_symbol'] = str(delta)
             st.regs['esp'] = simp(st.regs['esp'] + delta)
         elif m == 'eh-enter':
             st.events.append(('exception-helper', *(self.constant(v) for v in ins.eh)))
         elif m == 'ret':
+            context.boundary(st)
             amount = oo[0].imm if oo else 0
             target = st.load(st.regs['esp'], 4)
             st.regs['esp'] = simp(st.regs['esp'] + bv(4 + amount))
@@ -1342,12 +1342,12 @@ class Machine:
             else:
                 st.events.append(('return', target, *(st.regs[r] for r in ('eax', 'edx', 'esp', 'ebx', 'esi', 'edi', 'ebp')), st.flags['df']))
         elif m in FP_OPS:
-            # The brief permits ordered uninterpreted x87 operations. The
-            # state contains all eight 80-bit registers and control/status bits.
-            # Equality of the complete input state also covers x87 exceptions.
+            # Opaque arithmetic has explicit environment/address inputs and
+            # ordered pending/operation fault predicates.
             if m not in ('fnstcw','fnstsw'):faults.pending(st)
             if m=='wait':return
             args = [st.fp]
+            operand_addresses=[]
             store = m in ('fst', 'fstp', 'fist', 'fistp', 'fnstsw', 'fnstcw')
             shape = []
             for op in oo:
@@ -1355,6 +1355,8 @@ class Machine:
                     shape.append(ins.reg_name(op.reg))
                 elif op.type == X.X86_OP_MEM:
                     shape.append('mem%d' % op.size)
+                    address=context.linear(st,self.address(st,ins,op),bool(op.mem.segment and ins.reg_name(op.mem.segment)=='fs'))
+                    operand_addresses.append(address);args.extend((address,st.fs if op.mem.segment else z3.BitVec('flat_data_context',context.FS_BITS)))
                     if not store:
                         args.append(self.read(st, ins, op))
                 elif store and op.type == X.X86_OP_REG:
@@ -1372,8 +1374,7 @@ class Machine:
                 bits = oo[0].size * 8
                 value = z3.Function('x87_value_' + key, z3.BitVecSort(FP_BITS), z3.BitVecSort(bits))(st.fp)
                 self.write(st, ins, oo[0], value)
-            sorts = [v.sort() for v in args]
-            st.fp = z3.Function('x87_step_' + key, *sorts, z3.BitVecSort(FP_BITS))(*args)
+            context.update(self,st,ins,key,args,operand_addresses)
         else:
             raise Unsupported(m)
 
@@ -2535,11 +2536,13 @@ class Checker:
         self.full_events=False;self.ownership_failure=None
         self.h8_reads = {}
         self.fault_private = {}
+        self.fault_emitted = False
         self.access_failure = None
         try:
             result = self.check_raw(fn,mutated)
             if result[0]=='NOT PROVEN' and self.ownership_failure:
                 self.full_events=True
+                if self.contracts:self.contracts.h9.clear()
                 try:retry=self.check_raw(fn,mutated)
                 except Unsupported as error:retry=('UNSUPPORTED',str(error))
                 result=('NOT PROVEN',retry[1]) if retry[0]=='UNSUPPORTED' else retry
@@ -2585,8 +2588,12 @@ class Checker:
         self.last_contracts['fault_model']=dict(faults.CONTRACT,status=(
             'assumed private validity; public faults discharged' if self.fault_private else 'discharged'
             ) if result[0]=='PROVEN' else 'not established')
-        if self.fault_private:
-            self.last_contracts['hypotheses']['H6']=dict(predicate='owned private stack accesses are valid (no stack exhaustion/guard-page faults)',
+        self.last_contracts['segments']=context.SEGMENT
+        self.last_contracts['fp_model']=context.FP
+        if self.contracts and self.contracts.h9:
+            self.last_contracts['hypotheses']['H9']=[v for _,v in sorted(self.contracts.h9.items())]
+        if self.fault_emitted:
+            self.last_contracts['hypotheses']['H6']=dict(predicate='Bounded per-access validity and explicit fault model; owned private stack accesses are valid (no page-permission/partial-progress model, stack exhaustion or guard-page faults)',
                 instances=[v for _,v in sorted(self.fault_private.items())])
         if result[0]=='NOT PROVEN' and self.access_failure and not self.garbage_witness:
             result=('NOT PROVEN','ordered public events differ: '+' versus '.join(w['kind']+' at '+w.get('pc','boundary')+' ('+w.get('instruction','')+')' for w in self.access_failure['witnesses']))
