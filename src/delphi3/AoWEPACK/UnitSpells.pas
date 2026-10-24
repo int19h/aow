@@ -965,7 +965,7 @@ begin
     Result := False;
 end;
 
-procedure TCosmeticSurgery.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo); { Near miss: three variants omit the original Self and Source register saves. }
+procedure TCosmeticSurgery.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo); { Tried receiver/source identity copies and explicit inherited calls; still differs. }
 { The original saves Self and Source as well as Info; this compiler saves only Info. }
 begin
   inherited;
@@ -1071,7 +1071,7 @@ begin
   Result := Result and Target.CanDispelEnchantment(Source.FPlayer);
 end;
 
-procedure TDispelMagic.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo); { Near miss: three variants omit the original Self and Source register saves. }
+procedure TDispelMagic.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo); { Tried receiver/source identity copies and explicit inherited calls; still differs. }
 { conflict: procedure TDispelMagic.GetCombatInfo(Source: TCombatObject; var Info: TSpellCombatInfo); }
 begin
   inherited;

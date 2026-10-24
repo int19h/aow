@@ -181,7 +181,7 @@ begin
   end;
 end;
 
-procedure TMoveControlSettings.SetupMovePointData(Width, Height, LevelCount: Integer);
+procedure TMoveControlSettings.SetupMovePointData(Width, Height, LevelCount: Integer); { Tried local order, row-size reuse and height identity cast; still differs. }
 var
   I, RowSize, Offset: Integer;
 begin
@@ -382,7 +382,7 @@ begin
   Result := Count;
 end;
 
-procedure TMoveControl.ProcessHexagon(MapF: TAoWMapField; Direction, Count: Integer); { Near miss: Direction spill and neighbor evaluation differ after three variants. }
+procedure TMoveControl.ProcessHexagon(MapF: TAoWMapField; Direction, Count: Integer); { Tried local order, direction copy and hex-type address-taking; still differs. }
 var
   LeftCount, RightCount, OverCode, HT: Integer;
   Next: TAoWMapField;
@@ -427,7 +427,7 @@ begin
   if MapF.FFieldFlags and $8000 <> 0 then MapF.MoveExclusive(Self);
 end;
 
-function TMoveControl.ValidLocation(X, Y, L: Integer): Boolean; { Near miss: three variants retain a field temporary or change the method-pointer frame. }
+function TMoveControl.ValidLocation(X, Y, L: Integer): Boolean; { Tried pointer local, direct callback expression and field pointer cast; still differs. }
 var Field: TAoWMapField;
 begin
   Field := TAoWMapField(FMap.MapContainer.GetField(X, Y, L));
@@ -471,7 +471,7 @@ begin
   end;
 end;
 
-function TMoveControl.SetupMove: Boolean; { Near miss: Assert operand reuse differs after three variants; line preserved. }
+function TMoveControl.SetupMove: Boolean; { Tried assert address forms, field/receiver staging and local layout; still differs. }
 type TOriginalAssertText = packed record RefCount, Len: Integer; Text: array[0..127] of Char; end; const OriginalAssertFile: TOriginalAssertText = (RefCount:-1; Len:28; Text:'D:\AoWDev\AoWE\inc\MoveT.PAS'#0); OriginalAssertMessage: TOriginalAssertText = (RefCount:-1; Len:31; Text:'Invalid settings (TMoveControl)'#0); var
   Field: TAoWMapField;
   SubMove: TSubMove;
@@ -1354,7 +1354,7 @@ begin
   Result := (FSettings.FStatus <> mcssProcessed) and (FSettings.FStatus <> mcssFailed);
 end;
 
-procedure TMoveControl.CalculatePathEx(Path: TMovepath; X, Y, L: Shortint); { Near miss: Self/field spills and neighbor locals differ after three variants. }
+procedure TMoveControl.CalculatePathEx(Path: TMovepath; X, Y, L: Shortint); { Tried assert address forms, field/receiver staging and local layout; still differs. }
 type TOriginalAssertText = packed record RefCount, Len: Integer; Text: array[0..127] of Char; end; const OriginalAssertFile: TOriginalAssertText = (RefCount:-1; Len:28; Text:'D:\AoWDev\AoWE\inc\MoveT.PAS'#0); OriginalAssertMessage: TOriginalAssertText = (RefCount:-1; Len:17; Text:'Assertion failure'#0); var
   Field, Previous, Neighbor: TAoWMapField;
   Points, Cost, OverCode, Parity, Direction: Integer;
@@ -1452,7 +1452,7 @@ begin
   Result := Points;
 end;
 
-function TMoveControl.Activate(Settings: TMoveControlSettings): Boolean;
+function TMoveControl.Activate(Settings: TMoveControlSettings): Boolean; { Tried assert address forms, field/receiver staging and local layout; still differs. }
 type TOriginalAssertText = packed record RefCount, Len: Integer; Text: array[0..127] of Char; end; const OriginalAssertFile: TOriginalAssertText = (RefCount:-1; Len:28; Text:'D:\AoWDev\AoWE\inc\MoveT.PAS'#0); OriginalAssertMessage: TOriginalAssertText = (RefCount:-1; Len:17; Text:'Assertion failure'#0); begin
 
 
@@ -2134,7 +2134,7 @@ begin
   else Result := False;
 end;
 
-function TMoveArmyTE.Validate: Boolean; { Near miss: field temporaries and registers differ after three variants. }
+function TMoveArmyTE.Validate: Boolean; { Tried set-union flags, path with and receiver identity cast; still differs. }
 var
   I, UnitIndex: Integer;
   Settings: TMoveControlSettings;
@@ -2180,7 +2180,7 @@ begin
     AoWHSMap.FPlayers.GetPlayers(FPlayer).FAIControl.FMoveExecuter.InvalidateMove(FArmyHS, FSelection);
 end;
 
-procedure TMoveArmyTE.InitializeMove; { Near miss: army temporary and set expression differ after three variants. }
+procedure TMoveArmyTE.InitializeMove; { Tried set-union flag and army/owner copies, casts and with lifetimes; still differs. }
 var
   Last: Integer;
   ArmyHS: TArmyHS;
@@ -2397,9 +2397,9 @@ begin Result := inherited Setup(ArmyHS, Selection, Path, Mode); end;
 class function TArmyNegotiateMoveTE.ClassID: Integer;
 begin Result := $21106; end;
 
-function TArmyNegotiateMoveTE.Validate: Boolean;
+function TArmyNegotiateMoveTE.Validate: Boolean; { Matches: Assign inherited Validate to Result before the conjunction. }
 begin
-  Result := inherited Validate and
+  Result := inherited Validate; Result := Result and
     (TAoWMapField(AoWHSMap.MapContainer.GetField(FTargetX, FTargetY, FTargetL)).
       GetMoveAction(FArmyHS.FArmy.FPlayer) = maNegotiate);
 end;
@@ -2522,7 +2522,7 @@ begin Result := inherited Validate; end;
 procedure TArmyCombatMoveTE.InitializeMove;
 begin inherited InitializeMove; end;
 
-procedure TArmyCombatMoveTE.RequestCombatTypeCallBack(Log: TEventLog); { Review fix: the new attack move has an empty move-mode set; registers still differ. }
+procedure TArmyCombatMoveTE.RequestCombatTypeCallBack(Log: TEventLog); { Review fix: the new attack move has an empty move-mode set; registers still differ. Tried local order and log/request identity casts; still differs. }
 var
   Flow: TCombatFlowControlTE;
   Request: TCombatTypeRequestEventLog;
@@ -2591,7 +2591,7 @@ begin
   AoWHSMap.SynchroniseEnd;
 end;
 
-procedure TArmyCombatMoveTE.ShowHotSeatPlayerCallBack(Log: TEventLog); { Near miss: three variants save Self in EBX instead of ESI. }
+procedure TArmyCombatMoveTE.ShowHotSeatPlayerCallBack(Log: TEventLog); { Tried receiver/parameter identity casts and typed field access; still differs. }
 begin
   AoWHSMap.SetSeatedPlayer(TNewTurnEventLog(Log).FTurnPlayer);
   if FCombatMode = cmSetupHotseat then FCombatMode := cmSetupReady;
@@ -2798,7 +2798,7 @@ begin
   end;
 end;
 
-procedure TArmyCombatMoveTE.CombatExecuted(Combat: TCombat); { Near miss: combat-data argument register differs after three variants. }
+procedure TArmyCombatMoveTE.CombatExecuted(Combat: TCombat); { Tried owner branch/operand order and field pointer cast; still differs. }
 var
   ArmyHS: TArmyHS;
   Army: TArmy;

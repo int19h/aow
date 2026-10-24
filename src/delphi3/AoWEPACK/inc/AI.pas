@@ -200,7 +200,7 @@ begin
   Reset;
 end;
 
-function TAIPlayerControl.GetRandomGroupBehavior: TGroupBehavior; { Near miss: Self and player register allocation differ after three variants. }
+function TAIPlayerControl.GetRandomGroupBehavior: TGroupBehavior; { Tried cached player tests, pointer casts and with; still differs. }
 var
   Player: TPlayer;
 begin
@@ -1067,7 +1067,7 @@ begin
   FGroupControl.Activate;
 end;
 
-procedure TGroupControlAIPA.DeactivateGroupControl; { Near miss: single-use control local is optimized away after three variants. }
+procedure TGroupControlAIPA.DeactivateGroupControl; { Tried control identity casts, trailing self-copy and with; still differs. }
 var
   Control: TAIGroupControl;
 begin
@@ -1140,7 +1140,7 @@ begin
   FGroupControl.Activate;
 end;
 
-procedure TGroupControlLoopAIPA.DeactivateGroupControl; { Near miss: single-use control local is optimized away after three variants. }
+procedure TGroupControlLoopAIPA.DeactivateGroupControl; { Tried control identity casts, trailing self-copy and with; still differs. }
 var
   Control: TAIGroupControl;
 begin
@@ -1484,7 +1484,7 @@ begin
   end;
 end;
 
-function TAutoProduceAIPA.ProducingTransporter: Boolean;
+function TAutoProduceAIPA.ProducingTransporter: Boolean; { Tried local order, zero-shift indexes and nested with; still differs. }
 var
   I: Integer;
   Control: TProductionControl;
@@ -1504,7 +1504,7 @@ begin
   end;
 end;
 
-function TAutoProduceAIPA.ResearchingTransporter: Boolean;
+function TAutoProduceAIPA.ResearchingTransporter: Boolean; { Tried local order, zero-shift indexes and nested with; still differs. }
 var
   I: Integer;
   Control: TProductionControl;

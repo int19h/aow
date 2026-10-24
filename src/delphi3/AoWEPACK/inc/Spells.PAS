@@ -1156,7 +1156,7 @@ begin
   end
   else FTargetPlayer := $FF;
 end;
-function TUnitSpellTE.Validate(A1: THero): Boolean;
+function TUnitSpellTE.Validate(A1: THero): Boolean; { Tried receiver/parameter casts, Boolean staging and operand order; still differs. }
 var
   I: Integer;
   Target: TAbstractUnit;
@@ -1215,7 +1215,7 @@ begin
   FAllowMultipleTargets := True;
   FTargetRange := 0;
 end;
-procedure TUnitSpell.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo); { Near miss: compiler omits saved parameters after three variants. }
+procedure TUnitSpell.GetCombatInfo(Source: TAbstractUnit; var Info: TSpellCombatInfo); { Tried receiver/source identity copies and explicit inherited calls; still differs. }
 begin
   inherited GetCombatInfo(Source, Info);
   Info.TargetTypes := [cttFriend];
@@ -1860,7 +1860,7 @@ begin
   Stream.rwString(FEnchantmentName, 23);
   Stream.rwInteger(FLocation.XYL, 24);
 end;
-procedure TPlayerMagicEventLog.ViewLocation;
+procedure TPlayerMagicEventLog.ViewLocation; { Tried coordinate copies, casts and argument staging; still differs. }
 var
   X: Shortint;
 begin
@@ -1905,7 +1905,7 @@ end;
   $20 external source, $24 mana, $28 spheres, $2C research percentage,
   $30 spells, $34 research spell, $38 points, $3C enchantments,
   $40 power sources, $44/$45 active/enemy enchantments, $48 change events. }
-constructor TPlayerMagicControl.Create(AOwner: Engine.TECustomNode); { Near miss: single-use source local is optimized away after three variants. }
+constructor TPlayerMagicControl.Create(AOwner: Engine.TECustomNode); { Tried receiver casts, local order and child/result copies; still differs. }
 var
   Source: TExternalPowerSource;
 begin

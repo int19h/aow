@@ -293,11 +293,11 @@ begin
   Stream.rwCreateEObject(TEObject(FArmyID), nil, $2E);
 end;
 
-function TNegotiateRequestEventLog.CreateNegotiateTE: TNegotiateTE;
+function TNegotiateRequestEventLog.CreateNegotiateTE: TNegotiateTE; { Matches: Cast Self through Pointer before creating the event. }
 var
   Event: TNegotiateTE;
   ID: TArmyID;
-begin
+begin Self := TNegotiateRequestEventLog(Pointer(Self));
   Event := TNegotiateTE.Create(nil);
   Event.FPlayer := FPlayer;
   Event.FObject := FObject;
@@ -455,7 +455,7 @@ asm
 end;
 
 { Original unnamed helper 5572CB08: copy a diplomatic event to eligible players. }
-procedure BroadcastDiplomaticEvent(Log: TDiplomaticActionEventLog; Exclude: Shortint);
+procedure BroadcastDiplomaticEvent(Log: TDiplomaticActionEventLog; Exclude: Shortint); { Tried local order, event identity cast and zero-shift index; still differs. }
 var
   CopyLog: TEventLog;
   Player: TPlayer;
@@ -1560,7 +1560,7 @@ begin
   else Result := nil;
 end;
 
-function TDiplomacyAIPA.ExecuteDiplomacy(Player: Shortint): Boolean; { Near miss: Player/action register allocation differs after three variants. }
+function TDiplomacyAIPA.ExecuteDiplomacy(Player: Shortint): Boolean; { Tried local order, player/action address-taking and player cast; still differs. }
 var
   Action: TDiplomaticAction;
   Peace, War, Unknown: TByteList;
@@ -2340,7 +2340,7 @@ begin
   FCurrentScenarioID := ID;
 end;
 
-procedure TAoWCampaign.SetupScenario; { Near miss: loop registers and stack slots differ after three variants. }
+procedure TAoWCampaign.SetupScenario; { Tried local order, player/level address-taking and receiver cast; still differs. }
 var
   Player: Shortint;
   I, J, Level, R: Integer;

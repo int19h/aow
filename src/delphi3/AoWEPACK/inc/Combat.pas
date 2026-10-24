@@ -1541,7 +1541,7 @@ begin
   end;
 end;
 
-procedure TCombatUnit.Surrender;
+procedure TCombatUnit.Surrender; { Tried receiver casts, nested with and a receiver copy; still differs. }
 begin
   if GetHitPoints <> 0 then SetHitPoints(0);
   FStatus := FStatus + [csDestroyed];

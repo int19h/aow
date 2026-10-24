@@ -665,7 +665,7 @@ begin
   Result := TUnitEnchantment.Create(nil);
 end;
 
-function TUnitEnchantmentAbility.Expand(A1: TAbilityOwner): Boolean; { Review fix: retain both original assertion diagnostics; registers still differ. }
+function TUnitEnchantmentAbility.Expand(A1: TAbilityOwner): Boolean; { Review fix: retain both original assertion diagnostics; registers still differ. Tried assert address forms, local order and receiver/result copies; still differs. }
 type TOriginalAssertText = packed record RefCount, Len: Integer; Text: array[0..127] of Char; end; const OriginalAssertFile: TOriginalAssertText = (RefCount:-1; Len:28; Text:'D:\AoWDev\AoWE\inc\AoWAb.PAS'#0); OriginalAssertMessage: TOriginalAssertText = (RefCount:-1; Len:17; Text:'Assertion failure'#0); var
   Data: TUnitEnchantmentAbilityData;
   Enchantment: TUnitEnchantment;
@@ -1245,24 +1245,24 @@ begin
     Result := False;
 end;
 
-function TStrikeAbility.CanExecuteMelee(A1, A2: TCombatObject): Boolean;
+function TStrikeAbility.CanExecuteMelee(A1, A2: TCombatObject): Boolean; { Matches: Use Result for the intermediate attack condition. }
 var
   CanAttack: Boolean;
 begin
   if A1.GetSide = csDefender then
   begin
     if A1.fcBehindWall and A1.fcWallInBetween(A2.FPosition) then
-      CanAttack := wcWallPassing in A2.WallCombatFeatures
+      Result := wcWallPassing in A2.WallCombatFeatures
     else
-      CanAttack := True;
+      Result := True;
   end
   else
     if A2.fcBehindWall and A1.fcWallInBetween(A2.FPosition) and
       not (wcWallPassing in A1.WallCombatFeatures) then
-        CanAttack := False
+        Result := False
     else
-      CanAttack := True;
-  Result := CanAttack and (not A2.GetAbilityEnabled(1) or A1.GetAbilityEnabled(1));
+      Result := True;
+  Result := Result and (not A2.GetAbilityEnabled(1) or A1.GetAbilityEnabled(1));
 end;
 { Anonymous arithmetic helper at 55726100. }
 function P4OffensiveStrength(Attack, Damage, Repeats: Integer): Integer;
@@ -1857,7 +1857,7 @@ begin
   Result := -10;
 end;
 
-procedure TTouchAbility.GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); { Near miss: Three variants retain different level/attack lifetimes. }
+procedure TTouchAbility.GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); { Tried receiver/parameter copies, local order and result staging; still differs. }
 var
   Attack: Shortint;
   Level: Integer;
@@ -2124,7 +2124,7 @@ begin
   Source.ExecuteDamage(Source.GetHitPoints);
 end;
 
-procedure TSelfDestructCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
+procedure TSelfDestructCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); { Tried receiver/parameter casts and comparison order; still differs. }
 begin
   inherited ShowObject(A1, A2, A3, A4, A5, A6, A7);
   if ((A2.FID = FTargetID) or (A2.FID = FSourceID)) and
@@ -2568,7 +2568,7 @@ begin
   FSelectionTypes := [];
 end;
 
-procedure TPossessedAbility.CombatObjectDestroyed(A1: TCombatObject); { Near miss: Three variants retain different with-object registers. }
+procedure TPossessedAbility.CombatObjectDestroyed(A1: TCombatObject); { Tried receiver casts, local order and child/result copies; still differs. }
 var
   NewUnit: TUnit;
   Data: TPossessedAbilityData;
@@ -3699,7 +3699,7 @@ begin
       ((A2.GetHits <> A2.GetHitPoints) or A2.GetAbilityEnabled(96) or
         A2.GetAbilityEnabled(53) or A2.GetAbilityEnabled(108));
 end;
-procedure THealingAbility.GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo);
+procedure THealingAbility.GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); { Tried receiver/source identity copies and explicit inherited calls; still differs. }
 begin
   inherited GetCombatInfo(A1, A2);
   A2.TargetTypes := [cttFriend];
@@ -3735,7 +3735,7 @@ begin
     A4.DamageTypes := [];
   end;
 end;
-procedure THealingAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); { Near miss: three variants keep the healing value in EAX instead of EDI. }
+procedure THealingAbility.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); { Tried receiver/parameter copies, local order and result staging; still differs. }
 var
   HitPoints: Integer;
 begin
@@ -4075,7 +4075,7 @@ begin
       Result := True;
   end;
 end;
-procedure TDispelMagicAbility.GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo);
+procedure TDispelMagicAbility.GetCombatInfo(A1: TAbilityOwner; var A2: TAbilityCombatInfo); { Tried receiver/source identity copies and explicit inherited calls; still differs. }
 begin
   inherited;
   A2.TargetTypes := [cttFriend, cttEnemy];
@@ -5181,7 +5181,7 @@ begin
       not A2.GetAbilityEnabled(107);
 
 end;
-function TCommandAbility.CanTouchUnit(A1, A2: TAbstractUnit): Boolean;
+function TCommandAbility.CanTouchUnit(A1, A2: TAbstractUnit): Boolean; { Tried receiver/parameter casts, Boolean staging and operand order; still differs. }
 begin
   if inherited CanTouchUnit(A1, A2) then
     Result := A2.GetUnitType <> utMachine

@@ -442,7 +442,7 @@ begin
   FSpellType := stGlobal;
 end;
 
-procedure TGlobalTargetSpell.ShowTargetSelection(Target: TTargetSelectionControl; HN, Xs, Ys: Integer; const SurfaceDesc: TSurfaceDesc);
+procedure TGlobalTargetSpell.ShowTargetSelection(Target: TTargetSelectionControl; HN, Xs, Ys: Integer; const SurfaceDesc: TSurfaceDesc); { Tried local order and receiver/target copies and identity casts; still differs. }
 var
   Level: TMapLevel;
   MapF: TAoWMapField;
@@ -1302,7 +1302,7 @@ begin
   end;
 end;
 
-procedure TWatcherHS.UpdateExploration; { Near miss: loop bound and owner registers differ after three variants. }
+procedure TWatcherHS.UpdateExploration; { Tried local order, explicit loop bound and zero-shift player argument; still differs. }
 var
   I, OwnerPlayer: Integer;
 begin
@@ -1391,7 +1391,7 @@ begin
   TMapField(Owner).UpdateMapField;
 end;
 
-procedure TWatcherHS.RemoveFromMap; { Near miss: three variants retain ESI instead of EBX for the owner. }
+procedure TWatcherHS.RemoveFromMap; { Tried receiver/owner casts and alternate pointer local types; still differs. }
 var
   MapF: TMapField;
 begin
@@ -1435,10 +1435,10 @@ begin
   end;
 end;
 
-procedure TWatcherHS.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); { Near miss: Self/message registers and argument evaluation differ after three variants. }
+procedure TWatcherHS.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); { Matches: Cast Self through Pointer, zero-shift the player argument and pass message range directly. }
 var
   OwnerPlayer, Range: Integer;
-begin
+begin Self := TWatcherHS(Pointer(Self));
   with Msg do
   begin
   inherited MapFieldMsgProc(Msg);
@@ -1447,7 +1447,7 @@ begin
     begin
       OwnerPlayer := Shortint(FEnchantment.FPlayerIndex);
       if (OwnerPlayer = Param[1]) or (SpellRelation(TPlayerDiplomaticRelations(
-        TPlayerList(SpellHSMap^.FPlayers).GetPlayers(OwnerPlayer).FDiplomaticRelations),
+        TPlayerList(SpellHSMap^.FPlayers).GetPlayers(OwnerPlayer shl 0).FDiplomaticRelations),
         Param[1]) = 2) then
         if Param[0] <= VisibilityRange then Result := 1;
     end;
@@ -1456,7 +1456,7 @@ begin
     begin
       OwnerPlayer := Shortint(FEnchantment.FPlayerIndex);
       if (OwnerPlayer = Param[1]) or (SpellRelation(TPlayerDiplomaticRelations(
-        TPlayerList(SpellHSMap^.FPlayers).GetPlayers(OwnerPlayer).FDiplomaticRelations),
+        TPlayerList(SpellHSMap^.FPlayers).GetPlayers(OwnerPlayer shl 0).FDiplomaticRelations),
         Param[1]) = 2) then
         if Param[0] <= VisibilityRange then Result := 1;
     end;
@@ -1464,9 +1464,9 @@ begin
   begin
     if VisibilityRange >= Param[0] then
     begin
-      Range := Param[0];
+      { Param[0] is already available. }
       SpellHSMap^.UpdatePlayerSeen(Shortint(FEnchantment.FPlayerIndex),
-        TMapField(Owner).Xhx,TMapField(Owner).Yhx,TMapField(Owner).Lhx,Range,Range);
+        TMapField(Owner).Xhx,TMapField(Owner).Yhx,TMapField(Owner).Lhx,Param[0],Param[0]);
     end;
     UpdateVisibleForSeatedPlayer;
   end;
@@ -1820,7 +1820,7 @@ begin
   end;
 end;
 
-function TTornado.CalculateWarpLocation(Army: TArmyHS; Selection: Byte): Integer; { Near miss: register or temporary allocation differs after three variants. }
+function TTornado.CalculateWarpLocation(Army: TArmyHS; Selection: Byte): Integer; { Tried flag/result/selection address-taking and army identity cast; still differs. }
 var
   Table: TSpellMoveTable;
   Walk: THNWalkData;
@@ -1988,7 +1988,7 @@ asm PUSH EBX; MOV EBX,[EAX]; CALL DWORD PTR [EBX+$E8]; POP EBX end;
 procedure SpellValidateTerrainObservation(Army: TArmy; Terrain,Overlay,Player: Byte); assembler;
 asm POP EBP; JMP TArmy.ValidateTerrainEx end;
 
-function TVortexTE.Process(A1: TAbstractUnit; A2: Integer): Boolean; { Near miss: Register and local allocation differ after three variants. }
+function TVortexTE.Process(A1: TAbstractUnit; A2: Integer): Boolean; { Tried parameter/receiver identity casts, local order and unit copies; still differs. }
 var
   Anim: TAnimation; Log: TArmyEventLog;
   Selection: Byte;
@@ -2074,7 +2074,7 @@ begin
   FAboveGroundOnly := False;
 end;
 
-function TVortex.ValidTargetSelection(A1: TTargetSelectionControl): Boolean; { Near miss: register or temporary allocation differs after three variants. }
+function TVortex.ValidTargetSelection(A1: TTargetSelectionControl): Boolean; { Tried level copies, with, identity casts and coordinate zero shift; still differs. }
 var MapF: TMapField;
 begin
   if A1.FTargetX <> -1 then
@@ -2117,13 +2117,13 @@ begin
   else Result := False;
 end;
 
-procedure TVortex.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl);
+procedure TVortex.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelectionControl); { Matches: Use the incoming target directly instead of a named copy. }
 var Target: TTargetSelectionControl;
 begin
-  Target := TTargetSelectionControl(A2);
-  inherited SetupTargetSelection(A1,Target);
-  TShortIntList(Target.FHNs).Clear;
-  TTargetSelectionView(Target).OnValidate := ValidateTargetEvent;
+  { Use the incoming target. }
+  inherited SetupTargetSelection(A1,A2);
+  TShortIntList(A2.FHNs).Clear;
+  TTargetSelectionView(A2).OnValidate := ValidateTargetEvent;
 end;
 
 type
@@ -2187,7 +2187,7 @@ begin
   end;
 end;
 
-function THealingShowersTE.Process(A1: TAbstractUnit; A2: Integer): Boolean; { Near miss: Register allocation differs after three variants. }
+function THealingShowersTE.Process(A1: TAbstractUnit; A2: Integer): Boolean; { Tried parameter/receiver identity casts, local order and unit copies; still differs. }
 var
   UnitObj: TAbstractUnit;
   Walk: THNWalkData;

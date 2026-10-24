@@ -823,7 +823,7 @@ begin
   if FEffects.Value <> [] then Target.ExecuteDamageEffects(FEffects.Value);
 end;
 
-function TDamageCA.Play(A1: TCombatViewer): Boolean; { Near miss: Three variants retain an extra cached delay register. }
+function TDamageCA.Play(A1: TCombatViewer): Boolean; { Tried branch/comparison order, local order and staged frame arithmetic; still differs. }
 var HitFrame, Duration, EffectFrames: Integer; Target: TCombatObject;
 begin
   if A1.FDelay < 5 then HitFrame := A1.FDelay else HitFrame := 5;
@@ -845,7 +845,7 @@ begin
   Result := Duration > A1.FTime;
 end;
 
-procedure TDamageCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
+procedure TDamageCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); { Tried parameter casts, identity assignments and zero-shift arguments; still differs. }
 var HitFrame: Integer;
 begin
   if TCombatObject(A2).FID = FSourceID then
@@ -887,14 +887,14 @@ begin
   if A4 then FMode := FMode + [smDefensive];
 end;
 
-procedure TDamageEffectCA.Execute(A1: TCombat);
+procedure TDamageEffectCA.Execute(A1: TCombat); { Matches: Cast Self through Pointer and use the incoming combat directly. }
 var Combat: TCombat; Target, Source: TCombatObject;
-begin
-  Combat := TCombat(A1);
-  Target := TCombatData(Combat.FCombatData).FindID(FTargetID);
+begin Self := TDamageEffectCA(Pointer(Self));
+  { Use the incoming combat. }
+  Target := TCombatData(A1.FCombatData).FindID(FTargetID);
   if not (csDestroyed in Target.FStatus) then
   begin
-    Source := TCombatData(Combat.FCombatData).FindID(FSourceID);
+    Source := TCombatData(A1.FCombatData).FindID(FSourceID);
     Target.ExecuteDamageEffects([TDamageType(FDamageType)]);
     if csDestroyed in Target.FStatus then
       with Source do SetExperience(GetExperience + Target.GetLevel);
@@ -923,7 +923,7 @@ asm
   POP EBX
 end;
 
-procedure TDamageEffectCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc);
+procedure TDamageEffectCA.ShowObject(A1: TCombatViewer; A2: TCombatObject; A3: Integer; A4: Integer; A5: Integer; A6: Integer; const A7: TSurfaceDesc); { Tried parameter casts, identity assignments and zero-shift arguments; still differs. }
 begin
   if TCombatObject(A2).FID = FTargetID then
     case FDamageType of

@@ -255,7 +255,7 @@ begin
   end
   else Result := False;
 end;
-function TAIGroup.SetupTargetEx(Location: TXYL; MovePoints: Integer;
+function TAIGroup.SetupTargetEx(Location: TXYL; MovePoints: Integer; { Matches: Copy Location through Integer plus zero and assign Mode shl 0. }
   TargetType: TAIGroupTargetStatus; Mode: Byte;
   TransporterID, Gold, Mana: Integer): Boolean;
 var
@@ -263,10 +263,10 @@ var
 begin
   if Integer(Location) <> $FFFFFF then
   begin
-    FTargetXYL := Location;
+    Integer(FTargetXYL) := Integer(Location) + 0;
     FTargetType := TargetType;
     FTargetMovePoints := MovePoints;
-    FTargetMode := Mode;
+    FTargetMode := Mode shl 0;
     if TargetType = gtsExecute then Dec(FTargetMovePoints, GetMovePointsMin);
     Result := MakeTargetExpense(Gold, Mana);
   end
@@ -274,7 +274,7 @@ begin
   begin
     Integer(FTargetXYL) := $FFFFFF;
     FTargetType := TargetType;
-    FTargetMode := Mode;
+    FTargetMode := Mode shl 0;
     FTargetMovePoints := 0;
     ReturnTargetExpense;
     Result := True;
@@ -287,7 +287,7 @@ begin
     if Transporter <> nil then DeleteUnit(Transporter);
   end;
 end;
-function TAIGroup.SetupTarget(Target: TAIGroupControlTarget; { Near miss: register or temporary allocation differs after three variants. }
+function TAIGroup.SetupTarget(Target: TAIGroupControlTarget; { Tried result address-taking and mode casts/zero-shift staging; still differs. }
   TargetType: TAIGroupTargetStatus; Mode: Byte): Boolean;
 var
   Transporter: TAbstractUnit;
@@ -512,7 +512,7 @@ begin
   if Player = FPlayer then FStatus := FStatus - [agsDone];
 end;
 
-procedure TAIGroup.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
+procedure TAIGroup.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); { Tried receiver/parameter identity casts and typed field access; still differs. }
 begin
   inherited MsgProc(Msg, Sender);
   if Msg.MsgID = $20020002 then NewTurn(Shortint(Integer(Msg.Engine)))
@@ -3208,7 +3208,7 @@ begin
   Result := Priority;
 end;
 
-function TAIGroupTargetSelector.Setup(Control: TAIGroupControl): Boolean; { Near miss: signature ends before default case target; three variants differ. }
+function TAIGroupTargetSelector.Setup(Control: TAIGroupControl): Boolean; { Tried separate case labels, wider selector and explicit default labels; still differs. }
 begin
   Reset;
   case Ord(AoWHSMap.FPlayers.GetPlayers(Control.FGroup.FPlayer).FPlayerType) of
@@ -3484,7 +3484,7 @@ begin
     (Target.FMovePoints >= FGroupControl.FGroup.GetMovePointsMin));
 end;
 
-function TAIGroupTargetSelector.Process: Boolean; { Near miss: result register and truncated case-table extent differ after three variants. }
+function TAIGroupTargetSelector.Process: Boolean; { Tried initial result reuse, a result local and Busy address-taking; still differs. }
 var
   I, Strength, Superiority, Time: Integer;
   Busy: Boolean;
@@ -3948,7 +3948,7 @@ begin
   end;
 end;
 
-procedure TAIMoveControl.ProcessCanMove;
+procedure TAIMoveControl.ProcessCanMove; { Tried settings/result copies, with, receiver casts and result staging; still differs. }
 var
   Points: Integer;
 begin
@@ -4034,7 +4034,7 @@ begin
   else Result := False;
 end;
 
-procedure TAIMoveControl.ProcessTransporterCanMove; { Review fix: run virtual ProcessMove, not Activate; settings registers still differ. }
+procedure TAIMoveControl.ProcessTransporterCanMove; { Review fix: run virtual ProcessMove, not Activate; settings registers still differ. Tried receiver identity cast, settings with and local order; still differs. }
 var
   Points: Integer;
   Location: TXYL;
@@ -4230,7 +4230,7 @@ begin
   Result := FRefCount;
 end;
 
-function TMoveTarget.Release: Integer; { Near miss: result register differs after three variants. }
+function TMoveTarget.Release: Integer; { Tried a count temporary, direct field test and with; still differs. }
 begin
   Dec(FRefCount);
   Result := FRefCount;
@@ -4383,7 +4383,7 @@ begin
   end;
 end;
 
-function TAIMoveExecuterUnitList.Transporter(Selection: Byte): TAIMoveExecuterUnit;
+function TAIMoveExecuterUnitList.Transporter(Selection: Byte): TAIMoveExecuterUnit; { Tried receiver casts, zero-shift indexes and index copies; still differs. }
 var
   I: Integer;
 begin
@@ -4596,7 +4596,7 @@ begin
   Result := Integer(FLocation) = Integer(FBoardingPoint);
 end;
 
-function TAIMoveExecuterArmy.Moves(Selection: Byte): Integer;
+function TAIMoveExecuterArmy.Moves(Selection: Byte): Integer; { Tried receiver casts, zero-shift indexes and index copies; still differs. }
 var
   I: Integer;
 begin
@@ -4610,7 +4610,7 @@ begin
   if Result = $FFFF then Result := -1;
 end;
 
-function TAIMoveExecuterArmy.MovePoints(Selection: Byte): Integer;
+function TAIMoveExecuterArmy.MovePoints(Selection: Byte): Integer; { Tried receiver casts, zero-shift indexes and index copies; still differs. }
 var
   I: Integer;
 begin
@@ -4735,7 +4735,7 @@ begin
   inherited Destroy;
 end;
 
-function TAIMoveExecuterControl.CreateMove(Army: TAIMoveExecuterArmy; { Near miss: locals and registers differ after three variants. }
+function TAIMoveExecuterControl.CreateMove(Army: TAIMoveExecuterArmy; { Tried local order, settings/field address-taking and army identity cast; still differs. }
   Selection: Byte; X, Y, L: Shortint; Mode: TCreateMoveMode;
   MoveResult: PByte): TAIMoveExecuterMove;
 var
@@ -5167,7 +5167,7 @@ begin
   Armies.Free;
 end;
 
-function TAdjacentMEC.CalculateMeetingPoint: Integer; { Near miss: result and loop registers differ after three variants. }
+function TAdjacentMEC.CalculateMeetingPoint: Integer; { Tried result address-taking, local order and receiver identity cast; still differs. }
 var
   I, Points, Reserve, Index, Position: Integer;
   Armies: TAIMoveExecuterArmyList;
@@ -5203,7 +5203,7 @@ begin
   Armies.Free;
 end;
 
-function TAdjacentMEC.ExecuteMeetingPointMove: Boolean; { Near miss: register or temporary allocation differs after three variants. }
+function TAdjacentMEC.ExecuteMeetingPointMove: Boolean; { Tried location pointer, address-taking and an integer temporary; still differs. }
 var
   I, Index: Integer;
   Armies: TAIMoveExecuterArmyList;
@@ -5462,7 +5462,7 @@ end;
 
 
 
-function TTransportMEC.CreateTransporterMove(X, Y, L: Shortint; Queue: Boolean): TAIMoveExecuterMove;
+function TTransportMEC.CreateTransporterMove(X, Y, L: Shortint; Queue: Boolean): TAIMoveExecuterMove; { Tried receiver identity cast, local order and settings address-taking; still differs. }
 var
   Move: TAIMoveExecuterMove;
   MovePoints, Pos, I: Integer;
@@ -5738,7 +5738,7 @@ end;
 
 
 
-procedure TTransportMEC.CalculateMoves; { Near miss: Timer/settings allocation and state layout differ after three variants. }
+procedure TTransportMEC.CalculateMoves; { Tried local order and time/settings address-taking; still differs. }
 var
   Transporters: TAIMoveExecuterArmyList;
   Armies: TAIMoveExecuterArmyList;
@@ -6511,7 +6511,7 @@ begin
   Result := (FBufferedTargets.Count <> 0) and (FState <> -1);
 end;
 
-function TAIMoveTargetSelector.ProcessStates: Boolean; { Review fix: use unchecked processed-field loads, as in the original. }
+function TAIMoveTargetSelector.ProcessStates: Boolean; { Review fix: use unchecked processed-field loads, as in the original. Tried Boolean order and settings/field address-taking; still differs. }
 var
   Yield, Processing, Found: Boolean;
   I, Terrain, Overlay: Integer;
@@ -6827,20 +6827,20 @@ begin
   end;
 end;
 
-procedure TFastCombatUnit.Show(Frame: Integer; Direction: Integer; X, Y: Integer; const Surface: TSurfaceDesc);
+procedure TFastCombatUnit.Show(Frame: Integer; Direction: Integer; X, Y: Integer; const Surface: TSurfaceDesc); { Tried receiver casts, zero-shift image indexes and coordinate casts; still differs. }
 begin
   if fsOutsideWall in FState then AoWHSSet.FCombatImages[$15].Show(X + 10, Y, Surface);
   inherited Show(Frame, Direction, X, Y, Surface);
 end;
 
-function TFastCombatUnit.ShowAttackAnimation(Frame: Integer; Direction: Integer; X, Y: Integer; const Surface: TSurfaceDesc): Integer;
+function TFastCombatUnit.ShowAttackAnimation(Frame: Integer; Direction: Integer; X, Y: Integer; const Surface: TSurfaceDesc): Integer; { Tried receiver casts, zero-shift image indexes and coordinate casts; still differs. }
 begin
   if (Direction <> 6) and (fsOutsideWall in FState) then
     AoWHSSet.FCombatImages[$15].Show(X + 10, Y, Surface);
   Result := inherited ShowAttackAnimation(Frame, Direction, X, Y, Surface);
 end;
 
-function TFastCombatUnit.ShowHitAnimation(Frame: Integer; Direction: Integer; X, Y: Integer; const Surface: TSurfaceDesc): Integer;
+function TFastCombatUnit.ShowHitAnimation(Frame: Integer; Direction: Integer; X, Y: Integer; const Surface: TSurfaceDesc): Integer; { Tried receiver casts, zero-shift image indexes and coordinate casts; still differs. }
 begin
   if fsOutsideWall in FState then AoWHSSet.FCombatImages[$15].Show(X + 10, Y, Surface);
   { The original uses the attack animation for this hit-animation override. }
@@ -7130,7 +7130,7 @@ begin
   Result := $202B0;
 end;
 
-function TFastCombat.GetRoundDistance: Integer;
+function TFastCombat.GetRoundDistance: Integer; { Tried data casts, a named data copy and nested with; still differs. }
 var Distance: Integer;
 begin
   Distance := (FCombatData.FRound - 1) * 2;
@@ -7141,7 +7141,7 @@ begin
   Result := Distance;
 end;
 
-function TFastCombat.GetRoundDistanceMax: Integer;
+function TFastCombat.GetRoundDistanceMax: Integer; { Tried local order, named result and object identity cast; still differs. }
 var
   I: Integer;
   Obj: TCombatObject;

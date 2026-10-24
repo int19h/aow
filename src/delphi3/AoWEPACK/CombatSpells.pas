@@ -509,7 +509,7 @@ begin
   Stream.rwInteger(FSpellID, 24);
 end;
 
-procedure TExclusiveCombatSpellCA.Execute(A1: TCombat); { Near miss: combat parameter register differs after three variants. }
+procedure TExclusiveCombatSpellCA.Execute(A1: TCombat); { Tried combat casts, named combat/source copies and with; still differs. }
 var
   Source: TCombatObject;
 begin
@@ -690,7 +690,7 @@ begin
   A3.TargetCost := 0;
 end;
 
-procedure TCombatSpell.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); { Near miss: target and damage-set register allocation differs after three variants. }
+procedure TCombatSpell.fcGetDamageValueEx(A1, A2: TCombatObject; A3: TWallSituation; var A4: TAbilityDamageValues); { Tried target, defense and damage-set address-taking; still differs. }
 var
   DamageTypes, Protection, Immunity: TDamageTypes;
   Count, I, Distance: Integer;
