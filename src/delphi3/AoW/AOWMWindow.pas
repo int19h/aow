@@ -79,7 +79,7 @@ begin
     AoWHSMap.Mouse.Up(Button, Shift, -1, -1);
 end;
 
-procedure TMWindow.MapWindowMouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer);
+procedure TMWindow.MapWindowMouseMove(Sender: TAoWComponent; Shift: TShiftState; X, Y: Integer); { Tried coordinate identity assignments; no exact match. }
 begin
   with MapWindow do
     if (X > WinLeft + 11) and (X < MapWindow.WinLeft + WinWidth - 11) and
@@ -90,7 +90,7 @@ begin
     end;
 end;
 
-procedure TMWindow.MapViewerSceneChanged;
+procedure TMWindow.MapViewerSceneChanged; { Tried scanner-first comparison; no exact match. }
 begin
   if AoWHSMap.FSeatedPlayer <> -1 then
   begin

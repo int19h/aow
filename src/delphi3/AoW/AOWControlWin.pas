@@ -123,7 +123,7 @@ var
 
 implementation
 
-uses AoWWinMan, E3Globals, aowHelpWin;
+uses aowIntGfxMod, AoWWinMan, E3Globals, aowHelpWin;
 
 
 procedure TControlWin.UpdateArmy;
@@ -299,9 +299,9 @@ begin
       SD.ClipRect := R;
       { Original tests the unsorted index when checking the background library. }
       if Ord(General.FUnitList.GetUnit(Index).GetAlignment) < IntGfxMod.UnitBGs.Count then
-        IntGfxMod.UnitBGs[Ord(General.FUnitList.GetUnit(General.FSelectedUnits[Index]).GetAlignment)].ShowClipped(
-          R.Left + (R.Right - R.Left - IntGfxMod.UnitBGs[Ord(General.FUnitList.GetUnit(General.FSelectedUnits[Index]).GetAlignment)].Width) div 2,
-          R.Top + (R.Bottom - R.Top - IntGfxMod.UnitBGs[Ord(General.FUnitList.GetUnit(General.FSelectedUnits[Index]).GetAlignment)].Height) div 2, SD);
+        TIntGfxMod(Pointer(@IntGfxMod)^).UnitBGs[Ord(General.FUnitList.GetUnit(General.FSelectedUnits[Index]).GetAlignment)].ShowClipped(
+          R.Left + (R.Right - R.Left - TIntGfxMod(Pointer(@IntGfxMod)^).UnitBGs[Ord(General.FUnitList.GetUnit(General.FSelectedUnits[Index]).GetAlignment)].Width) div 2,
+          R.Top + (R.Bottom - R.Top - TIntGfxMod(Pointer(@IntGfxMod)^).UnitBGs[Ord(General.FUnitList.GetUnit(General.FSelectedUnits[Index]).GetAlignment)].Height) div 2, SD);
       General.FUnitList.GetUnit(General.FSelectedUnits[Index]).ShowEx(
         R.Left + (R.Right - R.Left - General.FUnitList.GetUnit(General.FSelectedUnits[Index]).GetPreviewImage.Width) div 2,
         R.Top + (R.Bottom - R.Top - General.FUnitList.GetUnit(General.FSelectedUnits[Index]).GetPreviewImage.Height) div 2,
@@ -412,7 +412,7 @@ begin
   end;
 end;
 
-procedure TControlWin.CenterClick;
+procedure TControlWin.CenterClick; { Tried direct coordinate paths; no exact match. }
 begin
   General.PlayButtonSound(0);
   with General.FUnitList do AoWHSMap.CenterViewTo(FX, FY, FL);

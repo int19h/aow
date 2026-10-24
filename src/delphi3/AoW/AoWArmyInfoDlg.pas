@@ -49,7 +49,7 @@ type
     published procedure CloseBtnClick; public  { draft }
     published procedure CloseClick; public  { draft }
     published procedure U1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
-    published procedure U1PreDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure U1PreDraw(Sender: TAoWComponent; SD: TSurfaceDesc); public
     published procedure FaceFramePreDraw(Sender: TAoWComponent; SD: TSurfaceDesc); public
     published procedure DlgHide; public  { draft }
     published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
@@ -89,7 +89,7 @@ begin
   end;
 end;
 
-procedure TArmyInfoDlg.ClearEvent;
+procedure TArmyInfoDlg.ClearEvent; { Tried with/local receiver; typed Self with; event identity increases allocation weight; named Self local after event locals; Self pointer identity changes register weighting; opaque event local with typed callback and release views; no exact match. }
 var
   Event: TArmyInfoEventLog;
   Notify: TExecuteDoneEvent;
@@ -131,7 +131,7 @@ begin Sender := TObject(Pointer(Sender));
   end;
 end;
 
-procedure TArmyInfoDlg.U1PreDraw(Sender: TObject; SD: TSurfaceDesc);
+procedure TArmyInfoDlg.U1PreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
 var
   R: TRect;
 begin
@@ -139,7 +139,7 @@ begin
   begin
     R.Left := WinLeft + UnitPnl.WinLeft + 1; R.Right := WinWidth + R.Left;
     R.Top := WinTop + UnitPnl.WinTop; R.Bottom := WinHeight + R.Top;
-    DrawUnit(Tag, R, SD);
+    DrawUnit(Sender.Tag, R, SD);
   end;
 end;
 

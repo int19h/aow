@@ -120,7 +120,7 @@ begin
     end;
 end;
 
-procedure TMainForm.DrawCursor(X, Y: Integer; const Surface: TSurfaceDesc);
+procedure TMainForm.DrawCursor(X, Y: Integer; const Surface: TSurfaceDesc); { Tried named coordinate copies; cursor identity to adjust parameter allocation; cursor identity after initialization; no exact match. }
 var
   Cursor: Integer;
 begin

@@ -142,7 +142,7 @@ begin
   if A2 = 1 then ItemBanner.IBannerPopup.Visible := False;
 end;
 
-procedure TItemBanner.DrawBoxPreDraw(Sender: TObject; SurfDesc: TSurfaceDesc);
+procedure TItemBanner.DrawBoxPreDraw(Sender: TObject; SurfDesc: TSurfaceDesc); { Tried with/local receiver; typed Self with; no exact match. }
 var
   Item: TItem;
 begin

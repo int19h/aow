@@ -137,7 +137,7 @@ begin
     for I := 1 to Values.Count - 1 do
     begin
       NextY := Values[I];
-      X1 := Round((I - 1) * XStep);
+      X1 := Round((I - 1) * XStep); X1 := X1;
       Y1 := Round(LastY * YStep);
       X2 := Round(X1 + XStep); { Original advances from the rounded previous x coordinate. }
       Y2 := Round(NextY * YStep);
@@ -336,7 +336,7 @@ begin
   UpdateSelection;
 end;
 
-procedure TResultsWin.P1CBPreDraw(Sender: TObject; Surface: TSurfaceDesc);
+procedure TResultsWin.P1CBPreDraw(Sender: TObject; Surface: TSurfaceDesc); { Tried typed sender and panel-first rectangle arithmetic; no exact match. }
 var
   R: TRect;
 begin

@@ -359,7 +359,7 @@ end;
 
 
 
-function TMultiWindow.ConnectProvider(Kind: TConnectionType): Integer;
+function TMultiWindow.ConnectProvider(Kind: TConnectionType): Integer; { Tried loop local order and zero-shift lookup; no exact match. }
 var
   I, Found: Integer;
 begin

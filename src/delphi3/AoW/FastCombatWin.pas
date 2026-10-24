@@ -518,7 +518,7 @@ begin
   if FViewer <> nil then FViewer.SetSpeed(20 - SequenceSpeedSld.Position);
 end;
 
-procedure TFastCombatWindow.LShieldUserDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
+procedure TFastCombatWindow.LShieldUserDraw(Sender: TAoWComponent; Surface: TSurfaceDesc); { Tried with/local receiver; Sender Pointer identity; derived Sender and base component view; no exact match. }
 begin
   if FLeftOpacity = 100 then
     IntGfxMod.Shields[FLeftShield].Show(FCWin.WinLeft + Sender.WinLeft, FCWin.WinTop + Sender.WinTop, Surface)
@@ -527,7 +527,7 @@ begin
       AlphaBlendTable.LookupTables[FLeftOpacity]);
 end;
 
-procedure TFastCombatWindow.RShieldUserDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
+procedure TFastCombatWindow.RShieldUserDraw(Sender: TAoWComponent; Surface: TSurfaceDesc); { Tried with/local receiver; Sender Pointer identity; derived Sender and base component view; no exact match. }
 begin
   if FRightOpacity = 100 then
     IntGfxMod.Shields[FRightShield].Show(FCWin.WinLeft + Sender.WinLeft, FCWin.WinTop + Sender.WinTop, Surface)

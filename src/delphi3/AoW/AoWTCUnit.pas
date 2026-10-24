@@ -165,7 +165,7 @@ begin
 end;
 
 
-procedure TTCUnit.UAbilLBMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+procedure TTCUnit.UAbilLBMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer); { Tried reload final movement operand through global; no exact match. }
 begin
   if General.FCombatUnit <> nil then
   begin

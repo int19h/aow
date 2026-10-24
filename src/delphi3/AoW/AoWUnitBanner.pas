@@ -82,7 +82,7 @@ begin
   if AbLB.F188 <> AbLB.Selected then AbLB.Selected := AbLB.F188;
 end;
 
-procedure TUnitBanner.AbLBMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+procedure TUnitBanner.AbLBMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer); { Tried with/local receiver; no exact match. }
 begin
   if (General.FSelectedUnit <> nil) and (AbLB.F188 >= General.FActiveAbilityCount) then AbLB.F188 := -1;
 end;

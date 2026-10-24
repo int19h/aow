@@ -230,7 +230,7 @@ begin
   FindFiles;
 end;
 
-procedure TFileDlgWindow.FindFiles;
+procedure TFileDlgWindow.FindFiles; { Tried cast AddObject argument; no exact match. }
 var
   IncludeFile: Boolean;
   Extension, Directory: string;
@@ -313,7 +313,7 @@ begin
   Files.Free;
 end;
 
-procedure TFileDlgWindow.OpenbutClick(Sender: TObject);
+procedure TFileDlgWindow.OpenbutClick(Sender: TObject); { Tried pointer-cell setup argument staging; explicit PChar-to-string extension operand; no exact match. }
 var
   Path, Directory: string;
 begin
@@ -500,10 +500,12 @@ begin
 end;
 
 procedure TFileDlgWindow.mSBarChange(Sender: TAOWVScrollBar);
+var Bar: TAOWVScrollBar;
 begin
-  FileLB.ListOffset := Sender.Position;
-  SaveLB.ListOffset := Sender.Position;
-  DateLB.ListOffset := Sender.Position;
+  Bar := Sender;
+  FileLB.ListOffset := Bar.Position;
+  SaveLB.ListOffset := Bar.Position;
+  DateLB.ListOffset := Bar.Position;
 end;
 
 procedure TFileDlgWindow.SFileNameReturn;

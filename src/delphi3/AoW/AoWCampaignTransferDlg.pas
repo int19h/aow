@@ -378,7 +378,7 @@ begin
   end;
 end;
 
-procedure TCampaignTransferDlg.RUnitsDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+procedure TCampaignTransferDlg.RUnitsDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); { Tried name repeated rectangle X; rectangle declaration before object locals; no exact match. }
 var
   Obj: TAbstractUnit;
   S: TAoWCampaignTransferSettings;
@@ -439,7 +439,7 @@ begin
   end;
 end;
 
-procedure TCampaignTransferDlg.RItemsDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc);
+procedure TCampaignTransferDlg.RItemsDraw(Sender: TAoWComponent; SurfDesc: TSurfaceDesc); { Tried name repeated rectangle X; rectangle declaration before object locals; no exact match. }
 var
   Obj: TItem;
   S: TAoWCampaignTransferSettings;

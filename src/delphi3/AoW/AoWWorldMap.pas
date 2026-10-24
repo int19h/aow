@@ -154,7 +154,7 @@ begin
   Result := TWMCampaign(AoWEngine.FCampaign);
 end;
 
-procedure TWorldMap.UpdateCampaignState;
+procedure TWorldMap.UpdateCampaignState; { Tried pointer-cell General argument staging; no exact match. }
 var
   Index: Integer;
   Preview: TAoWHSMap;
@@ -730,7 +730,7 @@ procedure TWorldMap.BookWinShow;
 begin FBookAction := 0; end;
 
 
-procedure TWorldMap.BookWinUpdate;
+procedure TWorldMap.BookWinUpdate; { Tried Self identity; no exact match. }
 var
   R: TRect;
 begin

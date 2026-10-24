@@ -241,7 +241,7 @@ type
     published procedure ExplorationChange(Sender: TObject); public
     published procedure AlwaysViewTCCBChange; public
     published procedure SettingsClick; public
-    published procedure RacePnlDrawBack(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure RacePnlDrawBack(Sender: TAoWComponent; SD: TSurfaceDesc); public
     published procedure ChatSBUpdate; public
     published procedure TacticalCombatCBChange; public
     procedure UpdateTurnTime;
@@ -475,9 +475,9 @@ begin
   General.PlayButtonSound(0);
 end;
 
-procedure TScenSetup.RacePnlDrawBack(Sender: TObject; SD: TSurfaceDesc);
+procedure TScenSetup.RacePnlDrawBack(Sender: TAoWComponent; SD: TSurfaceDesc);
 begin
-  with TAOWImage(Sender) do IntGfxMod.Shields[Tag].Show(WinLeft + 5, WinTop + 5, SD);
+  with TAOWImage(Sender) do IntGfxMod.Shields[Sender.Tag].Show(WinLeft + 5, WinTop + 5, SD);
 end;
 
 procedure TScenSetup.ChatSBUpdate;

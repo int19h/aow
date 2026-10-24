@@ -232,7 +232,7 @@ begin
   if Result = 0 then Result := CompareStr(S1, S2);
 end;
 
-procedure TUnitWindow.ShowUnit; { Preserve the original signed sphere-count tests and their overflow behavior. }
+procedure TUnitWindow.ShowUnit; { Tried reverse local declarations and hero identity use; no exact match. }
 var
   H: THero;
   U: TAbstractUnit;
@@ -852,7 +852,7 @@ end;
 
 
 
-procedure TUnitWindow.Gnd3MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TUnitWindow.Gnd3MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); { Tried typed checkbox Sender; no exact match. }
 begin
   if General.FSelectedUnit <> nil then
     if not AoWHSMap.FPlayers.GetPlayers(General.FSelectedUnit.FPlayer).GetBusy then
@@ -982,7 +982,7 @@ begin
 end;
 
 
-procedure TUnitWindow.UpdateGround(Offset: Integer);
+procedure TUnitWindow.UpdateGround(Offset: Integer); { Tried hero pointer-cast views; no exact match. }
 var
   U: TAbstractUnit;
 begin

@@ -10,7 +10,7 @@ implementation
 
 uses AOWMWindow, Windows, Classes, AoWE, AoWComp, AoWExeForms;
 
-procedure RestoreWindowLayout(Controller: TObject);
+procedure RestoreWindowLayout(Controller: TObject); { Tried addressable rectangle to force width reloads; no exact match. }
 var
   R: TRect;
 begin

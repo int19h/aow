@@ -59,7 +59,7 @@ type
     published procedure RightBtnClick; public  { draft }
     published procedure CloseClick; public  { draft }
     published procedure FaceFramePreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc); public  { draft }
-    published procedure U1PreDraw(Sender: TObject; Surface: TSurfaceDesc); public  { draft }
+    published procedure U1PreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc); public  { draft }
     published procedure U1MouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public  { draft }
     published procedure DlgHide; public  { draft }
     published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public  { draft }
@@ -76,7 +76,7 @@ begin
   if not Result then Dlg.Visible := False;
 end;
 
-procedure TPartyJoinDlg.FinishDialog;
+procedure TPartyJoinDlg.FinishDialog; { Tried with/local receiver; typed Self with; event identity increases allocation weight; named Self local after event locals; Self pointer identity changes register weighting; opaque event local with typed callback and release views; no exact match. }
 var
   Event: TEventLog;
   Done: TExecuteDoneEvent;
@@ -191,7 +191,7 @@ begin
   end;
 end;
 
-procedure TPartyJoinDlg.U1PreDraw(Sender: TObject; Surface: TSurfaceDesc);
+procedure TPartyJoinDlg.U1PreDraw(Sender: TAoWComponent; Surface: TSurfaceDesc);
 var
   R: TRect;
 begin
@@ -204,11 +204,11 @@ begin
       R.Top := WinTop + UnitPnl.WinTop;
       R.Bottom := WinHeight + R.Top;
     end;
-    DrawUnit(TAoWComponent(Sender).Tag, R, Surface);
+    DrawUnit(Sender.Tag, R, Surface);
   end;
 end;
 
-procedure TPartyJoinDlg.U1MouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TPartyJoinDlg.U1MouseDown(Sender: TAoWComponent; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); { Tried with/local receiver; Sender Pointer identity; opaque Sender plus Self pointer identity; no exact match. }
 begin
   if ValidateJoin then
     if Sender.Tag < FUnits.GetCount then

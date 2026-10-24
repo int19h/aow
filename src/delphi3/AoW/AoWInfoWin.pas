@@ -162,7 +162,7 @@ begin end;
 procedure TIWindow.ProdOrb1Draw;
 begin end;
 
-procedure TIWindow.CenterClick;
+procedure TIWindow.CenterClick; { Tried direct item-bag coordinate paths; no exact match. }
 begin
   General.PlayButtonSound(0);
   if FItemBag <> nil then

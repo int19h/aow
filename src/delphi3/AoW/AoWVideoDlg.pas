@@ -369,7 +369,7 @@ begin
   if FFullScreen = scmTitle then FModeChanged := True;
 end;
 
-procedure TVideoDialog.ApplyMode;
+procedure TVideoDialog.ApplyMode; { Tried pointer-cell MainForm view at DC comparisons; no exact match. }
 var DC: TAbstractDC;
 begin
   if FModeChanged then

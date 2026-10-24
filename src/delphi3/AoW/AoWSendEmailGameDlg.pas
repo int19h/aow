@@ -77,11 +77,12 @@ end;
 procedure TSendEmailGameDlg.ShowSendDialog(Event: TSendEmailGameEventLog; Done: TExecuteDoneEvent);
 begin
   FDone := Done;
-  FSendEvent := Event;
-  Event.AddRef;
-  with FSendEvent do
+  Event := TSendEmailGameEventLog(Pointer(Event));
+  FSendEvent := TSendEmailGameEventLog(Integer(Event) shl 0);
+  FSendEvent.AddRef;
+  with TSendEmailGameEventLog(FSendEvent) do
   begin
-    EmailAddressEdit.Text := AoWHSMap.FPlayers.GetPlayers(FSendPlayer).FPBEMSettings.FEmailGame.FEmailAddress;
+    EmailAddressEdit.Text := AoWHSMap.FPlayers.GetPlayers(FSendEvent.FSendPlayer).FPBEMSettings.FEmailGame.FEmailAddress;
     { Original reuses the resource-string temporary for the formatted text. }
     RecipientNameLbl.Text := AoWE.Format(TranslateRStr(NextPlayerXRStr), [AoWHSMap.FPlayers.GetPlayers(FSendEvent.FSendPlayer).GetNameEx]);
     if FMode = 2 then

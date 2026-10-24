@@ -149,7 +149,7 @@ begin
   Lists.Free;
 end;
 
-procedure TGeneral.RegisterDialog(Window: TAOWWindow);
+procedure TGeneral.RegisterDialog(Window: TAOWWindow); { Tried direct initial map alignment receiver; no exact match. }
 begin
   with MWindow.MapWindow do
     if (Alignment.AlignWidth = awBoth) and (Window.Alignment.AlignWidth = awBoth) then
@@ -165,7 +165,7 @@ begin
     end;
 end;
 
-procedure TGeneral.UnregisterDialog(Window: TAOWWindow);
+procedure TGeneral.UnregisterDialog(Window: TAOWWindow); { Tried direct initial map alignment receiver; no exact match. }
 begin
   with MWindow.MapWindow do
   if (Alignment.AlignWidth = awBoth) and (Window.Alignment.AlignWidth = awBoth) and
@@ -228,7 +228,7 @@ begin
   FAbilities.Free;
 end;
 
-procedure TGeneral.ResetLayout;
+procedure TGeneral.ResetLayout; { Tried addressable Self; no exact match. }
 begin
   with SWindow.ScannerWindow do
   begin
@@ -348,7 +348,7 @@ begin
   AoWUnit.MainForm.Display.ActiveDC.BltSurface(AoWUnit.MainForm.Display.FSurfaceIndex);
 end;
 
-procedure TGeneral.ManagerKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TGeneral.ManagerKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); { Tried Self identity; no exact match. }
 var
   Player: TPlayer;
   S: string;
@@ -389,7 +389,7 @@ begin
   end;
 end;
 
-procedure TGeneral.ManagerUpdate;
+procedure TGeneral.ManagerUpdate; { Tried use popup with receiver throughout; no exact match. }
 begin
   with UnitBanner do
     with BannerPopup do

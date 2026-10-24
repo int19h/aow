@@ -322,7 +322,7 @@ begin
   FHero.GetFace.ShowStretched(R, SD);
 end;
 
-procedure TSpellBook.ResearchIcnDraw(Sender: TAOWImage; SD: TSurfaceDesc);
+procedure TSpellBook.ResearchIcnDraw(Sender: TAOWImage; SD: TSurfaceDesc); { Tried cast sender with and coordinate order; cast sender and coordinate identity; opaque Sender and explicit image with cast; coordinate order; named parent window local for coordinate computation; no exact match. }
 var Spell: TSpell; X: Integer;
 begin
   Spell := AoWHSSet.FSpellControl.GetSpell(AoWHSMap.FPlayers.GetPlayers(AoWHSMap.FSeatedPlayer).FMagicControl.FResearchSpellID);
@@ -334,7 +334,7 @@ begin
   end;
 end;
 
-procedure TSpellBook.CastingIcnDraw(Sender: TAOWImage; SD: TSurfaceDesc);
+procedure TSpellBook.CastingIcnDraw(Sender: TAOWImage; SD: TSurfaceDesc); { Tried cast sender with and coordinate order; cast sender and coordinate identity; opaque Sender and explicit image with cast; coordinate order; named parent window local for coordinate computation; no exact match. }
 var Spell: TSpell; X: Integer;
 begin
   if FHero <> nil then

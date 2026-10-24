@@ -237,7 +237,7 @@ type
     published procedure MovUpClick; public
     published procedure MovDnClick; public
     published procedure ClearBtnClick; public
-    published procedure DefaultBtnClick; public
+    published procedure DefaultBtnClick(Sender: TObject); public
     published procedure SelLifeClick; public
     published procedure SelFireClick; public
     published procedure SelDeathClick; public
@@ -565,7 +565,7 @@ begin
   end;
 end;
 
-procedure TLeaderSetupWin.DefaultBtnClick;
+procedure TLeaderSetupWin.DefaultBtnClick(Sender: TObject);
 var
   I: Integer;
 begin

@@ -149,7 +149,7 @@ type
     published procedure ProductionScreenDestroy; public
     published procedure ActivityChange(Sender: TObject); public
     published procedure ActivityDoubleClick(Sender: TObject); public
-    published procedure ActivityPreDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure ActivityPreDraw(Sender: TAoWComponent; SD: TSurfaceDesc); public
     published procedure MainBtn1Click(Sender: TObject); public
     published procedure MainBtn2Click; public
     published procedure MainBtn3Click; public
@@ -247,10 +247,10 @@ begin
   MainBtn1Click(nil);
 end;
 
-procedure TProductionScreen.ActivityPreDraw(Sender: TObject; SD: TSurfaceDesc);
+procedure TProductionScreen.ActivityPreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
 var
-  R: TRect;
   Info: TP2UnitShowInfo;
+  R: TRect;
   U: TUnit;
   Item: TProductionItem;
 begin
@@ -258,9 +258,9 @@ begin
     ActivityPnl2.WinTop + TAoWComponent(Sender).WinTop,
     ActivityPnl2.WinLeft + TAoWComponent(Sender).WinLeft + TAoWComponent(Sender).WinWidth,
     ActivityPnl2.WinTop + TAoWComponent(Sender).WinTop + TAoWComponent(Sender).WinHeight);
-  case TAoWComponent(Sender).Tag of
+  case Sender.Tag of
     0..3: begin
-      U := FPlace.FProductionControl.CreateUnitProduction(TAoWComponent(Sender).Tag);
+      U := FPlace.FProductionControl.CreateUnitProduction(Sender.Tag);
       if U <> nil then
       begin
         Info.Direction := 3;
@@ -268,7 +268,7 @@ begin
         Info.Animation := TUnitAnimation(0);
         Info.Frame := 0;
         Info.Looped := False;
-        if not FPlace.FProductionControl.FUnitProductions.GetItem(TAoWComponent(Sender).Tag).FResearched then
+        if not FPlace.FProductionControl.FUnitProductions.GetItem(Sender.Tag).FResearched then
         begin
           IntGfxMod.CityWin[5].Show(R.Left + 2, R.Top + 2, SD);
           Info.Direction := 5;
@@ -447,7 +447,7 @@ begin
   FPlace.FProductionControl.SetLoopQueueTo(LoopQueueBox.Checked);
 end;
 
-procedure TProductionScreen.CurrentActionImageDraw(Sender: TObject; SD: TSurfaceDesc);
+procedure TProductionScreen.CurrentActionImageDraw(Sender: TObject; SD: TSurfaceDesc); { Tried direct production receiver; no exact match. }
 var
   Info: TP2UnitShowInfo;
   R: TRect;
@@ -518,7 +518,7 @@ begin
   end;
 end;
 
-procedure TProductionScreen.MapViewUpdate;
+procedure TProductionScreen.MapViewUpdate; { Tried identity copy; field receiver; Pointer receiver cast; with preview; direct field nil test and call; identity after call extends receiver lifetime; restore unused event Sender parameter; pointer-cell preview local; no exact match. }
 var
   Preview: TAoWCombatMap;
 begin
@@ -709,7 +709,7 @@ begin
   SelectDefaultAction;
 end;
 
-procedure TProductionScreen.PlaceChanged(Sender: TObject);
+procedure TProductionScreen.PlaceChanged(Sender: TObject); { Tried with dialog and original hide-first branch; named dialog and hide-first branch; hide-first branch and explicit window view; no exact match. }
 begin
   if Dlg.Visible and (Sender = FPlace) then
     if FPlace.FPlayer = AoWHSMap.FSeatedPlayer then UpdateInfo
@@ -829,7 +829,7 @@ begin
   end;
 end;
 
-procedure TProductionScreen.UpdateInfo;
+procedure TProductionScreen.UpdateInfo; { Tried explicit integer color type; literal masking persists; no exact match. }
 var
   Reason: string;
   I, J: Integer;

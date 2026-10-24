@@ -86,7 +86,7 @@ end;
 
 procedure UpdateScenarioRow(Setup: TScenSetup; Settings: TPlayerSetupSettings;
   PlayerBox, BehaviorBox: TAOWComboBox; Icon: TAOWImage;
-  PlayerName, Info: TAOWLabel; Fog: TAOWPanel);
+  PlayerName, Info: TAOWLabel; Fog: TAOWPanel); { Tried split remote index, addressable byte loop index, inverted race-byte branch; no exact match. }
 var
   Behavior: TSetupPlayerBehavior;
   B: Byte;

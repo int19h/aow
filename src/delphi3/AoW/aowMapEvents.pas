@@ -939,7 +939,7 @@ begin
   end;
 end;
 
-procedure ShowTargetSelection(Dialog: TTargetSelectionDlg; Control: TTargetSelectionControl; Change: TTargetSelectionChange);
+procedure ShowTargetSelection(Dialog: TTargetSelectionDlg; Control: TTargetSelectionControl; Change: TTargetSelectionChange); { Tried enum case and original range-first branch; no exact match. }
 begin
   with Dialog do
     if Change = tscActivated then

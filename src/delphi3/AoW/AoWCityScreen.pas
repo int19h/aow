@@ -242,7 +242,7 @@ implementation
 
 uses AoWExeForms, AoWWinMan, OverviewUnit;
 
-procedure TCityScreen.ShowCity(City: TCity);
+procedure TCityScreen.ShowCity(City: TCity); { Tried split production and army loop indices; no exact match. }
 var
   I, J, Direction: Integer;
   Army: TArmyHS;
@@ -469,7 +469,7 @@ begin
   AoWHSMap.FTutorialControl.ShowMessage($3C, True, True);
 end;
 
-procedure TCityScreen.PreDrawProductions(Sender: TObject; SD: TSurfaceDesc);
+procedure TCityScreen.PreDrawProductions(Sender: TObject; SD: TSurfaceDesc); { Tried typed sender Tag and record declaration order; typed sender records and unit identity; unit local first with typed Sender and style before rectangle; base unit local with explicit ShowEx view; no exact match. }
 var
   R: TRect;
   Info: TP2UnitShowInfo;
@@ -676,7 +676,7 @@ begin
   end;
 end;
 
-procedure TCityScreen.MapViewUpdate;
+procedure TCityScreen.MapViewUpdate; { Tried identity copy; field receiver; Pointer receiver cast; with preview; direct field nil test and call; identity after call extends receiver lifetime; restore unused event Sender parameter; pointer-cell preview local; no exact match. }
 var
   Preview: TAoWCombatMap;
 begin
@@ -1096,7 +1096,7 @@ begin
   PNext.Visible := False;
 end;
 
-procedure TCityScreen.UpdateInfo;
+procedure TCityScreen.UpdateInfo; { Tried explicit integer color type; literal masking persists; no exact match. }
 var
   Reason: string;
   I, J: Integer;
@@ -1204,7 +1204,7 @@ begin
   SelectDefaultAction;
 end;
 
-procedure TCityScreen.CityChanged(Sender: TObject);
+procedure TCityScreen.CityChanged(Sender: TObject); { Tried with dialog and original hide-first branch; named dialog and hide-first branch; hide-first branch and explicit window view; no exact match. }
 begin
   if Dlg.Visible and (Sender = FCity) then
     if FCity.FPlayer = AoWHSMap.FSeatedPlayer then UpdateInfo

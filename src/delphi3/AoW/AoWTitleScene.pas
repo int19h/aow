@@ -209,7 +209,7 @@ begin
   if Page = 3 then FShowIntro := False;
 end;
 
-procedure TTitleScene.DrawScene(var Surface: TSurfaceDesc);
+procedure TTitleScene.DrawScene(var Surface: TSurfaceDesc); { Tried clamp branch order grouped center sum frame identity; no exact match. }
 var
   X, Y, Frame, Spacing, I, Image: Integer;
   R: TRect;

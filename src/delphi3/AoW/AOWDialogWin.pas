@@ -70,7 +70,7 @@ begin
   DebugWin.Visible := False;
 end;
 
-procedure TDWin.yesBtnClick(Sender: TObject);
+procedure TDWin.yesBtnClick(Sender: TObject); { Tried omit empty default case labels; compare table extent; no exact match. }
 var Reason: string; Structure: TStructure;
 begin
   General.PlayButtonSound(0);

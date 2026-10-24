@@ -191,7 +191,7 @@ begin
     end;
 end;
 
-procedure ShowDiplomaticEvent(Dialog: TRelWindow; Event: TDiplomaticActionEventLog; Done: TExecuteDoneEvent);
+procedure ShowDiplomaticEvent(Dialog: TRelWindow; Event: TDiplomaticActionEventLog; Done: TExecuteDoneEvent); { Tried typed event view and explicit action case; no exact match. }
 begin
   with Dialog do
   begin

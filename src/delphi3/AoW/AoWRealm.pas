@@ -418,7 +418,7 @@ begin
   Unit8LB.ListOffset := PartySb.Position;
 end;
 
-procedure TRealmWin.Unit1LBChange(Sender: TObject);
+procedure TRealmWin.Unit1LBChange(Sender: TObject); { Tried typed Sender without redundant with cast; typed Sender retaining cast plus explicit window with; no exact match. }
 begin
   with TAOWListBox(Sender) do
   begin
@@ -510,7 +510,7 @@ begin
   end;
 end;
 
-procedure TRealmWin.HeroListDoubleClick(Sender: TObject);
+procedure TRealmWin.HeroListDoubleClick(Sender: TObject); { Tried separate selection cast; no exact match. }
 begin
   with TAOWListBox(Sender) do
   begin

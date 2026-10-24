@@ -49,7 +49,7 @@ type
     published procedure CloseBtn2Click; public
     published procedure Gnd3Draw(Sender: TObject; SD: TSurfaceDesc); public
     published procedure PickupBtnClick; public
-    published procedure Gnd3MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
+    published procedure Gnd3MouseDown(Sender: TAOWCheckBox; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); public
     published procedure LeftBtnClick; public
     published procedure RightBtnClick; public
     published procedure DlgKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); public
@@ -92,7 +92,7 @@ end;
 procedure TItemsFoundDlg.CloseBtn2Click;
 begin Dlg.Visible := False; end;
 
-procedure TItemsFoundDlg.Gnd3Draw(Sender: TObject; SD: TSurfaceDesc);
+procedure TItemsFoundDlg.Gnd3Draw(Sender: TObject; SD: TSurfaceDesc); { Tried typed Sender distinct coordinate cast; no exact match. }
 var
   Event: TItemExplorationSiteEventLog;
   Item: TItem;
@@ -133,18 +133,19 @@ begin
   Dlg.Visible := False;
 end;
 
-procedure TItemsFoundDlg.Gnd3MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var Item: TItem;
+procedure TItemsFoundDlg.Gnd3MouseDown(Sender: TAOWCheckBox; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var Item: TItem; Box: TAOWCheckBox;
 begin
+  Box := Sender;
   if Button = mbRight then
   begin
-    TAOWCheckBox(Sender).PopupMenu := nil;
-    if FItemOffset + TComponent(Sender).Tag < FEvent.FItemIDs.Count then
+    Box.PopupMenu := nil;
+    if FItemOffset + Box.Tag < FEvent.FItemIDs.Count then
     begin
-      Item := AoWHSMap.FItemControl.FindItem(FEvent.FItemIDs[FItemOffset + TComponent(Sender).Tag]);
+      Item := AoWHSMap.FItemControl.FindItem(FEvent.FItemIDs[FItemOffset + Box.Tag]);
       if Item <> nil then
       begin
-        TAOWCheckBox(Sender).PopupMenu := ItemBanner.IBannerPopup;
+        Box.PopupMenu := ItemBanner.IBannerPopup;
         ItemID := Item.FItemID;
       end;
     end;

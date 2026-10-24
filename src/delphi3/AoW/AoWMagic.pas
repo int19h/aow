@@ -320,7 +320,7 @@ begin
 end;
 
 
-procedure TMagicWin.PowerValueListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TMagicWin.PowerValueListMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer); { Tried count-first comparison distinct first selection cast; no exact match. }
 begin
   if Button = mbRight then
     if PowerSourceList.Selected >= 0 then

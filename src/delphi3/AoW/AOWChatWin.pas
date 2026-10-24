@@ -50,7 +50,7 @@ begin
   ChatWin.Visible := False;
 end;
 
-procedure TChatWindow.ChatEditReturn;
+procedure TChatWindow.ChatEditReturn; { Tried name list for initial guard only; with PlayerList after nonempty guard preserves list across concatenation; named cached list with identity after the nonempty guard; nested with scopes for retained list and network component; no exact match. }
 var Text: string;
 begin
   if (ChatEdit.Text <> '') and (PlayerList.Selected > -1) then

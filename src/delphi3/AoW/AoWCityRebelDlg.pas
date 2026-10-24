@@ -63,7 +63,7 @@ begin
   RebelWin.Visible := False;
 end;
 
-procedure TCityRebelDlg.CenterButClick;
+procedure TCityRebelDlg.CenterButClick; { Tried with/local receiver; explicit location receiver; no exact match. }
 begin
   General.PlayButtonSound(0);
   with FEvent do AoWHSMap.CenterViewTo(FXhx, FYhx, FLhx);

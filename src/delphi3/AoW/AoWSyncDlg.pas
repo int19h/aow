@@ -42,7 +42,7 @@ implementation
 
 uses aowSetupEvents;
 
-function TSynchronizeDlg.GetPlayerSetup: TPlayerSetupSettings;
+function TSynchronizeDlg.GetPlayerSetup: TPlayerSetupSettings; { Tried with/local receiver; cast remote-player argument; named setup control; no exact match. }
 var
   Index: Integer;
 begin

@@ -51,7 +51,7 @@ type
     published procedure CloseClick; public  { draft }
     published procedure SelectBtnClick; public  { draft }
     published procedure U1Change(Sender: TObject); public
-    published procedure U1PreDraw(Sender: TObject; SD: TSurfaceDesc); public
+    published procedure U1PreDraw(Sender: TAoWComponent; SD: TSurfaceDesc); public
     published procedure DlgHide; public  { draft }
     published procedure MapViewDraw(Sender: TAoWComponent; SD: TSurfaceDesc); public
     published procedure MapViewUpdate; public  { draft }
@@ -193,9 +193,9 @@ begin
   else SelectionInfoLbl.Text := '';
 end;
 
-procedure TArenaDlg.U1PreDraw(Sender: TObject; SD: TSurfaceDesc);
+procedure TArenaDlg.U1PreDraw(Sender: TAoWComponent; SD: TSurfaceDesc);
 begin
-  with TAOWImage(Sender) do DrawUnit(Tag, UnitPnl.WinLeft + WinLeft, UnitPnl.WinTop + WinTop, SD);
+  with TAOWImage(Sender) do DrawUnit(Sender.Tag, UnitPnl.WinLeft + WinLeft, UnitPnl.WinTop + WinTop, SD);
 end;
 
 procedure TArenaDlg.DlgHide;

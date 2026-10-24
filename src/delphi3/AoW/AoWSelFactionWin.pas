@@ -171,7 +171,7 @@ begin
   CloseSelection;
 end;
 
-procedure TSelFactionWin.FactionPnlUpdate;
+procedure TSelFactionWin.FactionPnlUpdate; { Tried Self identity for managed initialization register; restore unused event Sender parameter; no exact match. }
 var
   R: TRect;
 begin

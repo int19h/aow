@@ -117,7 +117,7 @@ type
 
 implementation
 
-uses AoWExeForms, AoWTCUnit, AoWRealm, aowMapEvents, AoWE, AoWTC, AoWWinMan, E3Globals, E1Globals, E1GameFlow;
+uses AoWPInfoWin, AoWExeForms, AoWTCUnit, AoWRealm, aowMapEvents, AoWE, AoWTC, AoWWinMan, E3Globals, E1Globals, E1GameFlow;
 
 procedure TTBWindow.TurnButtonAnimDone;
 begin
@@ -166,7 +166,7 @@ procedure TTBWindow.InfoBtnClick(Sender: TObject);
 begin
   General.PlayButtonSound(0);
   if PInfoW.PInfoWin.Visible then PInfoW.PInfoWin.Visible := False
-  else PInfoW.UpdatePlayer;
+  else TPInfoW(Pointer(@PInfoW)^).UpdatePlayer;
 end;
 
 procedure TTBWindow.ProdBtnClick;

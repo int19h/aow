@@ -686,7 +686,7 @@ begin
     end;
 end;
 
-procedure TRelWindow.P1IDraw(Sender: TObject; Surface: TSurfaceDesc);
+procedure TRelWindow.P1IDraw(Sender: TObject; Surface: TSurfaceDesc); { Tried typed component Sender without cast; no exact match. }
 var
   Player: Integer;
   Relation: TDiplomaticRelation;

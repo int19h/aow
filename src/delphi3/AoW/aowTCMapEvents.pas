@@ -102,7 +102,7 @@ begin
     AoWExeForms.ChatWindow.ChatWin.Visible := True;
 end;
 
-procedure TTCMapEvents.TCMapDeActivateMap;
+procedure TTCMapEvents.TCMapDeActivateMap; { Tried Self identity; no exact match. }
 begin
   StopSong;
   SongPlayer.Resume;
