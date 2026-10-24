@@ -83,17 +83,19 @@ begin
   FResource.ImageSequenceList.Show(20, Xhp, Yhp, Anim.FFrameCounter, SurfaceDesc);
 end;
 
-procedure TSpringOfLife.ExecuteNaturesBlessing(ArmyHS: TArmyHS); { Near miss: three variants keep ArmyHS in EBP instead of the original stack slot. }
+procedure TSpringOfLife.ExecuteNaturesBlessing(ArmyHS: TArmyHS);
 var
   Anim: TSpringOfLifeAnimation;
   R: TRect;
   I: Integer;
+  Spill: Pointer;
 begin
+  Spill := @ArmyHS; { Keep the parameter in its original stack slot. }
   for I := 0 to ArmyHS.FArmy.Count - 1 do
     ArmyHS.FArmy.GetUnit(I).ExpandAbility(99);
   if (ArmyHS.FArmy.FPlayer =
     WorldMap^.FSeatedPlayer) or
-    WorldMap^.Watching(GetXhx, GetYhx, GetLhx, 0) then
+    TAoWHSMap(Pointer(WorldMap)^).Watching(GetXhx, GetYhx, GetLhx, 0) then
     Sound.PlaySample('SFX\ATTACK\ENCHP02.WAV');
   if WorldMap^.Visible(GetXhx, GetYhx, GetLhx, 0) then
   begin

@@ -155,7 +155,7 @@ begin
   Stream.rwByte(FDirection, 18);
 end;
 
-procedure TPoisonCloud.TriggerDamage; { Near miss: register or temporary allocation differs after three variants. }
+procedure TPoisonCloud.TriggerDamage; { Unmatched: tried absolute walk view to prevent retained walk base. }
 var
   Msg: TMapFieldMsg;
   Walk: THNWalkData;

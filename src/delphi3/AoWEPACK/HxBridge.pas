@@ -102,7 +102,7 @@ begin
   if Index = 0 then Result := FTerrain else Result := -2;
 end;
 
-function THexagonBridge.GetShowPriority: Integer; { Near miss: compiler omits saved owner register after three variants. }
+function THexagonBridge.GetShowPriority: Integer; { Unmatched: tried name the map-field receiver; Pointer cast owner receiver; typed Self owner access. }
 var
   Xhp, Yhp: Integer;
 begin
@@ -206,7 +206,7 @@ begin
     (DirectionValid(MapField, 0) or DirectionValid(MapField, 1) or DirectionValid(MapField, 2));
 end;
 
-function THexagonBridge.PlaceHX(MapContainer: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean; { Near miss: three variants swap the MapField and Road registers. }
+function THexagonBridge.PlaceHX(MapContainer: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean; { Unmatched: tried swap map-field and road declaration order; identity assignment to road; separate road and old-owner lifetimes. }
 var
   Road: THexagonSprite;
   MapField: TMapField;

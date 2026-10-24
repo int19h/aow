@@ -232,7 +232,7 @@ begin
   else Result := nil;
 end;
 
-procedure TItemControlGrid.UpdateItems; { Near miss: three variants retain different loop-bound and index registers. }
+procedure TItemControlGrid.UpdateItems; { Unmatched: tried swap loop index and count declaration order; inline loop count getter; while loop with explicit counter increment (5 variants total). }
 var
   I, Total: Integer;
   Map: TAoWHSMap;

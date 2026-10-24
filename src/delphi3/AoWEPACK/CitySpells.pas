@@ -212,7 +212,7 @@ begin
   FSpellType := stGlobal;
 end;
 
-procedure TCityTargetSpell.PlayDefaultCityEffects(Source: TAbstractUnit; TargetCity: TCity); { Near miss: register or temporary allocation differs after three variants. }
+procedure TCityTargetSpell.PlayDefaultCityEffects(Source: TAbstractUnit; TargetCity: TCity); { Unmatched: tried swap walk and animation declaration order. }
 var
   Level: TMapLevel;
   A: TImageSequenceAnimation;
@@ -447,10 +447,11 @@ begin
   Result := TTownGateTE.Create(nil);
 end;
 
-function TTownGate.SetupTE(Event: TCityTargetSpellTE; Source: TAbstractUnit; X, Y, L: Integer): Boolean; { Near miss: register or temporary allocation differs after three variants. }
+function TTownGate.SetupTE(Event: TCityTargetSpellTE; Source: TAbstractUnit; X, Y, L: Integer): Boolean;
 var
-  Army: TArmyHS;
   Selection: Byte;
+  Army: TArmyHS;
+  Found: Boolean;
   Level: TMapLevel;
   Walk: THNWalkData;
 begin
@@ -463,16 +464,16 @@ begin
       Selection := AoWHSMap.FSelectedArmy.GetSelection
     else Selection := $FF;
     InitHNWalk(Walk, X, Y, 0);
-    Result := False;
+    Found := False;
     Level := AoWHSMap.MapContainer.GetMapLevel(L);
-    while (Walk.Radius < 4) and not Result do
+    while (Walk.Radius < 4) and not Found do
     begin
       if (Walk.X >= 0) and (Walk.Y >= 0) and
         (Walk.X < Level.Width) and (Walk.Y < Level.Height) then
-        Result := ValidTeleportLocation(Army, Selection, Walk.X, Walk.Y, L);
-      if not Result then WalkToNextHN(Walk);
+        Found := ValidTeleportLocation(Army, Selection, Walk.X, Walk.Y, L);
+      if not Found then WalkToNextHN(Walk);
     end;
-    if Result then
+    if Found then
     begin
       TTownGateTE(Event).FArmyID := Army.FArmy.CreateID(Selection);
       TTownGateTE(Event).FTeleportLocation := PackXYL(Walk.X, Walk.Y, L);
@@ -662,7 +663,7 @@ begin
   FEnchantmentSpellID := 50;
 end;
 
-procedure TFountainOfLife.ShowFountain(Animation: TAnimation; X, Y: Integer; const SD: TSurfaceDesc); { Near miss: register or temporary allocation differs after three variants. }
+procedure TFountainOfLife.ShowFountain(Animation: TAnimation; X, Y: Integer; const SD: TSurfaceDesc); { Unmatched: tried reorder coordinates and particle locals. }
 var
   I, DX, VY, Offset, CY, CX, VX, T, DY: Integer;
 begin
@@ -863,7 +864,7 @@ begin
   else Result := True;
 end;
 
-procedure TAnarchy.ShowAnimation(Animation: TAnimation; X, Y: Integer; const SD: TSurfaceDesc); { Near miss: animation cast adds saved registers after three variants. }
+procedure TAnarchy.ShowAnimation(Animation: TAnimation; X, Y: Integer; const SD: TSurfaceDesc); { Unmatched: tried direct sequence receiver and uncast inherited frame field; stage sequence before reading frame counter; stage frame counter before sequence call (5 variants total). }
 begin
   with TImageSequenceAnimation(Animation) do
     if (FImageSequence.GetUnloopedFrameIndex(FFrameCounter) = 0) and
@@ -926,7 +927,7 @@ begin
   Result := Result and TargetCity.GetRazed;
 end;
 
-procedure TAnimateRuins.ShowAnimation(Animation: TAnimation; X, Y: Integer; const SD: TSurfaceDesc); { Near miss: animation cast adds saved registers after three variants. }
+procedure TAnimateRuins.ShowAnimation(Animation: TAnimation; X, Y: Integer; const SD: TSurfaceDesc); { Unmatched: tried direct sequence receiver and uncast inherited frame field; stage sequence before reading frame counter; stage frame counter before sequence call (5 variants total). }
 begin
   with TImageSequenceAnimation(Animation) do
     if (FImageSequence.GetUnloopedFrameIndex(FFrameCounter) = 0) and

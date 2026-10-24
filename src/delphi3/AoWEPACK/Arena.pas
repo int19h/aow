@@ -113,7 +113,7 @@ begin
   else Result := -1;
 end;
 
-procedure TArena.ExecuteTrainUnit(AUnit: TAbstractUnit);
+procedure TArena.ExecuteTrainUnit(AUnit: TAbstractUnit); { Unmatched: tried Pointer identity assignment to unit; Pointer cast branch receivers; explicit incoming unit local. }
 begin
   if AUnit is THero then
   begin
@@ -132,7 +132,7 @@ begin
     end;
 end;
 
-function TArena.ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult; { Near miss: register or temporary allocation differs after three variants. }
+function TArena.ExecuteTE(A1: TStructureTE; Executer: TTokenExecuter): TExecuteResult; { Unmatched: tried make Self addressable and cast event through Pointer; addressable Self and named arena-event receiver; addressable Self and zero-shift arena-event receiver. }
 var I: Integer; AUnit: TAbstractUnit; ErrorText: string;
 begin
   Result := inherited ExecuteTE(A1, Executer);

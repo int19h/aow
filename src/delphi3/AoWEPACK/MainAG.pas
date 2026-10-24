@@ -312,7 +312,7 @@ begin
   Settings.Release;
 end;
 
-procedure TFortifyAGC.UpdateRequiredStrength; { Near miss: register or temporary allocation differs after three variants. }
+procedure TFortifyAGC.UpdateRequiredStrength; { Unmatched: tried retain enemy strength and stage day for scaling; separate short-lived strength limits and retain enemy/day operands. }
 var
   Strength: Integer;
   Statistics: TPlayerStatistics;
@@ -404,7 +404,7 @@ begin
   end;
 end;
 
-procedure TFortifyAGC.ProcessStates; { Near miss: truncated case-table extent and branch offsets differ after three variants. }
+procedure TFortifyAGC.ProcessStates; { Unmatched: swapped current/new target declarations; original signature ends inside the jump table. }
 var
   Finder: TAIGroupTargetFinder;
   Recruitment: TAIRecruitmentGroupFinder;

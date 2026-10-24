@@ -171,7 +171,7 @@ begin
     TriggerArmyDamage(ArmyHS);
 end;
 
-procedure TPoisonPlant.RestoreTerrain; { Near miss: three variants omit the original Self register save; terrain arguments corrected. }
+procedure TPoisonPlant.RestoreTerrain; { Unmatched: tried identity assignment to Self; Pointer identity assignment to Self; TObject cast destructor receiver (5 variants total). }
 var
   MapF: TMapField;
   OriginalOverlay: Shortint;
@@ -305,7 +305,7 @@ begin
   Result := $21305;
 end;
 
-procedure TPoisonPlantSpellTE.CreatePoisonPlant(Source: TAbstractUnit); { Near miss: walk-record alias and object spills differ after three variants. }
+procedure TPoisonPlantSpellTE.CreatePoisonPlant(Source: TAbstractUnit); { Unmatched: tried reinterpret walk record in with scope. }
 var
   Level: TMapLevel;
   Walk: THNWalkData;

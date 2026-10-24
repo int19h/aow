@@ -321,7 +321,7 @@ begin
   if Result > 3 then Result := 6 - Result;
 end;
 
-function TPatrolAGC.ResetPatrolToLocation: Boolean; { Near miss: heading and choice-list allocation differs after three variants. }
+function TPatrolAGC.ResetPatrolToLocation: Boolean; { Unmatched: tried reorder heading and group/settings locals. }
 var
   PreviousHeading, X, Y: Integer;
   NewList: TDoubleItemList;
@@ -423,7 +423,7 @@ begin
   end;
 end;
 
-procedure TPatrolAGC.TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean);
+procedure TPatrolAGC.TargetFoundEvent(Sender: TAIGroupControlPlugin; Target: TAIGroupControlTarget; var SearchDone: Boolean); { Unmatched: tried Pointer identity assignment to target parameter. }
 var
   MapF: TAoWMapField;
 begin

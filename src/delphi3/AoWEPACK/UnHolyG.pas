@@ -144,7 +144,7 @@ begin
   if not (msEditting in WorldMap^.Status) then TriggerArmyDamage(Army);
 end;
 
-procedure TUnHolyGround.RestoreTerrain;
+procedure TUnHolyGround.RestoreTerrain; { Unmatched: tried identity assignment to Self; Pointer identity assignment to Self; TObject cast destructor receiver (5 variants total). }
 var Field: TMapField; Overlay: Shortint;
 begin
   Field := TMapField(Owner);
@@ -290,7 +290,7 @@ begin
   Result := $21307;
 end;
 
-procedure TUnholyGroundSpellTE.CreateUnholyGround(Source: TAbstractUnit); { Near miss: walk-record alias and object spills differ after three variants. }
+procedure TUnholyGroundSpellTE.CreateUnholyGround(Source: TAbstractUnit); { Unmatched: tried make source parameter addressable. }
 var
   Level: TMapLevel;
   Walk: THNWalkData;

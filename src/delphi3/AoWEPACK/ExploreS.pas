@@ -93,7 +93,7 @@ begin Result := $203C1; end;
 function TExplorationSite.GetExplored: Boolean;
 begin Result := True; end;
 
-function TExplorationSite.GetTerrainTypeImage(TerrainType: Integer): Integer; { Near miss: three variants retain a different receiver/index evaluation order. }
+function TExplorationSite.GetTerrainTypeImage(TerrainType: Integer): Integer;
 var Image: Integer;
 begin
   if not GetExplored or (AoWHSMap.FDay = 0) then
@@ -101,7 +101,7 @@ begin
   else
   begin
     Image := TerrainType + 100;
-    if TExplorationSiteResource(FResource).ImageSequenceList.ImageSequences[Image] <> nil then
+    if TExplorationSiteResource(FResource).ImageSequenceList.ImageSequences[Image shl 0] <> nil then
       Result := Image
     else Result := TerrainType;
   end;
@@ -110,7 +110,7 @@ end;
 procedure TExplorationSite.ExecuteSearchDone(A1: TCombatType; A2: TCombatResult);
 begin end;
 
-procedure TExplorationSite.CombatExecuted(A1: TCombat); { Near miss: three variants retain different loop and object registers and a spilled index. }
+procedure TExplorationSite.CombatExecuted(A1: TCombat); { Unmatched: tried move loop index before object locals. }
 var
   Data: TCombatData;
   Obj: TCombatObject;
@@ -255,7 +255,7 @@ begin
   else Result := False;
 end;
 
-function TExplorationSite.Search: Boolean; { Near miss: register or temporary allocation differs after three variants. }
+function TExplorationSite.Search: Boolean; { Unmatched: tried avoid sign extension of packed level argument. }
 var
   ArmyHS: TArmyHS;
   Request: TCombatTypeRequestEventLog;

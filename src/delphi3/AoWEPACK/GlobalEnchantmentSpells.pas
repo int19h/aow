@@ -610,7 +610,7 @@ begin
   if Anim.FFrameCounter = 50 then Anim.Destroy;
 end;
 
-function TEnchantedRoads.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; { Near miss: three variants retain different animation and Source registers. }
+function TEnchantedRoads.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; { Unmatched: tried animation local order and typed activate receiver; cast animation constructor result; scope animation receiver at activation call (5 variants total). }
 var
   X, Y, L: Shortint;
   Anim: TAnimation;
@@ -724,7 +724,7 @@ begin
   if Anim.FFrameCounter = 90 then Anim.Destroy;
 end;
 
-function TAirMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; { Near miss: register or temporary allocation differs after three variants. }
+function TAirMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; { Unmatched: tried independent map pointer-cell view for height; independent map-height read and explicit unit parameter copy; unit parameter identity assignment after sphere notification (5 variants total). }
 var
   X, Y, L: Shortint;
   Anim: TAnimation;
@@ -1279,7 +1279,7 @@ begin
   else Result := 0;
 end;
 
-procedure TFloodEnchantment.NewTurn; { Near miss: three variants retain different turn-counter load reuse. }
+procedure TFloodEnchantment.NewTurn; { Unmatched: tried stage play mode and independent turn-count reloads; stage first mode read and retain second map-field expression. }
 begin
   if not FRemoved then
   begin
@@ -1425,7 +1425,7 @@ begin
   Result := True;
 end;
 
-function TLifeMasteryEnchantment.Deactivate(Player: Byte): Boolean;
+function TLifeMasteryEnchantment.Deactivate(Player: Byte): Boolean; { Unmatched: tried cast final message sender to TEObject; zero-shift final message sender. }
 var
   Msg: TEMsg;
 begin
@@ -1506,7 +1506,7 @@ begin
   Result := True;
 end;
 
-function TDeathMasteryEnchantment.Deactivate(Player: Byte): Boolean;
+function TDeathMasteryEnchantment.Deactivate(Player: Byte): Boolean; { Unmatched: tried cast final message sender to TEObject; zero-shift final message sender. }
 var
   Msg: TEMsg;
 begin
@@ -1606,6 +1606,7 @@ begin
     Y := Random(Cardinal(Anim.FTag) shr 16);
     Speed := Random(15) + 5;
     Image := Random(3);
+    Image := Image; { Preserve the original image/displacement register lifetimes. }
     D := (Anim.FFrameCounter - 45) * Speed;
     Dec(X, D * 2);
     Inc(Y, D);
@@ -1614,7 +1615,7 @@ begin
   if Anim.FFrameCounter = 90 then Anim.Destroy;
 end;
 
-function TDeathMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; { Near miss: register or temporary allocation differs after three variants. }
+function TDeathMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; { Unmatched: tried independent map pointer-cell view for height; independent map-height read and explicit unit parameter copy; unit parameter identity assignment after sphere notification (5 variants total). }
 var
   X, Y, L: Shortint;
 begin
@@ -1788,7 +1789,7 @@ begin
   if Anim.FFrameCounter = 90 then Anim.Destroy;
 end;
 
-function TFireMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; { Near miss: register or temporary allocation differs after three variants. }
+function TFireMastery.ExecuteTE(A1: TSpellTE; A2: TAbstractUnit; A3: Integer): Boolean; { Unmatched: tried independent map pointer-cell view for height; independent map-height read and explicit unit parameter copy; unit parameter identity assignment after sphere notification (5 variants total). }
 var
   X, Y, L: Shortint;
 begin

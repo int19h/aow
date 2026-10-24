@@ -61,7 +61,7 @@ begin
   end;
 end;
 
-procedure TUnitTabControl.UnitIndexGridSelectCell(Sender: TObject; ACol, ARow: Longint; var CanSelect: Boolean); { Near miss: three variants retain a different index/list register allocation. }
+procedure TUnitTabControl.UnitIndexGridSelectCell(Sender: TObject; ACol, ARow: Longint; var CanSelect: Boolean); { Unmatched: tried swap index and list declaration order; hard cast list receiver; reuse consumed column parameter for selected index (5 variants total). }
 var
   Index: Integer;
   List: TUnitIndexList;
@@ -73,7 +73,7 @@ begin
   if Assigned(FOnSelectUnit) then FOnSelectUnit(Self, FSelectionControl.FSelectedUnitIndex);
 end;
 
-procedure TUnitTabControl.UpdateUnitIndexGrid;
+procedure TUnitTabControl.UpdateUnitIndexGrid; { Unmatched: tried Pointer identity assignment to Self; typed Self with scope. }
 var
   Index: Integer;
 begin

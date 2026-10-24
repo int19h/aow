@@ -822,7 +822,7 @@ begin
   end;
 end;
 
-function TStormSpell.Activate(A1: TAbstractUnit): Boolean; { Near miss: register or temporary allocation differs after three variants. }
+function TStormSpell.Activate(A1: TAbstractUnit): Boolean; { Unmatched: tried Pointer identity assignment to source. }
 var
   X, Y, L: Shortint;
   Reason: string;

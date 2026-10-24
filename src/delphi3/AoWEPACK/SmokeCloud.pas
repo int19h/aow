@@ -213,7 +213,7 @@ begin
   Stream.rwEObject(FEnchantment, 19);
 end;
 
-procedure TSmokeCloud.UpdateConcealment(Xhx, Yhx, Lhx: Shortint); { Original reloads TerrainList after Army.Update callbacks can replace the resource. }
+procedure TSmokeCloud.UpdateConcealment(Xhx, Yhx, Lhx: Shortint); { Original reloads TerrainList after Army.Update callbacks can replace the resource. } { Unmatched: tried absolute walk view to prevent retained walk base. }
 var
   Walk: THNWalkData;
   Level: TMapLevel;

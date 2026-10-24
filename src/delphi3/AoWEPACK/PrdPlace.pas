@@ -176,7 +176,7 @@ begin
   end;
 end;
 
-function TProductionPlaceControl.UnitProduced: Boolean; { Near miss: three variants swap the Self and production-place registers. }
+function TProductionPlaceControl.UnitProduced: Boolean; { Unmatched: tried typed production-place with receiver; name production-place receiver before with scope; identity assignment to controller before production-place scope. }
 var
   Enchantment: TUnitEnchantment;
   Log: TProductionPlaceEventLog;
@@ -372,16 +372,14 @@ begin
   else Result := 0;
 end;
 
-function TProductionPlace.GetIncome: Integer; { Near miss: compiler reuses Self register for control after three variants. }
+function TProductionPlace.GetIncome: Integer;
 var
   Income: Integer;
-  Control: TProductionPlaceControl;
 begin
   Income := GetBaseIncome;
   if GetMagicSphere = msNone then
   begin
-    Control := FProductionControl;
-    if (Control.FStatus <> pcsProducing) or (Control.FQueue.GetItem(0).FProductionID = 10) then
+    if (FProductionControl.FStatus <> pcsProducing) or (FProductionControl.FQueue.GetItem(0).FProductionID = 10) then
       Inc(Income, Round(Income * 0.25));
   end;
   Result := Income;

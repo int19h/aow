@@ -141,7 +141,7 @@ begin
   if not (msEditting in WorldMap^.Status) then TriggerArmyDamage(Army);
 end;
 
-procedure THolyGround.RestoreTerrain;
+procedure THolyGround.RestoreTerrain; { Unmatched: tried identity assignment to Self; Pointer identity assignment to Self; TObject cast destructor receiver (5 variants total). }
 var Field: TMapField; Overlay: Shortint;
 begin
   Field := TMapField(Owner);
@@ -376,9 +376,9 @@ procedure THolyGroundSpell.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSe
 var I: Integer;
 begin
   inherited SetupTargetSelection(A1, A2);
-  TTargetSelectionControl(A2).FHNs.Clear;
+  A2.FHNs.Clear;
   for I := 0 to RadToHN(2) - 1 do
-    TTargetSelectionControl(A2).FHNs.Add(0);
+    A2.FHNs.Add(0);
 end;
 
 function THolyGroundSpell.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;

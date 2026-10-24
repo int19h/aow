@@ -263,7 +263,7 @@ begin
       TCaveFieldFlags(Pointer(Info.MapField)^).Flags or $8000;
 end;
 
-procedure TCave.MoveExclusive(const Info: HSEngine.THSSenderInfo); { Near miss: register or temporary allocation differs after three variants. }
+procedure TCave.MoveExclusive(const Info: HSEngine.THSSenderInfo); { Unmatched: tried reorder case bodies down before up; down/up case order and typed Self selector. }
 var Field: TMapField;
 begin
   if Info.HN = 0 then
@@ -323,7 +323,7 @@ begin
   end;
 end;
 
-function TCave.CanEnter(Player: Shortint): Boolean; { Near miss: three variants retain an extra ArmyHS register and a shared return. }
+function TCave.CanEnter(Player: Shortint): Boolean; { Unmatched: tried guard and separate Boolean result; uncast lookup result and explicit success exit; retain uncast lookup local through guard and success exit. }
 var ArmyHS: TArmyHS;
 begin
   ArmyHS := TArmyHS(Owner.FindOwnedChild($20217));
@@ -331,7 +331,7 @@ begin
     (CanEnterSelection(ArmyHS.FArmy) <> 0);
 end;
 
-function TCave.EnterEx: Boolean; { Near miss: path/result spills and managed temporaries differ after three variants. }
+function TCave.EnterEx: Boolean; { Unmatched: tried make path local addressable. }
 var
   Selection: Byte;
   Path: TMovepath;

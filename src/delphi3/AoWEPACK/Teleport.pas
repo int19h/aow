@@ -223,7 +223,7 @@ begin
     not (tsRazed in FState) and (FDestinationX > 0);
 end;
 
-function TTeleport.Teleport(Player: Shortint): Boolean; { Near miss: player/path spills and managed temporaries differ after three variants. }
+function TTeleport.Teleport(Player: Shortint): Boolean; { Unmatched: tried make player parameter addressable. }
 var
   ArmyHS: TArmyHS;
   Path: TMovepath;

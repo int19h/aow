@@ -16,8 +16,8 @@ type
   TMapDayEvent = procedure(Day: Integer) of object;
   TMapObjectEvent = procedure(Obj: TObject) of object;
   TMapEndTurnEvent = procedure(Player: Shortint; Automatic: Boolean) of object;
-  TMapExecuteLogEvent = procedure(Log: TEventLog; Trigger: Byte; Data1, Data2: Pointer) of object;
-  TMapTargetEvent = procedure(Control: TObject; Mode: Byte) of object;
+  TMapExecuteLogEvent = procedure(Log: TEventLog; Immediate: Boolean; Done: TExecuteDoneEvent) of object;
+  TMapTargetEvent = procedure(Control: TTargetSelectionControl; Change: TTargetSelectionChange) of object;
   PExecuteLogInfo = ^TExecuteLogInfo;
   TExecuteLogInfo = record
     Log: TEventLog;
@@ -590,11 +590,11 @@ begin
   end;
 end;
 
-procedure TAoWMapControl.ExecuteEventLog(Info: TObject); { Near miss: three variants retain different event-argument and try-frame registers. }
+procedure TAoWMapControl.ExecuteEventLog(Info: TObject);
 begin
   try
     if Assigned(FOnExecuteEventLog) then
-      with PExecuteLogInfo(Info)^ do FOnExecuteEventLog(Log, Trigger, Data1, Data2);
+      FOnExecuteEventLog(PExecuteEventLogInfo(Info)^.Log, PExecuteEventLogInfo(Info)^.Immediate, PExecuteEventLogInfo(Info)^.Done);
   except
     Dialogs.ShowMessage('Exception occurred during OnExecuteEventLog event (TAoWMapControl)');
   end;
@@ -618,10 +618,10 @@ begin
   end;
 end;
 
-procedure TAoWMapControl.TargetSelectionChange(Control: TObject); { Near miss: three variants retain different event-argument registers. }
+procedure TAoWMapControl.TargetSelectionChange(Control: TObject);
 begin
   try
-    if Assigned(FOnTargetSelectionChange) and ((PTargetState(TRawObject(Pointer(AoWHSMap)^).Fields[$E0 div 4])^.Status and 8) <> 0) then FOnTargetSelectionChange(Control, PTargetState(Control)^.Mode);
+    if Assigned(FOnTargetSelectionChange) and ((PTargetState(TRawObject(Pointer(AoWHSMap)^).Fields[$E0 div 4])^.Status and 8) <> 0) then FOnTargetSelectionChange(TTargetSelectionControl(Control), TTargetSelectionControl(Control).FChange);
   except
     Dialogs.ShowMessage('Exception occurred during OnTargetSelectionChange event (TAoWMapControl)');
   end;

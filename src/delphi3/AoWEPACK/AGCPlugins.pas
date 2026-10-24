@@ -250,7 +250,7 @@ begin
   Result := True;
 end;
 
-function TAIGroupDefendTargetSelector.Process: Boolean; { Near miss: three variants retain different control and move-executer register reuse. }
+function TAIGroupDefendTargetSelector.Process: Boolean; { Unmatched: tried typed control and scoped move-executer receivers. }
 begin
   case FState of
     0:
@@ -326,7 +326,7 @@ end;
 function CompareWanderFields(const Item1, Item2: TDoubleItem): Integer;
 begin Result := Item2.B - Item1.B; end;
 
-function TAIGroupWanderControl.Process: Boolean;
+function TAIGroupWanderControl.Process: Boolean; { Unmatched: tried typed settings scopes and separate final control lifetime. }
 var
   Control: TAIGroupControl;
   Settings: TMoveControlSettings;

@@ -152,7 +152,7 @@ begin
   Destroy;
 end;
 
-procedure TManaCrystals.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); { Near miss: three variants retain a different AI-info argument load. }
+procedure TManaCrystals.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); { Unmatched: tried record cast of dereferenced AI info pointer; zero-shift AI info address; untyped pointer var argument rejected by compiler; restored. }
 begin
   inherited MapFieldMsgProc(Msg);
   if Msg.MsgID = $1102 then

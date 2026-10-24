@@ -186,7 +186,7 @@ begin
   Stream.rwShortintEx(FOriginalOverlay, -1, 42);
 end;
 
-procedure TRaisedMountain.RestoreTerrain;
+procedure TRaisedMountain.RestoreTerrain; { Unmatched: tried identity assignment to Self; Pointer identity assignment to Self; TObject cast destructor receiver (5 variants total). }
 var
   Field: TMapField;
   Overlay: Shortint;
@@ -365,9 +365,9 @@ procedure TRaiseTerrain.SetupTargetSelection(A1: TAbstractUnit; A2: TTargetSelec
 var I: Integer;
 begin
   inherited SetupTargetSelection(A1, A2);
-  TTargetSelectionControl(A2).FHNs.Clear;
+  A2.FHNs.Clear;
   for I := 0 to RadToHN(2) - 1 do
-    TTargetSelectionControl(A2).FHNs.Add(0);
+    A2.FHNs.Add(0);
 end;
 
 function TRaiseTerrain.TargetSelected(A1: TAbstractUnit; A2: Integer; A3: Integer; A4: Integer): Boolean;

@@ -636,7 +636,7 @@ begin
   end;
 end;
 
-procedure TCityProductionControl.Update;
+procedure TCityProductionControl.Update; { Unmatched: tried identity assignment to Self; Pointer identity assignment to Self; zero-shift receiver before field access (5 variants total). }
 begin
   inherited Update;
   if FUpdateCount = 0 then FCity.Update;
@@ -650,11 +650,9 @@ begin
 end;
 
 function TCityProductionControl.CreateUnitProduction(A1: Integer): TUnit;
-var Unit_: TUnit;
 begin
-  Unit_ := inherited CreateUnitProduction(A1);
-  if (Unit_ <> nil) and (ceiWarmonger in FCity.FEnchantments) then Unit_.SetRank(urSilver);
-  Result := Unit_;
+  Result := inherited CreateUnitProduction(A1);
+  if (Result <> nil) and (ceiWarmonger in FCity.FEnchantments) then Result.SetRank(urSilver);
 end;
 
 procedure TCityProductionControl.UnitResearched;
@@ -732,7 +730,7 @@ begin
   FShellEndFrame := WorldMap^.Frame + 20;
 end;
 
-procedure TCityOverlayHS.Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); { Near miss: image-index spill and register allocation differ after three variants. }
+procedure TCityOverlayHS.Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); { Unmatched: tried intensity before coordinates and index after frame. }
 var
   Xhp, Yhp, Intensity, Index, Frame: Integer;
   Sequence: TImageSequence;
@@ -1284,7 +1282,7 @@ begin
   end;
 end;
 
-function TCity.UpdatePlayer: Boolean; { Near miss: register or temporary allocation differs after three variants. }
+function TCity.UpdatePlayer: Boolean; { Unmatched: tried player declared first and existing-player branch first; scope map-level receiver after corrected slots and branch order. }
 var
   MultiplePlayers: Boolean;
   MapLevel: TMapLevel;
@@ -1554,7 +1552,7 @@ begin
     begin
       Dec(I);
       Player := I;
-      Result := (WorldMap^.FPlayers.GetDiplomaticRelation(Player, FPlayer) = drAlliance) and
+      Result := (WorldMap^.FPlayers.GetDiplomaticRelation(Player shl 0, FPlayer) = drAlliance) and
         RaceInCity(Race, Player);
     end;
   end else Result := False;
@@ -1740,7 +1738,7 @@ begin
   if FOverlay.FMode = omShowRazeAnimation then FOverlay.SetMode(omIdle);
 end;
 
-procedure TCity.UpdateCrops;
+procedure TCity.UpdateCrops; { Unmatched: tried identity assignment to Self; Pointer identity assignment to Self; zero-shift receiver before field access (5 variants total). }
 var Count: Integer;
 begin
   if not GetEditMode then
@@ -1860,7 +1858,7 @@ begin
   end;
 end;
 
-function TCity.GetCivilStatus: TCivilStatus; { Near miss: register and local-slot allocation differs after three variants. }
+function TCity.GetCivilStatus: TCivilStatus; { Unmatched: tried predictor slot first, original branch order and split city bonuses; split army and rebel loop indexes and reorder numeric slots. }
 var
   Relation: TStatus;
   Value, ArmyValue, Bonus, I, J: Integer;
@@ -1943,24 +1941,18 @@ begin
   end else Result := csStable;
 end;
 
-procedure TCity.UpdateImages; { Near miss: register or temporary allocation differs after three variants. }
+procedure TCity.UpdateImages;
 var
+  RaceResource: TRaceResource;
   Terrain, Offset, Size, Index: Integer;
   Images: TCustomImageLibrary;
-  RaceResource: TRaceResource;
 begin
   Terrain := TMapField(Owner).TerrainType;
   if Terrain = 3 then Offset := 20
   else if Terrain in [5, 7..9, 12..13] then Offset := 40
   else Offset := 0;
   Images := FResource.ImageSequenceList.ImageSequences[0].ImageLibrary;
-  if GetRazed then
-  begin
-    FCityImage := nil;
-    FWallBackImage := nil;
-    FWallFrontImage := nil;
-  end
-  else
+  if not GetRazed then
   begin
     if FRace >= 0 then
     begin
@@ -1976,9 +1968,11 @@ begin
       Index := Offset + 1;
       if Images.ImageExist(Index) then FCityImage := Images[Index] else FCityImage := Images[1];
     end;
-    if (FWallType <> 0) and (FWallType <> 3) then
+    if (FWallType <> 0) and (Byte(PChar(Self)[$4C]) <> 3) then
     begin
-      Index := FWallType * 2 + Offset;
+      Index := Byte(PChar(Self)[$4C]);
+      Index := Index shl 1;
+      Inc(Index, Offset);
       if Images.ImageExist(Index) then
       begin
         FWallFrontImage := Images[Index];
@@ -1986,8 +1980,8 @@ begin
       end
       else
       begin
-        FWallFrontImage := Images[FWallType * 2];
-        FWallBackImage := Images[FWallType * 2 + 1];
+        FWallFrontImage := Images[Integer(FWallType) shl 1];
+        FWallBackImage := Images[(Integer(FWallType) shl 1) + 1];
       end;
     end
     else
@@ -1995,6 +1989,12 @@ begin
       FWallBackImage := nil;
       FWallFrontImage := nil;
     end;
+  end
+  else
+  begin
+    FCityImage := nil;
+    FWallBackImage := nil;
+    FWallFrontImage := nil;
   end;
   UpdateFlagID;
 end;
@@ -2002,7 +2002,7 @@ end;
 var
   SortingCity: TCity;
 
-function CompareCityProductions(Item1, Item2: Pointer): Integer;
+function CompareCityProductions(Item1, Item2: Pointer): Integer; { Unmatched: tried original count threshold and Pointer-cast input receivers. }
 var Value1, Value2: Integer;
 begin
   with TUnitProduction(Item1) do
@@ -2082,7 +2082,7 @@ begin
   Result := FName;
 end;
 
-procedure TCity.SetName(Name: string);
+procedure TCity.SetName(Name: string); { Unmatched: tried identity assignment to Self; Pointer identity assignment to Self; zero-shift receiver before field access (5 variants total). }
 begin
   FName := Name;
   Update;
@@ -2222,7 +2222,7 @@ begin
       Result := SysUtils.Format(TranslateRStr(LoadResString(CityBattleDrawnText)), [GetName]);
 end;
 
-procedure TCity.FinalizeCombat(Combat: TCombat);
+procedure TCity.FinalizeCombat(Combat: TCombat); { Unmatched: tried Pointer identity assignment to Combat; explicit combat local; zero-shift combat identity assignment (5 variants total). }
 begin
   if (Combat.FCombatResult = crVictory) or (Combat.FCombatResult = crNoDefenders) then
   begin
@@ -2375,7 +2375,7 @@ begin
   end;
 end;
 
-procedure TCity.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); { Near miss: register or temporary allocation differs after three variants. }
+procedure TCity.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); { Unmatched: tried owned-player color branch before independent-player branch. }
 begin
   if not ((Msg.MsgID = $110C) and (FResource.TerrainList.Terrain[Msg.HN] >= 0)) then inherited MapFieldMsgProc(Msg);
   if FResource.TerrainList.Terrain[Msg.HN] >= 0 then
@@ -2419,7 +2419,7 @@ begin
   end;
 end;
 
-function TCity.GetTopBorderImage: TLibraryImage;
+function TCity.GetTopBorderImage: TLibraryImage; { Unmatched: tried swap fallback index and sequence declarations; cast fallback sequence receiver. }
 var Index: Integer; Sequences: TImageSequenceList;
 begin
   Result := GetTopCityActionImage(GetActiveAction);
@@ -2446,7 +2446,7 @@ begin
   end;
 end;
 
-function TCity.GetMiddleBorderImage: TLibraryImage;
+function TCity.GetMiddleBorderImage: TLibraryImage; { Unmatched: tried swap fallback index and sequence declarations; cast fallback sequence receiver. }
 var Index: Integer; Sequences: TImageSequenceList;
 begin
   Result := GetMiddleCityActionImage(GetActiveAction);
@@ -2473,7 +2473,7 @@ begin
   end;
 end;
 
-function TCity.GetBottomBorderImage: TLibraryImage;
+function TCity.GetBottomBorderImage: TLibraryImage; { Unmatched: tried swap fallback index and sequence declarations; cast fallback sequence receiver. }
 var Index: Integer; Sequences: TImageSequenceList;
 begin
   Result := GetBottomCityActionImage(GetActiveAction);
@@ -2640,7 +2640,7 @@ begin
   Result := $20108;
 end;
 
-procedure TCityResource.ShowCity(X, Y: Integer; const SurfaceDesc: TSurfaceDesc; City: TCity); { Near miss: image and coordinate registers differ after three variants. }
+procedure TCityResource.ShowCity(X, Y: Integer; const SurfaceDesc: TSurfaceDesc; City: TCity); { Unmatched: tried make X coordinate addressable; make Y addressable and retain typed image receiver; repeat city image fields instead of single-use image local (5 variants total). }
 var
   dX, dY: Integer;
   Image: TLibraryImage;
@@ -2839,14 +2839,14 @@ begin
   end;
 end;
 
-function TCityAIPA.ResearchProduction(ResearchBudget, UpgradeBudget: TAIBudget): Boolean; { Near miss: register or temporary allocation differs after three variants. }
+function TCityAIPA.ResearchProduction(ResearchBudget, UpgradeBudget: TAIBudget): Boolean;
 var
-  Player: TPlayer;
   Cities: TDoubleItemList;
-  I, J, UnitIndex, Index, Value: Integer;
+  Valid: Boolean;
+  Player: TPlayer;
+  I, J, UnitIndex, Index, Value, Priority: Integer;
   Structure: TPlayerStructure;
   City: TCity;
-  Valid: Boolean;
   Production: TProductionItem;
 begin
   Result := False;
@@ -2867,7 +2867,11 @@ begin
             not City.FProduction.FUnitProductions.GetItem(J).FResearched and
             (City.ResearchCost(J) <= ResearchBudget.FGold + UpgradeBudget.FGold));
       end;
-      if Valid then Cities.AddAB(Integer(City), City.GetSize * 2 + (City.FProductionPriority + City.FWallType * 3));
+      if Valid then
+      begin
+        Priority := City.GetSize * 2 + (City.FProductionPriority + City.FWallType * 3);
+        Cities.AddAB(Integer(City), Priority);
+      end;
     end;
   end;
   Cities.SortDescendingItemB;
@@ -2888,14 +2892,14 @@ begin
       Production.FParameter := Index;
       City.FProduction.ExecuteAddProduction(Production);
       Production.Free;
-      Value := City.ResearchCost(Index);
-      if Value > ResearchBudget.FGold then
+      Index := City.ResearchCost(Index);
+      if Index > ResearchBudget.FGold then
       begin
-        Dec(Value, ResearchBudget.FGold);
+        Dec(Index, ResearchBudget.FGold);
         Player.FAIBudget.BudgetExpenseMade(ResearchBudget.FGold, 0, ResearchBudget, bemBudget);
-        Player.FAIBudget.BudgetExpenseMade(Value, 0, UpgradeBudget, bemBudget);
+        Player.FAIBudget.BudgetExpenseMade(Index, 0, UpgradeBudget, bemBudget);
       end
-      else Player.FAIBudget.BudgetExpenseMade(Value, 0, ResearchBudget, bemBudget);
+      else Player.FAIBudget.BudgetExpenseMade(Index, 0, ResearchBudget, bemBudget);
       Result := True;
     end;
   end;
@@ -2921,7 +2925,7 @@ begin
   if (City.GetSize <= City.FUpgradeLevel) or (Level <> Byte(PChar(City)[$4D])) then Result := False else Result := True;
 end;
 
-function TCityAIPA.UpgradeCity(Budget: TAIBudget): Boolean; { Near miss: register or temporary allocation differs after three variants. }
+function TCityAIPA.UpgradeCity(Budget: TAIBudget): Boolean; { Unmatched: tried swap player and city-list declaration order. }
 var
   Player: TPlayer;
   Cities: TDoubleItemList;
@@ -3008,7 +3012,7 @@ begin
     (City.GetSize > 2) and (City.FUpgradeLevel > 1) and (WorldMap^.FDay >= 30));
 end;
 
-function TCityAIPA.FortifyCity(Budget: TAIBudget): Boolean; { Near miss: register or temporary allocation differs after three variants. }
+function TCityAIPA.FortifyCity(Budget: TAIBudget): Boolean; { Unmatched: tried swap player and city-list declaration order. }
 var
   Player: TPlayer;
   Cities: TDoubleItemList;

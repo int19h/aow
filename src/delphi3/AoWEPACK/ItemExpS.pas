@@ -127,7 +127,7 @@ begin
   Result := FItems.Count = 0;
 end;
 
-procedure TItemExplorationSite.Generate;
+procedure TItemExplorationSite.Generate; { Unmatched: tried Pointer cast map receiver; untyped pointer-cell view for item-type set. }
 var I: Byte; Item: TItem;
 begin
   if FItemCount <> 0 then
@@ -149,7 +149,7 @@ begin
   A1.FItems := FItems;
 end;
 
-procedure TItemExplorationSite.ExecuteSearchDone(A1: TCombatType; A2: TCombatResult);
+procedure TItemExplorationSite.ExecuteSearchDone(A1: TCombatType; A2: TCombatResult); { Unmatched: tried Pointer cast map receiver; untyped pointer-cell view for map argument. }
 var
   Army: TArmyHS;
   Log: TItemExplorationSiteEventLog;

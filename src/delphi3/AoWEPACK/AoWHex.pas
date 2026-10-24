@@ -147,7 +147,7 @@ begin
         GetXhx, GetYhx, GetLhx, 0);
 end;
 
-procedure TAoWHexagon.UpdateTransition(Side: Byte); { Near miss: three variants retain different transition-value reuse. }
+procedure TAoWHexagon.UpdateTransition(Side: Byte); { Unmatched: tried reverse terrain comparison, stage zero comparison, independent byte reload; terrain ordering and repeated transition-byte expressions; separate typed transition reload and repeat typed getter index (7 variants total). }
 var
   Shifted: Boolean;
   NXhx, NYhx: Integer;
@@ -330,7 +330,7 @@ begin
   if FSides and $20 <> 0 then IL[35].Show(Xhp, Yhp, SurfaceDesc);
 end;
 
-procedure TAoWWaterHexagon.ShowDynamic(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); { Near miss: Self, image-list and loop registers differ after three variants. }
+procedure TAoWWaterHexagon.ShowDynamic(XhpSurf, YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); { Unmatched: tried name common owner for fog visibility test. }
 var
   Xhp, Yhp, X, Y: Integer;
   IL: TCustomImageLibrary;
