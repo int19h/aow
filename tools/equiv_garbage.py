@@ -146,6 +146,7 @@ class CutGarbage:
             Ownership(self.checker,info,st.h4_base,head).prepare(st)
     def mask(self,memory,base,info,state,allowed=(),st=None):
         e=self.e
+        if getattr(self.checker,'full_events',False):return memory
         if st is not None and not e.prove(st.ownership.goals(st)):return memory
         public=e.z3.Array('memory',e.BV32,e.BYTE)
         for off in sorted(set(range(info['low'],0))-state[1]):

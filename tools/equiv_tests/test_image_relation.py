@@ -89,6 +89,8 @@ class ImageRelation(unittest.TestCase):
         old=b'\xc7\x05'+p32(A)+p32(9)+b'\xa1'+p32(A)+b'\xc3'
         new=b'\xb8'+p32(9)+b'\xa3'+p32(B)+b'\xc3'
         c,f=setup(old,new,kind='mutable-data')
+        self.assertEqual('NOT PROVEN',c.check(f)[0])  # Removed read is now observable.
+        c,f=setup(old,old.replace(p32(A),p32(B)),kind='mutable-data')
         self.assertTrue(c.check(f)[0].startswith('PROVEN'))
         c,f=setup(other=b'\xb8'+p32(1)+b'\xc3',kind='mutable-data')
         self.assertEqual('NOT PROVEN',c.check(f)[0])

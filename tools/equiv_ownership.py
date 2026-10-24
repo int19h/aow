@@ -59,6 +59,16 @@ class Ownership:
     def __init__(self,checker,info,base,head=0):
         e=model();self.e=e;self.checker=checker;self.info=info;self.base=base
         self.low=info['low'];self.side=info['side'];self.head=head
+        if 'ownership_lowest' not in info:
+            offsets=[info['low']]
+            for i,(regs,*_) in sorted(info['before'].items()):
+                if not isinstance(regs.get('esp'),int):
+                    ins=info['code'][i]
+                    raise e.Unsupported('H2 ESP unknown at '+hex(ins.address)+' ('+ins.mnemonic+' '+ins.op_str+')')
+                offsets.append(regs['esp'])
+            info['ownership_lowest']=min(offsets)
+        self.lowest=info['ownership_lowest']
+        self.low=self.lowest  # H1 and H2 share ownership; H4 retains info['low'].
         self.premises=[];self.records=[];self.instances=[];self.loaded=[];self.pushes=[];self.obligations=[];self.pc=info['code'][head].address
     def assume(self,predicate,description):
         e=self.e;predicate=e.simp(predicate)
@@ -102,7 +112,7 @@ class Ownership:
     def guard(self,st):
         return self.e.conjunction([getattr(st,'path',self.e.z3.BoolVal(True)),*self.premises])
     def safe(self,st,value):
-        e=self.e;goal=outside(value,self.base,self.low)
+        e=self.e;goal=outside(value,self.base,self.lowest)
         if e.prove([e.z3.Implies(getattr(st,'path',e.z3.BoolVal(True)),goal)]):return True
         self.consult()
         return e.prove([e.z3.Implies(self.guard(st),goal)])
@@ -110,25 +120,25 @@ class Ownership:
         e=self.e
         # Private temporary copies are checked at the public boundary, not hidden
         # as a consequence of the expression that happened to produce them.
-        private=e.z3.And([e.z3.Not(outside(addr+e.bv(k),self.base,self.low)) for k in range(value.size()//8)])
+        private=e.z3.And([e.z3.Not(outside(addr+e.bv(k),self.base,self.lowest)) for k in range(value.size()//8)])
         size=value.size()//8
         words=[e.z3.Concat([e.z3.Extract((off+j)*8+7,(off+j)*8,value) if 0<=off+j<size else st.load(addr+e.bv(off+j),1) for j in reversed(range(4))]) for off in range(-3,size)]
-        safe=e.z3.And([outside(word,self.base,self.low) for word in words])
+        safe=e.z3.And([outside(word,self.base,self.lowest) for word in words])
         if getattr(self,'kind','')=='push' and not e.z3.is_true(e.simp(private)):self.pushes.append((len(self.obligations),value))
         self.obligations.append((self.pc,'stored word',e.z3.Implies(self.guard(st),e.z3.Or(private,safe))))
     def result(self,st):
-        if self.low:self.consult()  # The derivation fallback is conditional on entry separation.
-        for r in ('eax','edx'):self.obligations.append((self.pc,'returned '+r,self.e.z3.Implies(self.guard(st),self.e.z3.Or(outside(st.regs[r],self.base,self.low),self.e.z3.BoolVal(not self.derived(st.regs[r]))))))
+        if self.lowest:self.consult()  # The derivation fallback is conditional on entry separation.
+        for r in ('eax','edx'):self.obligations.append((self.pc,'returned '+r,self.e.z3.Implies(self.guard(st),self.e.z3.Or(outside(st.regs[r],self.base,self.lowest),self.e.z3.BoolVal(not self.derived(st.regs[r]))))))
     def passed(self,st,values,allowed,register_count=0):
         e=self.e
-        if self.low and register_count:self.consult()
+        if self.lowest and register_count:self.consult()
         for index,value in self.pushes:
             covered=e.z3.Or([value==self.base+e.bv(k) for k in sorted(allowed)])
-            self.obligations[index]=(self.obligations[index][0],'pushed word',e.z3.Implies(self.guard(st),e.z3.Or(outside(value,self.base,self.low),covered)))
+            self.obligations[index]=(self.obligations[index][0],'pushed word',e.z3.Implies(self.guard(st),e.z3.Or(outside(value,self.base,self.lowest),covered)))
         self.pushes=[]
         for index,value in enumerate(values):
             covered=e.z3.Or([value==self.base+e.bv(k) for k in sorted(allowed)])
-            self.obligations.append((self.pc,'passed word',e.z3.Implies(self.guard(st),e.z3.Or(outside(value,self.base,self.low),covered,e.z3.BoolVal(index<register_count and not self.derived(value))))))
+            self.obligations.append((self.pc,'passed word',e.z3.Implies(self.guard(st),e.z3.Or(outside(value,self.base,self.lowest),covered,e.z3.BoolVal(index<register_count and not self.derived(value))))))
     def goals(self,st):
         e=self.e
         if any(not e.z3.is_true(e.simp(goal)) for _,_,goal in self.obligations):self.consult()

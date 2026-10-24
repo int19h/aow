@@ -6,10 +6,26 @@ from .support import Case, build, call, fixture, p32
 
 
 def cases():
+    from .test_event_ownership import cases as event_ownership_cases
+    yield from event_ownership_cases()
+    from .test_public_events import published_private_writes,ordered_pointer_cell,temporary_below_prologue
+    yield Case('published_private_write_order',lambda:(lambda c,f:c.check(f))(*published_private_writes()),'reject','Publishing a frame pointer makes subsequent writes observable.')
+    for name,factory,premise in [('ordered_pointer_cell',ordered_pointer_cell,'H5'),('temporary_below_prologue',temporary_below_prologue,'H1')]:
+        yield Case(name,lambda factory=factory:(lambda c,f:c.check(f))(*factory()),'prove:'+premise if premise else 'prove','Constants and unpublished stack temporaries are not ordered public reads/writes.')
     from .test_ownership import cases as ownership_cases
     yield from ownership_cases()
     from .test_must_write import cases as must_write_cases
     yield from must_write_cases()
+    yield fixture('ordered_write_swap','8908890ac3','890a8908c3',
+                  'Boundary memory agrees, but public write order differs.')
+    yield fixture('extra_identical_write','8908c3','89088908c3',
+                  'Even a redundant public write is an event.')
+    yield fixture('repeated_load_H8','8b0a8b0ac3','8b0ac3',
+                  'Only the explicit H8 repeated-load rule permits this.','prove:H8')
+    yield fixture('write_blocks_read_coarsening','8b0a890a8b0ac3','8b0a890ac3',
+                  'An intervening public write ends the repeated-read interval.')
+    yield fixture('equal_ordered_reads','8b088b1089c831d2c3','8b088b1089d031d2c3',
+                  'Equal ordered reads require no repeated-load coarsening.','prove')
     for changed in (False, True):
         a, ar = finally_program()
         b, br = finally_program(True, changed)
@@ -110,7 +126,8 @@ def alias_route(route):
         if route == 'acyclic':
             result=checker.acyclic(a, b)
         else:result=e.verify_frames(checker, a, b, finite=route == 'finite_frames')
-        return ('PROVEN under H1',result[1]) if result[0]=='PROVEN' and checker.contracts.h1 else result
+        premises=(['H1'] if checker.contracts.h1 else [])+(['H8'] if getattr(checker,'h8_reads',{}) else [])
+        return ('PROVEN under '+','.join(premises),result[1]) if result[0]=='PROVEN' and premises else result
     except (e.NotProven, e.Unsupported) as exc:
         return ('NOT PROVEN' if isinstance(exc, e.NotProven) else 'UNSUPPORTED'), str(exc)
 

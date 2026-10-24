@@ -134,6 +134,10 @@ Acceptance: reversed/extra public writes reject; repeated-read controls need exp
 
 Report: event failures, H8 reliance, coarsened loads and standard counts/timings.
 
+Result (Fable approved after two revisions): 12,875 MATCH, 41 conditional PROVEN, 186 NOT PROVEN, 226 UNSUPPORTED; 288,383 queries uncached and cold. Accepted pointer cells and immutable data are not read events, each side looked up in its own tables. One stack bound, lowest = min(prologue extent, static minimum ESP offset), serves H1, H2 and event privacy. Eleven earlier proofs retracted: their outgoing-argument slots made the H1 premises jointly unsatisfiable. H8 is used by four functions with a dropped load.
+
+Follow-ups (accepted conservatism): (1) the eleven need step 7b must-write coverage for callees reached through virtual and IAT calls; (2) pushed words lack the non-derivation fallback that register words have (TDrawImagePanel.DrawLibraryImage); (3) garbage masking still uses the prologue extent, so below-extent temporaries are compared publicly at boundaries. Cosmetic: the H2 witness names the instruction before the call.
+
 ### Step 5b - Bounded synchronous fault predicates
 
 Design box: one session (second of step 5's two); at most 350 handwritten code lines including tests.

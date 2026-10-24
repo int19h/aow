@@ -18,7 +18,8 @@ then havoc public memory, volatile registers, flags and x87 state in common.
 For call-free acyclic functions an exact finite-path alternative projects out
 private stack bytes while retaining arbitrary aliases in the unified array.
 
-Reads and writes update the arrays; they are not ordered observable events.
+Public reads and writes are ordered address/width/value events. Only H8 permits
+removing identical repeated loads without an intervening public write.
 Array equality is checked at calls, returns and inductive block boundaries.
 PE relocation is by independent names, reviewed aliases,
 checked local CFG correspondences and typed constant objects. The
@@ -42,6 +43,7 @@ import match
 import equiv_limits as limits
 import equiv_cache as verdict_cache
 import equiv_image as image_relation
+import equiv_events as public_events
 from equiv_ownership import Ownership, outside, guarded, premise as ownership_premise, clone_ownership
 
 try:
@@ -137,10 +139,14 @@ def correspondence_failure(states, memories, tails, relations):
     budget=limits.WorkBudget(1000,'diagnostic')
     items=[('H2 %s obligation fails at %s'%(kind,hex(pc)),goal,None) for st in states for pc,kind,goal in st.ownership.obligations]
     guard=ownership_premise(states)
-    for n,(x,y) in enumerate(zip(states[0].events,states[1].events)):
+    traces=public_events.paired(states)
+    for n,(x,y) in enumerate(zip(*traces)):
         names = (['target','callee inputs/cleanup','context','context','ESP','memory','FS','FP'] if x[0]=='call' else
-                 ['target','EAX','EDX','ESP','EBX','ESI','EDI','EBP','DF'] if x[0]=='return' else [])
-        pc=getattr(states[0],'event_pcs',tails)[n]
+                 ['target','EAX','EDX','ESP','EBX','ESI','EDI','EBP','DF'] if x[0]=='return' else
+                 ['address','width','value','post-write memory','post-write FS'] if x[0] in ('read','write','read-fs','write-fs') else [])
+        index=next(i for i,event in enumerate(states[0].events) if event is x)
+        pcs=getattr(states[0],'event_pcs',[])
+        pc=pcs[index] if index<len(pcs) else tails[0]
         for k,(u,v) in enumerate(zip(x[1:],y[1:])):
             name=names[k] if k<len(names) else 'component %d'%(k+1)
             items.append(('%s event at %s differs: %s'%(x[0],hex(pc),name),z3.Implies(guard,equality(u,v)),(u,v)))
@@ -860,18 +866,24 @@ class State:
                 parts.append(z3.Extract(off - 1, 0, v))
             self.regs[root] = simp(z3.Concat(parts))
 
-    def load(self, addr, size, fs=False):
+    def load(self, addr, size, fs=False, raw_address=None):
         mem = self.fs if fs else self.memory
         value = image_relation.ACTIVE.read(addr,size) if image_relation.ACTIVE is not None and not fs else None
         if value is None:value = simp(z3.Concat([z3.Select(mem, addr + bv(i)) for i in reversed(range(size))])) if size > 1 else z3.Select(mem, addr)
-        if hasattr(self, "ownership") and not fs:self.ownership.load(self,addr,size,value)
+        recording=getattr(self,"record_access",False);self.record_access=False
+        try:
+            if hasattr(self,"ownership") and not fs:self.ownership.load(self,addr,size,value)
+        finally:self.record_access=recording
+        public_events.record(self,"read",addr,size,value,fs,raw_address=raw_address)
         return value
 
     def store(self, addr, value, fs=False):
         if hasattr(self, 'cell_guard'):
             self.cell_guard(addr, value.size() // 8, fs)
-        if hasattr(self, 'ownership') and not getattr(self,'ownership_internal',False):
-            self.ownership.store(self,addr,value)
+        recording=getattr(self,'record_access',False);self.record_access=False
+        try:
+            if hasattr(self,'ownership') and not getattr(self,'ownership_internal',False):self.ownership.store(self,addr,value)
+        finally:self.record_access=recording
         mem = self.fs if fs else self.memory
         for i in range(value.size() // 8):
             mem = z3.Store(mem, simp(addr + bv(i)), z3.Extract(i * 8 + 7, i * 8, value))
@@ -879,6 +891,8 @@ class State:
             self.fs = simp(mem)
         else:
             self.memory = simp(mem)
+        public_events.record(self,'write',addr,value.size()//8,value,fs)
+
 
 
 def arbitrary(candidates, flag_candidates):
@@ -993,7 +1007,9 @@ class Machine:
                 if op.mem.disp in cells and op.size == 4:
                     pointee, record = cells[op.mem.disp]
                     self.addresses.consulted.add((op.mem.disp, op.mem.disp, 'pointer-cell:' + record))
-                    return self.constant(pointee)
+                    value=self.constant(pointee)
+                    public_events.record(st,"read",bv(op.mem.disp),4,value,raw_address=op.mem.disp)
+                    return value
                 imports = getattr(self.addresses, 'import_bytes', ((), ()))[self.side]
                 # On-disk IAT words are loader RVAs, not the runtime function
                 # pointers. Read the paired symbolic cell, so intervening or
@@ -1001,8 +1017,17 @@ class Machine:
                 if image_relation.ACTIVE is None and not any(op.mem.disp + k in imports for k in range(op.size)):
                     constant = self.addresses.read_constant(self.side, op.mem.disp, op.size, self.local)
                     if constant is not None:
+                        public_events.record(st,"read",self.address(st,ins,op),op.size,constant,raw_address=op.mem.disp & 0xffffffff)
                         return constant
-            return st.load(self.address(st, ins, op), op.size, bool(op.mem.segment and ins.reg_name(op.mem.segment) == 'fs'))
+            address=self.address(st,ins,op)
+            raw=op.mem.disp & 0xffffffff if not op.mem.base and not op.mem.index else None
+            # Registers contain canonical values. Recover a side address only
+            # from checked image provenance, never by a numerical MAP lookup.
+            if raw is None and z3.is_bv_value(address):
+                roots=set().union(*(getattr(st,'image_origins',{}).get(ins.reg_name(r),()) for r in (op.mem.base,op.mem.index) if r))
+                own={row[self.side]+address.as_long()-row[0] for row in roots if row[0]<=address.as_long()<=row[0]+row[2]-op.size}
+                if len(own)==1:raw=own.pop()
+            return st.load(address,op.size,bool(op.mem.segment and ins.reg_name(op.mem.segment)=='fs'),raw_address=raw)
         raise Unsupported('operand form')
 
     def write(self, st, ins, op, value):
@@ -1069,6 +1094,11 @@ class Machine:
         return relation.step(self,st,ins,self._step) if relation is not None else self._step(st,ins)
 
     def _step(self, st, ins):
+        st.record_access=True;st.access_ins=ins
+        try:return self._execute(st,ins)
+        finally:st.record_access=False
+
+    def _execute(self, st, ins):
         self.current_pc = ins.address
         if hasattr(st,"ownership"):st.ownership.pc=ins.address;st.ownership.kind=ins.mnemonic
         st.cell_guard = self.guard_pointer_cells
@@ -2109,9 +2139,10 @@ def frame_goals(frames, states):
         if asymmetric and not prove(numeric):preserve=asymmetric
     goals = [frames.project(old.memory, 0,preserve) == frames.project(new.memory, 1,preserve), old.fs == new.fs,
              old.fp == new.fp, old.condition == new.condition]
-    if len(old.events) != len(new.events):
+    old_events,new_events=public_events.paired(states)
+    if len(old_events) != len(new_events):
         raise NotProven('different observable events with private frames')
-    for x, y in zip(old.events, new.events):
+    for x, y in zip(old_events, new_events):
         if x[0] != y[0] or len(x) != len(y):
             raise NotProven('different observable events with private frames')
         if x[0] == 'frame-call':
@@ -2139,6 +2170,7 @@ def frame_goals(frames, states):
 
 
 def verify_frames(checker, a, b, finite=False):
+    if getattr(checker,'full_events',False):raise Unsupported('full-access proof requires unprojected memory')
     from equiv_calls import ensure
     ensure(checker,a,b)
     if getattr(checker, "exception_whole_only", False):
@@ -2488,8 +2520,16 @@ class Checker:
         self.frame_lows = None
         self.exception_whole_only = False
         self.routes = []
+        self.full_events=False;self.ownership_failure=None
+        self.h8_reads = {}
+        self.access_failure = None
         try:
             result = self.check_raw(fn,mutated)
+            if result[0]=='NOT PROVEN' and self.ownership_failure:
+                self.full_events=True
+                try:retry=self.check_raw(fn,mutated)
+                except Unsupported as error:retry=('UNSUPPORTED',str(error))
+                result=('NOT PROVEN',retry[1]) if retry[0]=='UNSUPPORTED' else retry
         except limits.SafetyCap as error:
             self.garbage_witness = None
             self.pending_diagnostic = None
@@ -2528,6 +2568,13 @@ class Checker:
             if self.image_relation.checked:
                 self.last_contracts['hypotheses'].setdefault('H5',dict(instances=[]))['image_relation'] = self.image_relation.summary()
                 self.last_contracts['hypotheses']['H5']['predicate'] = 'Checked storage has equal normalized startup contents and justified coverage; mutable runtime values remain arbitrary. Remaining module-wide initial/alias relation and preservation of immutable storage by external effects are assumed.'
+        self.last_contracts['public_events'] = dict(ordered=True, failure=self.access_failure, full_accesses=self.full_events, ownership=self.ownership_failure)
+        if result[0]=='NOT PROVEN' and self.access_failure and not self.garbage_witness:
+            result=('NOT PROVEN','ordered public events differ: '+' versus '.join(w['kind']+' at '+w.get('pc','boundary')+' ('+w.get('instruction','')+')' for w in self.access_failure['witnesses']))
+        if result[0]=='NOT PROVEN' and self.ownership_failure:
+            w=self.ownership_failure;result=('NOT PROVEN','H2 ownership unestablished at '+w['pc']+' ('+w['instruction']+'); '+result[1])
+        if self.h8_reads:
+            self.last_contracts['hypotheses']['H8'] = dict(predicate='no other thread writes memory this function reads or writes between its boundaries', coarsened_loads=sorted(self.h8_reads.values(),key=repr))
         if result[0] == 'PROVEN' and self.last_contracts['hypotheses']:
             result = 'PROVEN under '+','.join(sorted(self.last_contracts['hypotheses'])),'see --explain for instantiated contracts'
         return result
@@ -2802,12 +2849,13 @@ class Checker:
             garbage.prepare(states,(i,pairing[i]))
             premise=simp(z3.And([fact_expression(states,f) for f in sorted(candidates[i],key=repr)]))
             old, new = execute(i, states,False)
-            if len(old.events) != len(new.events):
+            old_events,new_events=public_events.paired(states)
+            if len(old_events) != len(new_events):
                 raise NotProven('different observable events')
             tails=(graphs[0][i][0][-1],graphs[1][pairing[i]][0][-1])
             memories=garbage.memories(states,tails)
             goals = [memories[0] == memories[1], old.fs == new.fs, old.fp == new.fp, old.condition == new.condition]
-            for x, y in zip(old.events, new.events):
+            for x, y in zip(old_events, new_events):
                 if x[0] != y[0] or len(x) != len(y):
                     raise NotProven('different observable events')
                 goals += [equality(u, v) for u, v in zip(x[1:], y[1:])]
@@ -2935,12 +2983,13 @@ class Checker:
                 for k in graphs[s][(i, pairing[i])[s]][0]:
                     garbage.step(machines[s],states[s],s,k)
             old, new = states
-            if len(old.events) != len(new.events):
+            old_events,new_events=public_events.paired(states)
+            if len(old_events) != len(new_events):
                 raise NotProven('different observable events at instruction %d' % i)
             tails=(graphs[0][i][0][-1],graphs[1][pairing[i]][0][-1])
             memories=garbage.memories(states,tails)
             goals = [memories[0] == memories[1], old.fs == new.fs, old.fp == new.fp, old.condition == new.condition]
-            for x, y in zip(old.events, new.events):
+            for x, y in zip(old_events, new_events):
                 if x[0] != y[0] or len(x) != len(y):
                     raise NotProven('different observable events at instruction %d' % i)
                 goals += [equality(u, v) for u, v in zip(x[1:], y[1:])]
@@ -3034,6 +3083,8 @@ class Checker:
                     clone = State(dict(st.regs), dict(st.flags), st.memory, st.fs, st.fp)
                     clone.image_origins={k:set(v) for k,v in getattr(st,'image_origins',{}).items()}
                     clone.events = list(st.events)
+                    clone.access_pcs = dict(getattr(st,"access_pcs",{}))
+                    clone.private_indices=set(getattr(st,'private_indices',()))
                     clone.condition = st.condition
                     clone_ownership(st,clone)
                     todo.append((target, clone, next_guard, seen, low))
@@ -3047,6 +3098,7 @@ class Checker:
         asymmetric=set().union(*(x[1].frame_defined ^ y[1].frame_defined for x in old for y in new))
         def visible(st, low):
             st.ownership.result(st)
+            if getattr(self,'full_events',False):return st.events,st.memory
             if not prove(st.ownership.goals(st)):
                 return st.events, st.memory
             numeric=prove([z3.Implies(st.ownership.guard(st),outside(st.regs[r],stack,low)) for r in ('eax','edx')])
@@ -3062,6 +3114,7 @@ class Checker:
         def same(p, q):
             _, st, events, memory = p
             _, other, other_events, other_memory = q
+            events,other_events=public_events.paired((st,other))
             if len(events) != len(other_events):
                 return z3.BoolVal(False)
             goals = [memory == other_memory, st.fs == other.fs, st.fp == other.fp]
