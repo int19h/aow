@@ -186,6 +186,8 @@ Acceptance: theorems compile without admitted proofs; broken projection/initiali
 
 Report: theorem/test status, remaining decoder/lifter/semantics/solver trust and standard counts/timings.
 
+Result (tools/equiv_lean/ and tools/equiv_tests/test_hypothesis_coverage.py, Fable approved): 26 theorems over the abstract ordered-event IR, the cut-point simulation and the frame/call composition, with H1-H9 as explicit hypotheses; none depends on an axiom or an admitted proof. The coverage test fails every route that omits a side condition. H3c appears only as an instance of H3, and the H9 lemma covers the numeric branch. The decoder, lifter, instruction semantics and z3 remain trusted. Counts unchanged. Quiet-host timing: 50.1 minutes uncached, 53.7 cold, 7.9 warm with three workers; the step 9 growth was E-core placement (the same work took 190.7 s on an E-core and 99.9 s on a P-core), not code. Timed runs pin the three workers to P-cores and record each worker's CPU placement and priority in the report.
+
 ### Step 11 — Full requalification and final review
 
 Design box: one session; at most 150 handwritten code lines including tests.

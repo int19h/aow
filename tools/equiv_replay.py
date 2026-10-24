@@ -441,7 +441,7 @@ def replay_paths(e,c,codes):
                 g=e.simp(e.z3.And(guard,e.edge_guard(st,ins,len(edges),edge)))
                 if e.z3.is_false(g):continue
                 clone_st=e.Frames.clone([st])[0]
-                for attr in ('events','faults','access_pcs','private_indices','condition'):setattr(clone_st,attr,clone(getattr(st,attr,{})))
+                for attr in ('events','faults','access_pcs','private_indices','condition'):setattr(clone_st,attr,clone(getattr(st,attr,set() if attr=='private_indices' else {})))
                 todo.append((j,clone_st,g,seen|{k},low))
         require(out,'no finite path');paths.append(out)
     asymmetric=set().union(*(x[1].frame_defined^y[1].frame_defined for x in paths[0] for y in paths[1]))
