@@ -417,7 +417,7 @@ function THSMEdit.CopyHS: Boolean;
 var
   Selection: THexagonSpriteSelection;
   I: Integer;
-begin
+begin { Tried Self cast, explicit copy object and Boolean local; private locations still differ. }
   Result := False;
   Selection := FHSEngine.HSMap.Selection;
   if Selection.GetCount <> 0 then
@@ -907,7 +907,7 @@ var
   SurfaceDesc: TSurfaceDesc;
   HSMap: THSMap;
   T: Integer;
-begin
+begin { Tried identity/cast, receiver scope and separate map locals; original map copy still absent. }
   if FActivated then
   begin
     HSMap := FHSEngine.HSMap;
@@ -1006,7 +1006,7 @@ procedure THSMEdit.UpdateMouseCoordinates;
 var
   X, Y: Integer;
   Shift: TShiftState;
-begin
+begin { Tried absolute/addressed/array Shift and typed/Pointer DC locals; receiver allocation still differs. }
   if ActiveDC <> nil then
   begin
     ActiveDC.GetMousePos(X, Y);
@@ -1312,7 +1312,7 @@ end;
 function THSMEdit.CanCloseMap: Boolean;
 var
   R: Integer;
-begin
+begin { Tried addressable dialog/engine locals, casts and receiver scope; private locations still differ. }
   with FHSEngine do
     if HSMap <> nil then
     begin
@@ -1349,7 +1349,7 @@ begin
 end;
 
 function THSMEdit.LoadHSM(const FileName: string): Boolean;
-begin
+begin { Tried Self identity, receiver scope and named editor; Self/filename registers still differ. }
   FHSMapFileName := FileName;
   FProgressDlg := TProgressDlg.Create(Self);
   FProgressDlg.Caption := FHSEngine.TranslateText(LoadingStr) + ' ' + ExtractFileName(FileName);
@@ -1390,7 +1390,7 @@ begin
 end;
 
 function THSMEdit.Close: Boolean;
-begin
+begin { Tried Boolean staging, result cast and map receiver casts; result spill still differs. }
   Result := CanCloseMap;
   if Result and (FHSEngine.HSMap <> nil) then
   begin

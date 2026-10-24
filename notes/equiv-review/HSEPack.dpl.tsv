@@ -20,7 +20,7 @@ THSMEdit.UpdateMouseCoordinates	DIFFERENT	Uninitialized Shift read from EBX inst
 THSMap.MakeVisible	EQUIVALENT	Coordinates in saved registers and one stack slot	O6-26/N10-29 test identical level and signed X/Y margins with the same strict bounds. Only failed tests call VMT+BC with the original coordinates/level. N saves ECX at -4 to preserve Y; both restore all saved registers and RET 8.
 THSMap.UnlockTerrainChangedEvent	MATCHED	matches after rewrite	review assertion fix already matches; verified
 THSMapViewer.SetHSMap	MATCHED	matches after rewrite	replace with by explicit callback field assignments
-THSMapViewer.ShowScene	EQUIVALENT	FS zero register and two private records exchanged	O9-17/N9-16 build the same FS frame/map. Rect -54 and surface -44 map to -18/-54; every lock/draw/unlock call uses the corresponding fully initialized record. Signed HRESULT tests, cache writes and callbacks agree. Same catch-all handler/message and RET 4; saves restore.
+THSMapViewer.ShowScene	MATCHED	matches after rewrite	test a Pointer before assigning the map local; surface/rectangle declaration order
 THexagonSpriteSelection.FindClass	EQUIVALENT	Result/item registers exchanged; item reloaded	O12-20/N12-20 retain/reload FChildren.List[I] across System.@IsClass O556010B0->41303A14/N403034 only. Its 0-10 test nil and walk VMT parent pointers, with no calls or memory writes. Thus the list/item cannot change; result/index register exchange, Count calls and first-match exit agree.
 THexagonSpriteSelection.SelectLocation	MATCHED	matches after rewrite	retain the redundant index self-assignment (K57)
 TLibraryImageHS.SetMapIsOwner	MATCHED	matches after rewrite	review assertion fix already matches; verified

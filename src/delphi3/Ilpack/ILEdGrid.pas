@@ -383,7 +383,7 @@ begin
   if IL <> nil then
   begin
     N := IL.Count;
-    Rows := N;
+    Rows := N; Rows := Integer(Longint(Rows));
     Inc(Rows);
     if Rows < 2 then Rows := 2;
     if IL.GetSafe(N - 1) <> nil then Inc(Rows);

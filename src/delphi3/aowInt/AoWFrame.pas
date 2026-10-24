@@ -200,7 +200,7 @@ begin
 end;
 
 procedure TAoWFrame.CheckMouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
+begin { Tried Self identity, receiver scope and local/field staging; register/stack allocation still differs. }
   inherited CheckMouseDown(Button, Shift, X, Y);
   FHandled := False;
   if (X > FAOWWindow.FWinLeft + FWinLeft - 1) and (X < FAOWWindow.FWinLeft + FWinLeft + FWinWidth) and

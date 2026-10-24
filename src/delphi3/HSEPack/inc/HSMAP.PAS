@@ -132,7 +132,7 @@ begin
 end;
 
 procedure THSMap.MakeVisible(Xhx, Yhx, Lhx, Radius: Integer);
-begin
+begin { Tried parameter identities, receiver casts/scopes and zero shifts; coordinate spills still differ. }
   if (FViewL <> Lhx) or (Xhx - Radius < FViewXhx) or (Xhx + Radius >= FViewXhx + FViewWidthHX) or
     (Yhx - Radius < FViewYhx) or (Yhx + Radius >= FViewYhx + FViewHeightHX) then
     CenterViewTo(Xhx, Yhx, Lhx);

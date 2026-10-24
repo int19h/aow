@@ -203,7 +203,7 @@ end;
 procedure TAOWMenu.SetVisible(Value: Boolean);
 var
   Bar: TAOWMenuBar; W: TAOWBaseWindow; MB: TAOWMenuBar;
-begin
+begin { Tried Self/menu identities and receiver scope; owner temporaries still differ. }
   if Value <> FVisible then
     if FHidden then
       FShowPending := True

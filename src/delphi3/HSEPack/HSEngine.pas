@@ -2073,7 +2073,7 @@ begin
 end;
 
 procedure TMapField.MainReadWrite(Stream: TEStorageStream);
-begin
+begin { Tried Self identity, typed/untyped with and named receiver; original Self save still absent. }
   ReadWrite(Stream);
 end;
 
@@ -3741,7 +3741,7 @@ function THexagonSpriteSelection.FindClass(AClass: TClass): THexagonSprite;
 var
   HS: THexagonSprite;
   I: Integer;
-begin
+begin { Tried local order, receiver scope and TObject/Pointer item types; cached-item code still differs. }
   Result := nil;
   I := 0;
   while (I <> Count) and (Result = nil) do
@@ -4082,7 +4082,7 @@ end;
 procedure HNtoHX(HN: Integer; var Xhx, Yhx: Integer);
 var
   R, Side, Pos: Integer;
-begin
+begin { Tried local order, integer identity, reused HN and zero addition; output/sector registers still differ. }
   if HN < 37 then
   begin
     Xhx := HNtoHXTable[HN, 0];
@@ -4116,7 +4116,7 @@ end;
 procedure CenterHNtoHX(Xhx, Yhx, HN: Integer; var NewXhx, NewYhx: Integer);
 var
   R, Side, Pos: Integer;
-begin
+begin { Tried local order, integer identity, reused HN and zero addition; output/sector locations still differ. }
   if HN <> 0 then
   begin
     R := (Trunc(Sqrt((HN - 1) * 12 + 9)) + 3) div 6;
@@ -4155,7 +4155,7 @@ end;
 procedure TranslateHX(FromXhx, FromYhx, ToXhx, ToYhx, Xhx, Yhx: Integer; var NewXhx, NewYhx: Integer);
 var
   dX, dY: Integer;
-begin
+begin { Tried local order, consumed parameter and integer identities; saved registers still differ. }
   dX := ToXhx - FromXhx;
   dY := ToYhx - FromYhx;
   if Odd(dX) then
@@ -4312,7 +4312,7 @@ var
   NXhx, NYhx, TXhx, TYhx: Integer;
   HN: Integer;
   Found, Cancel: Boolean;
-begin
+begin { Tried parameter identity, local order, separate current X and zero shift; coordinate slots still differ. }
   Cancel := False;
   NXhx := $FFFF;
   Found := False;
@@ -4842,15 +4842,15 @@ end;
 
 procedure THSMapViewer.ShowScene(X, Y: Integer; Surface: TSurface);
 var
-  M: THSMap;
-  R: TRect;
+  M: THSMap; MP: Pointer;
   SD: TSurfaceDesc;
+  R: TRect;
 begin
   try
-    M := FHSMap;
-    if M <> nil then
+    MP := FHSMap;
+    if MP <> nil then
     begin
-      if M.SetViewPort(FSceneX, FSceneY, FSceneL, FSceneWidth, FSceneHeight) and
+      M := THSMap(MP); if M.SetViewPort(FSceneX, FSceneY, FSceneL, FSceneWidth, FSceneHeight) and
         Assigned(FOnSceneChanged) then
         FOnSceneChanged(Self);
       VerifyStaticSurface(Surface);

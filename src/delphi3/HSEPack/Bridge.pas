@@ -65,7 +65,7 @@ var
   MapField: TMapField;
   OldRoad: THexagonSprite;
   OldOwner: TMapField;
-begin
+begin { Tried identity assignment, receiver scope and object/result casts; road register still differs. }
   MapField := MapContainer.GetField(Xhx, Yhx, Lhx);
   OldRoad := MapField.FindHS(TAbstractRoad);
   if OldRoad <> nil then OldRoad.Destroy;

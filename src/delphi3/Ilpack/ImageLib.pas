@@ -1994,7 +1994,7 @@ begin
 end;
 
 procedure TLibraryImage.Show(X, Y: Integer; const SD: TSurfaceDesc);
-begin
+begin { Tried addressed/absolute Y, named X and post-call identity; entry X save still differs. }
   case FShowInfo.ShowMode of
     smOpaque: ShowOpaque(X, Y, SD);
     smTransparent: ShowTransparent(X, Y, SD);
@@ -2018,7 +2018,7 @@ end;
 { ShowEx: the blend mode comes from the image's own show info (an original bug: ShowInfo only
   gives the show mode and the blend value), and bmLinearAlpha is not handled. }
 procedure TLibraryImage.ShowEx(X, Y: Integer; const SD: TSurfaceDesc; const ShowInfo: TShowInfo);
-begin
+begin { Tried addressed/absolute coordinates, Self identity and named receiver; entry Self save still differs. }
   case ShowInfo.ShowMode of
     smOpaque: ShowOpaque(X, Y, SD);
     smTransparent: ShowTransparent(X, Y, SD);
@@ -2038,7 +2038,7 @@ begin
 end;
 
 procedure TLibraryImage.ShowStretched(const R: TRect; const SD: TSurfaceDesc);
-begin
+begin { Tried named descriptor pointer, pointer identity and receiver scope; descriptor save still differs. }
   case FShowInfo.ShowMode of
     smOpaque: ShowOpaqueStretched(R, SD);
     smBlended:
@@ -2264,7 +2264,7 @@ var
   D: PWord;
   P: PPaletteEntry;
   S24: PByteArray;
-begin
+begin { Tried absolute/addressed descriptor and receiver scope; descriptor/pixel locations still differ. }
   try
     Clear;
     Result := True;
@@ -2350,7 +2350,7 @@ procedure TPicture16.ShowOpaque(X, Y: Integer; const SD: TSurfaceDesc);
 var
   DX, Right, W, H, SX, SY, DY, Bottom: Integer;
   Src, Dst: Pointer;
-begin
+begin { Tried Self identity, receiver/descriptor with and descriptor pointer; image/descriptor registers still differ. }
   DX := X + FXshift;
   W := FDataWidth;
   Right := FDataWidth + DX;
@@ -2413,7 +2413,7 @@ procedure TPicture16.ShowBlended(X, Y: Integer; const SD: TSurfaceDesc; Table: T
 var
   DX, Right, W, H, SX, SY, DY, Bottom: Integer;
   Src, Dst: Pointer;
-begin
+begin { Tried Self identity, receiver/descriptor with and descriptor pointer; image/descriptor registers still differ. }
   DX := X + FXshift;
   W := FDataWidth;
   Right := FDataWidth + DX;
@@ -2512,7 +2512,7 @@ procedure TPicture16.ShowTransparent(X, Y: Integer; const SD: TSurfaceDesc);
 var
   DX, Right, W, H, SX, SY, DY, Bottom: Integer;
   Src, Dst: Pointer;
-begin
+begin { Tried Self identity, receiver/descriptor with and descriptor pointer; image/descriptor registers still differ. }
   DX := X + FXshift;
   W := FDataWidth;
   Right := FDataWidth + DX;
@@ -3130,7 +3130,7 @@ var
     if Pos and 3 <> 0 then AddWord(FColorKey);
   end;
 
-begin
+begin { Tried Self identity, receiver scope and record rebasing; private rectangle/FS code still differs. }
   Result := True;
   try
     Surface := nil;
@@ -4787,7 +4787,7 @@ var
 var
   X, Y, TransparentColor, Left, Top, Bottom: Integer;
   MinRect: TRect;
-begin
+begin { Tried record rebasing/casts and receiver scope; minimizer argument order still differs. }
   Clear;
   Result := True;
   FDataLoaded := True;
@@ -5785,7 +5785,7 @@ var
   OldColor: TColor;
   Rgn, Rgn2: HRGN;
   DestRect, ClipRect, SrcRect: TRect;
-begin
+begin { Tried Canvas/image/count identities; rectangle and dimension registers still differ. }
   if (Image <> nil) and (Image.FWidth <> 0) and (Image.FHeight <> 0) then
   begin
     W := Image.FWidth;
@@ -5948,7 +5948,7 @@ var
   Rgn, Rgn2: HRGN;
   OldColor: TColor;
   ClipRgn: HRGN;
-begin
+begin { Tried record rebasing and pointer-cast bound reloads; two original rectangle reloads still absent. }
   if Sequence <> nil then
   begin
     Bounds.Left := 0;
@@ -6659,8 +6659,8 @@ begin
 end;
 
 procedure TCustomImageDrawGrid.SetCount(Value: Integer);
-begin
-  { differs from the original in one register: it keeps Self in esi across the virtual call }
+begin { Tried receiver cast, identity and with scope; extra Self save remains. }
+
   FCount := Value;
   UpdateDimensions;
 end;
@@ -6688,9 +6688,9 @@ procedure TCustomImageDrawGrid.SelectIndex(Index: Integer);
 var
   ACol, ARow: Integer;
   R: TGridRect;
-begin
-  { differs from the original in one register: it moves Index to edi, the original leaves it in
-    edx for the call }
+begin { Tried zero shift, receiver cast and with scope; extra Index save remains. }
+
+
   IndexToCell(Index, ACol, ARow);
   if SelectCell(ACol, ARow) then
   begin
@@ -6853,10 +6853,10 @@ procedure TCustomImageLibraryGrid.CutCell;
 var
   L: TCustomImageLibrary;
   C, R: Integer;
-begin
+begin { Tried Pointer/TObject constructor staging, identity and receiver scope; FS register still differs. }
   if (igCut in FEditMode) and (FImageLibrary <> nil) then
   begin
-    { differs from the original in the try frame register (xor eax,eax for xor edx,edx) }
+
     L := TCustomImageLibrary.Create(nil);
     try
       FImageLibrary.DisableOnChangeEvent;
@@ -7426,7 +7426,7 @@ var
   DestX, Right, Bottom: Integer;
   W, H, SrcX, SrcY, DestY: Integer;
   Src: Pointer;
-begin
+begin { Tried Self identity, receiver/descriptor with and descriptor pointer; image/descriptor registers still differ. }
   DestX := X + FXshift;
   W := FDataWidth;
   Right := FDataWidth + DestX;
@@ -7710,7 +7710,7 @@ var
   Line: Integer;
   MinRect: TRect;
   X, Y, B, Left, Top, Bottom: Integer;
-begin
+begin { Tried record rebasing/casts and receiver scope; minimizer argument order still differs. }
   if SD.BitCount = 8 then
   begin
     Result := True;
@@ -9773,7 +9773,7 @@ begin
 end;
 
 procedure TCustomImageLibrary.DeleteItem(Index: Integer);
-begin
+begin { Tried Self identity, receiver scope and shifted index; Self/array registers still differ. }
   Move(FImages^[Index + 1], FImages^[Index], (FCount - Index - 1) * SizeOf(TImageItem));
   FillChar(FImages^[FCount - 1], SizeOf(TImageItem), 0);
   Dec(FCount);
@@ -9945,7 +9945,7 @@ begin
 end;
 
 procedure TCustomImageLibrary.SetImageReference(Index, Value: Integer);
-begin
+begin { Tried old-image local and class casts; cached image/index registers still differ. }
   if Index >= FCount then SetCount(Index + 1);
   if Value <> -1 then
   begin
@@ -10230,7 +10230,7 @@ begin
 end;
 
 procedure TCustomImageLibrary.SetImage(Index: Integer; Image: TLibraryImage);
-begin
+begin { Tried old-image local and class casts; cached image/index registers still differ. }
   if Index >= FCount then SetCount(Index + 1);
   if FImages^[Index].Image <> nil then FImages^[Index].Image.Destroy;
   FImages^[Index].Image := Image;
@@ -10368,7 +10368,7 @@ procedure TCustomImageLibrary.SetSubImage(Index, SubIndex: Integer; Image: TLibr
 var
   Old: TLibraryImage;
   Node: TImageNode;
-begin
+begin { Tried local order, receiver scope and index identity; old-image/index registers still differ. }
   if Index < FCount then
     Old := FImages^[Index].Image
   else

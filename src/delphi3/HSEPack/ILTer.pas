@@ -90,7 +90,7 @@ function TILTerrainMO.ValidTerrainType(TerrainType: Integer): Boolean;
 var
   Index: Integer;
   Sequences: TImageSequenceList;
-begin
+begin { Tried local order, index identity/shift, receiver cast and indexed property; argument order still differs. }
   if TerrainType >= 0 then
   begin
     Index := GetTerrainTypeImage(TerrainType);
@@ -170,7 +170,7 @@ end;
 procedure TILTerrainMO.Show(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc);
 var
   Xhp, Yhp: Integer;
-begin
+begin { Tried index shift/addition and receiver/Self casts; argument load order still differs. }
   HXtoHP(FXhx, FYhx, Xhp, Yhp);
   with FResource do
     if ImageSequenceList = nil then

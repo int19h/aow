@@ -206,7 +206,7 @@ end;
 
 { ReAlign: a centered window is centered between the window manager's borders }
 procedure TAOWWindow.ReAlign;
-begin
+begin { Tried Self/manager casts, receiver scope and pointer-cell view; border reuse still differs. }
   inherited ReAlign;
   if FUseManagerBorders then
   begin

@@ -86,7 +86,7 @@ type
 procedure TImageLibraryEditor.Edit;
 var
   Form: TImageLibraryEditForm;
-begin
+begin { Tried Self identities and receiver scope; editor/library registers still differ. }
   Form := TImageLibraryEditForm.Create(Application);
   try
     Form.ImageLibrary := TCustomImageLibrary(Component);

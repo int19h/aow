@@ -206,7 +206,7 @@ var
   I: Integer;
   C: TAoWComponent;
   R: TRect;
-begin
+begin { Tried Self identity, receiver scope and local/field staging; register/stack allocation still differs. }
   if FValid and FVisible then
     if (Sender = nil) or ((Sender <> nil) and (Sender is TAOWWindowControl) and
       (TAoWComponent(FChildren[Index]).FPriority >= FOverlayPriority)) then
@@ -244,7 +244,7 @@ var
   WasValid: Boolean;
   SD: TSurfaceDesc;
   R: TRect;
-begin
+begin { Tried Self identity, receiver scope and local/field staging; register/stack allocation still differs. }
   try
     Setup;
     Update;

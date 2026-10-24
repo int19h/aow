@@ -230,7 +230,7 @@ begin
 end;
 
 procedure TAOWListBox.SetVScroll(Value: TAOWVScrollBar);
-begin
+begin { Tried parameter identity, with and typed/TObject locals; original scrollbar save still differs. }
   FVScrollBar := Value;
   if Value <> nil then
     Value.Priority := FPriority;
@@ -404,7 +404,7 @@ end;
 procedure TAOWListBox.CheckMouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   I: Integer;
-begin
+begin { Tried Self identity and absolute/addressed coordinates; index/popup locations still differ. }
   inherited CheckMouseDown(Button, Shift, X, Y);
   FHandled := False;
   if not FAOWOwner.FHandled and (X > FAOWWindow.FWinLeft + FWinLeft - 1) and

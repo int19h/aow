@@ -341,7 +341,7 @@ end;
 function TMapObject.MainPlace(MapContainer: TMapContainer; Xhp, Yhp, Lhx: Integer): Boolean;
 var
   Xhx, Yhx: Integer;
-begin
+begin { Tried Boolean staging/cast and receiver scope/cast; result and coordinate slots still differ. }
   if not (moPlacedOnMap in FStatus) then
   begin
     HPtoHX(Xhp, Yhp, Xhx, Yhx);
@@ -750,7 +750,7 @@ end;
 function TAbstractHexagon.PlaceHX(MapContainer: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean;
 var
   HS: THexagonSprite;
-begin
+begin { Tried identity assignment, receiver scope, object type and result casts; HS register still differs. }
   HS := MapContainer.GetField(Xhx, Yhx, Lhx).FindOwnedHS(TAbstractHexagon);
   if HS <> nil then
     HS.Destroy;
@@ -848,7 +848,7 @@ end;
 procedure TAbstractRoad.ChangeTerrain(const Msg: THSTerrainInfo);
 var
   R: TMapObjectResource;
-begin
+begin { Tried Pointer staging, object type and receiver/result casts; resource register still differs. }
   if (Msg.HN = 0) and (GetTerrain(0) <> Msg.TerrainType) then
   begin
     R := TAbstractRoadResource(FResource).GetRoadControl.GetRndResource(Msg.TerrainType, FResource.ClassID);
@@ -1215,7 +1215,7 @@ procedure TMultiHexMO.SortMapFields;
 var
   MapLevel: TMapLevel;
   Walk: THNWalkData;
-begin
+begin { Tried named X, record with, Integer casts and zero shifts; bounds temporary still differs. }
   MapLevel := TMapLevel(Owner.Owner);
   InitHNWalk(Walk, FXhx, FYhx, 0);
   while Walk.HN < GetTerrainCount do

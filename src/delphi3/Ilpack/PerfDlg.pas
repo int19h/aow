@@ -214,7 +214,7 @@ constructor TPerformanceThread.Create(ADlg: TPerformanceDlg; AImage: TLibraryIma
 var
   Stream: TMemoryStream;
   N, I: Integer;
-begin
+begin { Tried local order, receiver scope and count identity; stream/count registers still differ. }
   FreeOnTerminate := True;
   FDone := False;
   FImage := AImage;

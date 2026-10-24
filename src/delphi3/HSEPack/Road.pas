@@ -61,7 +61,7 @@ function TRoad.PlaceHX(MapContainer: TMapContainer; Xhx, Yhx, Lhx: ShortInt): Bo
 var
   MapField: TMapField;
   OldRoad: THexagonSprite;
-begin
+begin { Tried Boolean staging/cast, receiver scope and TObject road; result allocation still differs. }
   MapField := MapContainer.GetField(Xhx, Yhx, Lhx);
   OldRoad := MapField.FindOwnedHS(TAbstractRoad);
   if OldRoad <> nil then OldRoad.Destroy;

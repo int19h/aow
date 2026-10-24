@@ -85,7 +85,7 @@ procedure TAOWControl.Update;
 var
   R: TRect;
   W: TAOWBaseWindow;
-begin
+begin { Tried Self/field casts, receiver scope and receiver/local staging; Self/temporary registers still differ. }
   if FValid then
     if FVisible then
     begin
@@ -199,7 +199,7 @@ begin
 end;
 
 procedure TAOWControl.CheckMouseMove(Shift: TShiftState; X, Y: Integer);
-begin
+begin { Tried Self/coordinate identities and receiver scope; Y/sum registers still differ. }
   if (X < FAOWWindow.FWinLeft + FWinLeft) or (X > FAOWWindow.FWinLeft + FWinLeft + FWinWidth - 1) or
     (Y < FAOWWindow.FWinTop + FWinTop) or (Y > FAOWWindow.FWinTop + FWinTop + FWinHeight - 1) then
     FToolTipCount := 0

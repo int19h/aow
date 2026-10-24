@@ -120,7 +120,7 @@ begin
 end;
 
 procedure TaowHTMLMemo.InvalidateRect(Index: Integer; var ARect: TRect; Sender: TAoWComponent);
-begin
+begin { Tried Self cast, receiver scope and rectangle rebase; extra receiver/rectangle saves remain. }
   if FValid and FVisible then
     AddDrawRect(ARect, Sender);
 end;
@@ -143,7 +143,7 @@ begin
 end;
 
 procedure TaowHTMLMemo.SetVScroll(Value: TAOWVScrollBar);
-begin
+begin { Tried parameter identity, with and typed/TObject locals; original scrollbar save still differs. }
   if Value <> FVScrollBar then
   begin
     FVScrollBar := Value;
@@ -183,7 +183,7 @@ function TaowHTMLMemo.LoadFont(FileName: string): Boolean;
 var
   Font: TImageLibraryFont;
   I: Integer;
-begin
+begin Self := TaowHTMLMemo(Pointer(Self));
   FileName := ExtractFilePath(Application.ExeName) + FileName;
   Font := nil;
   I := 0;
@@ -591,7 +591,7 @@ var
   Line: Integer;
   CI: TChangeInfo;
   R: TaowRect;
-begin
+begin { Tried Self identity, receiver scope and local/field staging; register/stack allocation still differs. }
   try
     if FValid and FVisible then
     begin
@@ -747,7 +747,7 @@ end;
 procedure TaowHTMLMemo.Update;
 var
   R: TRect;
-begin
+begin { Tried Self/field casts, receiver scope and receiver/local staging; Self/temporary registers still differ. }
   if FVisible then
   begin
     if (FVScrollBar <> nil) and (FLines.Count > 0) then

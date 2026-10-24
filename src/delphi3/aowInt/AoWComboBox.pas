@@ -194,7 +194,7 @@ begin
 end;
 
 procedure TAOWComboBox.SetVScroll(Value: TAOWVScrollBar);
-begin
+begin { Tried parameter identity, with and typed/TObject locals; original scrollbar save still differs. }
   FVScrollBar := Value;
   if Value <> nil then
     Value.Priority := FPriority;

@@ -80,7 +80,7 @@ begin
 end;
 
 procedure TAOWPanel.AddBltRect(var ARect: TRect; Sender: TAoWComponent);
-begin
+begin { Tried owner with/cast and receiver scope; extra receiver/rectangle saves remain. }
   FAOWOwner.AddBltRect(ARect, Self);
 end;
 
@@ -100,7 +100,7 @@ var
   I: Integer;
   C: TAoWComponent;
   R: TRect;
-begin
+begin { Tried Self identity, receiver scope and local/field staging; register/stack allocation still differs. }
   if FValid and FVisible and (FWindowType <> winBlank) then
     AddDrawRect(ARect, Sender);
   OldLeft := FWinLeft;
@@ -189,7 +189,7 @@ end;
 { SetVisible: showing sets the back rectangle and marks the panel hidden (original bug: FHidden
   set instead of cleared) }
 procedure TAOWPanel.SetVisible(Value: Boolean);
-begin
+begin { Tried Self identity and typed/untyped receiver scopes; Self register still differs. }
   if Value <> FVisible then
   begin
     FVisible := Value;
@@ -334,7 +334,7 @@ procedure TAOWPanel.Update;
 var
   I: Integer;
   R: TRect;
-begin
+begin { Tried Self/field casts, receiver scope and receiver/local staging; Self/temporary registers still differ. }
   if FVisible then
   begin
     FOrgLeft := FWinLeft;
@@ -397,7 +397,7 @@ var
   D: TaowRect;
 
   procedure DrawBack;
-  begin
+  begin { Tried Self identity, receiver scope and direct record copy; parent-frame/REP registers still differ. }
     if FWindowType <> winBlank then
     begin
       case FWindowType of

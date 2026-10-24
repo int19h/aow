@@ -57,7 +57,7 @@ procedure TAOWBaseWindow.InvalidateRect(Index: Integer; var ARect: TRect; Sender
 var
   I: Integer;
   C: TAoWComponent;
-begin
+begin { Tried Self identity, receiver scope and local/field staging; register/stack allocation still differs. }
   if (Index > -1) and FValid and FVisible then
   begin
     for I := Index to FChildren.Count - 1 do
@@ -365,7 +365,7 @@ end;
   covered) and may free its back surface; a shown window is redrawn from scratch, remembers its
   place in FBackRect, and is put back at its place in the window order. }
 procedure TAOWBaseWindow.SetVisible(Value: Boolean);
-begin
+begin { Tried Self identity and typed/untyped receiver scopes; Self register still differs. }
   if Value <> FVisible then
   begin
     FVisible := Value;
