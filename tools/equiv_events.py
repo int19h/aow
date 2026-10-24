@@ -1,9 +1,10 @@
 """Ordered public accesses; H8 permits only exact repeated-load elimination."""
 from equiv_garbage import model
 from itertools import zip_longest
+import equiv_faults as faults
 
 
-def record(st, kind, address, width, value, fs=False, raw_address=None):
+def record(st, kind, address, width, value, fs=False, raw_address=None, before=None):
     if not getattr(st, 'record_access', False): return
     e = model(); owner = getattr(st, 'ownership', None)
     tag = kind + ('-fs' if fs else '')
@@ -29,6 +30,7 @@ def record(st, kind, address, width, value, fs=False, raw_address=None):
     st.access_pcs=getattr(st,'access_pcs',{})
     st.access_pcs[len(st.events)]=dict(**witness,value=e.simp(value).sexpr())
     event=(tag,e.simp(address),e.bv(width),value)
+    faults.access(st,tag,event[1],width,before)
     st.events.append(event+(st.memory,st.fs) if owner is not None and getattr(owner.checker,'full_events',False) and kind=='write' and len(st.events) not in getattr(st,'private_indices',()) else event)
 
 
@@ -66,7 +68,7 @@ def paired(states):
             else: seen.clear()  # Writes and all existing boundary/fault events.
             out.append(event)
         filtered.append(out)
-    if removed and identical(*sequences): return sequences
+    if removed and identical(*sequences): return faults.finish(states,sequences)
     # Do not assume H8 when eliminating reads cannot even align event kinds.
     if removed and [x[0] for x in filtered[0]] == [x[0] for x in filtered[1]]:
         owners = [getattr(st,'ownership',None) for st in states]
@@ -76,7 +78,7 @@ def paired(states):
                 owner.checker.h8_reads = records
                 for side, index, witness in removed:
                     records[repr((side,index,witness))] = dict(side=side, event=index, **witness)
-        return filtered
+        return faults.finish(states,filtered)
     if [x[0] for x in sequences[0]] != [x[0] for x in sequences[1]]:
         index=next(i for i,(x,y) in enumerate(zip_longest(*sequences)) if x is None or y is None or x[0]!=y[0])
         witnesses=[getattr(st,'access_pcs',{}).get(next((k for k,event in enumerate(st.events) if index<len(seq) and event is seq[index]),-1),dict(kind=seq[index][0] if index<len(seq) else 'end')) for st,seq in zip(states,sequences)]
@@ -84,4 +86,4 @@ def paired(states):
             owner = getattr(st,'ownership',None)
             if owner is not None:
                 owner.checker.access_failure = dict(event=index, sides=[getattr(getattr(s,'ownership',None),'side',None) for s in states], witnesses=witnesses, traces=[list(getattr(s,'access_pcs',{}).values()) for s in states])
-    return sequences
+    return faults.finish(states,sequences)

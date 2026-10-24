@@ -44,6 +44,7 @@ import equiv_limits as limits
 import equiv_cache as verdict_cache
 import equiv_image as image_relation
 import equiv_events as public_events
+import equiv_faults as faults
 from equiv_ownership import Ownership, outside, guarded, premise as ownership_premise, clone_ownership
 
 try:
@@ -144,7 +145,11 @@ def correspondence_failure(states, memories, tails, relations):
         names = (['target','callee inputs/cleanup','context','context','ESP','memory','FS','FP'] if x[0]=='call' else
                  ['target','EAX','EDX','ESP','EBX','ESI','EDI','EBP','DF'] if x[0]=='return' else
                  ['address','width','value','post-write memory','post-write FS'] if x[0] in ('read','write','read-fs','write-fs') else [])
-        index=next(i for i,event in enumerate(states[0].events) if event is x)
+        if x[0] in ('read','write','read-fs','write-fs') and len(x)>=8:
+            names=['address','width','value']+(['post-write memory','post-write FS'] if len(x)==10 else [])+['fault condition','pre-fault public memory','pre-fault FS','pre-fault FP']
+        elif x[0] in ('divide-exception','bound-exception','fp-pending-exception') or x[0].startswith('fp-operation-exception:'):
+            names=['fault condition','fault condition','pre-fault public memory','pre-fault FS','pre-fault FP']
+        index=getattr(states[0],'fault_event_indices',{}).get(id(x),0)
         pcs=getattr(states[0],'event_pcs',[])
         pc=pcs[index] if index<len(pcs) else tails[0]
         for k,(u,v) in enumerate(zip(x[1:],y[1:])):
@@ -880,6 +885,7 @@ class State:
         return value
 
     def store(self, addr, value, fs=False):
+        before=(self.memory,self.fs,self.fp) if getattr(self,'record_access',False) else None
         if hasattr(self, 'cell_guard'):
             self.cell_guard(addr, value.size() // 8, fs)
         recording=getattr(self,'record_access',False);self.record_access=False
@@ -893,7 +899,7 @@ class State:
             self.fs = simp(mem)
         else:
             self.memory = simp(mem)
-        public_events.record(self,'write',addr,value.size()//8,value,fs)
+        public_events.record(self,'write',addr,value.size()//8,value,fs,before=before)
 
 
 
@@ -1227,15 +1233,16 @@ class Machine:
             q = z3.Extract(31, 0, quotient)
             overflow = quotient != (z3.SignExt(32, q) if m == 'idiv' else z3.ZeroExt(32, q))
             fault = z3.Or(divisor == bv(0), overflow)
-            st.events.append(('divide-exception', fault, st.memory, st.fs, st.fp))
+            faults.explicit(st,'divide-exception',fault)
             st.regs['eax'], st.regs['edx'] = simp(q), simp(z3.Extract(31, 0, remainder))
             for f in ('cf', 'of', 'sf', 'zf', 'af', 'pf'):
                 st.flags[f] = undef(f)
         elif m == 'bound' and len(oo) == 2 and oo[0].size == 4 and oo[1].type == X.X86_OP_MEM:
             value = rd(0)
             addr = self.address(st, ins, oo[1])
-            low, high = st.load(addr, 4), st.load(addr + bv(4), 4)
-            st.events.append(('bound-exception', z3.Or(value < low, value > high), st.memory, st.fs, st.fp))
+            bounds=st.load(addr,8)
+            low,high=z3.Extract(31,0,bounds),z3.Extract(63,32,bounds)
+            faults.explicit(st,'bound-exception',z3.Or(value < low,value > high))
         elif m in ('bt', 'bts', 'btr', 'btc') and len(oo) == 2 and oo[0].type == X.X86_OP_REG:
             a, index = rd(0), rd(1)
             bits = a.size()
@@ -1338,6 +1345,8 @@ class Machine:
             # The brief permits ordered uninterpreted x87 operations. The
             # state contains all eight 80-bit registers and control/status bits.
             # Equality of the complete input state also covers x87 exceptions.
+            if m not in ('fnstcw','fnstsw'):faults.pending(st)
+            if m=='wait':return
             args = [st.fp]
             store = m in ('fst', 'fstp', 'fist', 'fistp', 'fnstsw', 'fnstcw')
             shape = []
@@ -1354,6 +1363,7 @@ class Machine:
                     raise Unsupported('x87 operand ' + ins.op_str)
             site = self.local[self.side].get(ins.address, ins.address)
             key = m + '_' + '_'.join(shape)
+            if m not in ('fnstcw','fnstsw'):faults.operation(st,key,args)
             st.events.append(('x87:' + key, *args))
             key += '_site_%x' % site
             if store:
@@ -2524,6 +2534,7 @@ class Checker:
         self.routes = []
         self.full_events=False;self.ownership_failure=None
         self.h8_reads = {}
+        self.fault_private = {}
         self.access_failure = None
         try:
             result = self.check_raw(fn,mutated)
@@ -2571,6 +2582,12 @@ class Checker:
                 self.last_contracts['hypotheses'].setdefault('H5',dict(instances=[]))['image_relation'] = self.image_relation.summary()
                 self.last_contracts['hypotheses']['H5']['predicate'] = 'Checked storage has equal normalized startup contents and justified coverage; mutable runtime values remain arbitrary. Remaining module-wide initial/alias relation and preservation of immutable storage by external effects are assumed.'
         self.last_contracts['public_events'] = dict(ordered=True, failure=self.access_failure, full_accesses=self.full_events, ownership=self.ownership_failure)
+        self.last_contracts['fault_model']=dict(faults.CONTRACT,status=(
+            'assumed private validity; public faults discharged' if self.fault_private else 'discharged'
+            ) if result[0]=='PROVEN' else 'not established')
+        if self.fault_private:
+            self.last_contracts['hypotheses']['H6']=dict(predicate='owned private stack accesses are valid (no stack exhaustion/guard-page faults)',
+                instances=[v for _,v in sorted(self.fault_private.items())])
         if result[0]=='NOT PROVEN' and self.access_failure and not self.garbage_witness:
             result=('NOT PROVEN','ordered public events differ: '+' versus '.join(w['kind']+' at '+w.get('pc','boundary')+' ('+w.get('instruction','')+')' for w in self.access_failure['witnesses']))
         if result[0]=='NOT PROVEN' and self.ownership_failure:
@@ -3085,6 +3102,7 @@ class Checker:
                     clone = State(dict(st.regs), dict(st.flags), st.memory, st.fs, st.fp)
                     clone.image_origins={k:set(v) for k,v in getattr(st,'image_origins',{}).items()}
                     clone.events = list(st.events)
+                    clone.faults=dict(getattr(st,'faults',{}))
                     clone.access_pcs = dict(getattr(st,"access_pcs",{}))
                     clone.private_indices=set(getattr(st,'private_indices',()))
                     clone.condition = st.condition

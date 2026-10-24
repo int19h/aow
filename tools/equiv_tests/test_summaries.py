@@ -126,7 +126,7 @@ class Summaries(unittest.TestCase):
     def test_virtual_callee_taints_summary_without_inventing_EBX_input(self):
         from .test_calls import Calls
         checker,fn=Calls().caller('bb01000000','bb02000000','ff10c3')
-        self.assertEqual('PROVEN under H1,H3,H3c',checker.check(fn)[0])
+        self.assertEqual('PROVEN under H1,H3,H3c,H6',checker.check(fn)[0])
         self.assertEqual('summarized/H3c',checker.last_contracts['hypotheses']['H3c'][0]['summary_kind'])
     def test_virtual_callee_own_EBX_read_remains_a_real_input(self):
         from .test_calls import Calls

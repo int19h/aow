@@ -8,7 +8,7 @@ from .synthetic import alias_route
 class EntryOwnership(unittest.TestCase):
     def test_aliases_are_conditional_on_every_route(self):
         for route in ('inductive_frames','finite_frames','acyclic'):
-            self.assertEqual('PROVEN under H1',alias_route(route)[0])
+            self.assertEqual('PROVEN under H1,H6',alias_route(route)[0])
     def test_public_loaded_address_word_has_explicit_predicate(self):
         c,f=build('83ec048b088b0983c404c3','83ec048b088b0983c404c3')
         a,b=c.instructions(f)
@@ -80,5 +80,5 @@ def published_frame_fixture():
 
 def cases():
     from .support import Case
-    for name,factory,expected in [('public_load_pass_then_dereference',public_load_fixture,'prove:H1,H3'),('published_frame_pointer_reload_dereference',published_frame_fixture,'reject')]:
+    for name,factory,expected in [('public_load_pass_then_dereference',public_load_fixture,'prove:H1,H3,H6'),('published_frame_pointer_reload_dereference',published_frame_fixture,'reject')]:
         yield Case(name,lambda factory=factory:(lambda c,f:c.check(f))(*factory()),expected,'Earlier H1 load predicates precede independent escape obligations.')

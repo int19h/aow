@@ -6,6 +6,17 @@ from .support import Case, build, call, fixture, p32
 
 
 def cases():
+    for name,a,b,expected in [
+        ('fault_write_read_swap','8b0a890731c9c3','89078b0a31c9c3','reject'),
+        ('fault_bound_equal','620131c0c3','90620131c0c3','prove'),
+        ('fault_bound_missing','620131c0c3','31c0c3','reject'),
+        ('fault_div_equal','31d2f7f1c3','31d290f7f1c3','prove'),
+        ('fault_wait_equal','9b90c3','909bc3','prove'),
+        ('fault_wait_missing','9bc3','90c3','reject'),
+        ('fault_wait_write_order','9b8901c3','89019bc3','reject'),
+        ('fault_access_width','8b0831c9c3','0fb60831c9c3','reject'),
+        ('fault_access_kind','8b0831c9c3','890831c9c3','reject')]:
+        yield fixture(name,a,b,'Bounded synchronous fault predicates and pre-fault public state.',expected)
     from .test_resources import fixture as resource_fixture
     for name,kwargs,expected in [('resourcestring_equal_ids_differ',{},'prove:H1,H3,H5'),('resourcestring_text_differs',{'value':'other'},'reject'),('resourcestring_unresolved',{'missing':True},'reject')]:
         yield Case(name,lambda kwargs=kwargs:(lambda c,f:c.check(f))(*resource_fixture(**kwargs)),expected,'Resourcestring IDs have meaning only through each module own RT_STRING table.')
@@ -13,7 +24,7 @@ def cases():
     yield from event_ownership_cases()
     from .test_public_events import published_private_writes,ordered_pointer_cell,temporary_below_prologue
     yield Case('published_private_write_order',lambda:(lambda c,f:c.check(f))(*published_private_writes()),'reject','Publishing a frame pointer makes subsequent writes observable.')
-    for name,factory,premise in [('ordered_pointer_cell',ordered_pointer_cell,'H5'),('temporary_below_prologue',temporary_below_prologue,'H1')]:
+    for name,factory,premise in [('ordered_pointer_cell',ordered_pointer_cell,'H5'),('temporary_below_prologue',temporary_below_prologue,'H1,H6')]:
         yield Case(name,lambda factory=factory:(lambda c,f:c.check(f))(*factory()),'prove:'+premise if premise else 'prove','Constants and unpublished stack temporaries are not ordered public reads/writes.')
     from .test_ownership import cases as ownership_cases
     yield from ownership_cases()
@@ -63,9 +74,9 @@ def cases():
     for name, guard in [('returned_incoming_alias', ''), ('branch_established_alias', '39e1 7507')]:
         yield fixture(name, '83ec04 ' + guard + ' c7042401000000 89c8 83c404 c3',
                       '83ec04 ' + guard + ' c7042402000000 89c8 83c404 c3',
-                      'ECX=entry ESP-4 returns a private slot with different contents; needs explicit H1.', expected='conditional:H1')
+                      'ECX=entry ESP-4 returns a private slot with different contents; needs explicit H1.', expected='conditional:H1,H6')
     yield fixture('private_garbage_pop_ecx_discard','83ec0459c3','83ec0459c3',
-                  'A dead private garbage read has no observable use.','prove:H1')
+                  'A dead private garbage read has no observable use.','prove:H1,H6')
     prefix=bytes.fromhex('83ec0489e0');body=prefix+call(len(prefix))+bytes.fromhex('83c404c3')
     yield fixture('private_garbage_pointer_to_callee',body,body,
                   'The callee can observe independently initialized private bytes.',
@@ -113,7 +124,7 @@ def cases():
                   extras_a=[(0x2000, p32(1))], extras_b=[(0x2010, p32(2))], readonly=True,
                   bindings=[(0x402000, 0x402010)])
     for route in ('inductive_frames', 'finite_frames', 'acyclic'):
-        yield Case('alias_route/' + route, lambda route=route: alias_route(route), 'conditional:H1',
+        yield Case('alias_route/' + route, lambda route=route: alias_route(route), 'conditional:H1,H6',
                    'The same branch-established alias must be checked on every proof route.')
     yield fixture('excluded_raw_divide_context',
                   'b901000000 31d2 b801000000 f7f2 b900000000 c3',
@@ -129,7 +140,7 @@ def alias_route(route):
         if route == 'acyclic':
             result=checker.acyclic(a, b)
         else:result=e.verify_frames(checker, a, b, finite=route == 'finite_frames')
-        premises=(['H1'] if checker.contracts.h1 else [])+(['H8'] if getattr(checker,'h8_reads',{}) else [])
+        premises=(['H1'] if checker.contracts.h1 else [])+(['H6'] if getattr(checker,'fault_private',{}) else [])+(['H8'] if getattr(checker,'h8_reads',{}) else [])
         return ('PROVEN under '+','.join(premises),result[1]) if result[0]=='PROVEN' and premises else result
     except (e.NotProven, e.Unsupported) as exc:
         return ('NOT PROVEN' if isinstance(exc, e.NotProven) else 'UNSUPPORTED'), str(exc)

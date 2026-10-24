@@ -32,12 +32,12 @@ def cases():
     for mutant in (True,False):
         yield Case('initialized_private_arg_'+('mut' if mutant else 'ctl'),
             lambda m=mutant:(lambda c,f:c.check(f))(*initialized_argument(m)),
-            'reject' if mutant else 'prove:H1,H3','Outgoing private argument loads must not create a false public-load H1 premise.')
+            'reject' if mutant else 'prove:H1,H3,H6','Outgoing private argument loads must not create a false public-load H1 premise.')
     for kind in ('F5','F7','F8','F9_ext0'):
         for mutant in (True,False):
             yield Case(kind+('_swap' if kind=='F8' else '_mut') if mutant else kind+'_ctl',
                 lambda k=kind,m=mutant:(lambda c,f:c.check(f))(*published_temporary(k,m)),
-                'reject' if mutant else 'prove:H1' if kind!='F9_ext0' else 'prove:H1,H3',
+                'reject' if mutant else 'prove:H1,H6' if kind!='F9_ext0' else 'prove:H1,H3,H6',
                 'A published or retained temporary must remain observable below the prologue extent.')
 
 

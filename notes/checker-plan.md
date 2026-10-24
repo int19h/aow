@@ -21,7 +21,7 @@ Every certificate lists each applicable H below as discharged (with evidence), a
 | H3 CalleeContract | Target identity, complete input read set, preservation, cleanup, FP/exception effects and cross-image behavior are justified; otherwise record the exact assumed contract. |
 | H4 IndependentFrameGarbage | Each side's actual private allocation starts with independently quantified bytes; no read-before-definition dependence or blanket fixed-size havoc standing in for a proved extent. |
 | H5 ImageRelation | Global identities, extents, byte overlap, initialized contents, pointer graph, BSS zero initialization and external anchors form one coherent module/program relation. |
-| H6 AccessAndFaultModel | Per-access validity(address,width,kind), ordered accesses interleaved with writes, and explicit divide/BOUND/FP fault predicates; no page-permission or partial-progress model beyond this bounded rule. |
+| H6 AccessAndFaultModel | Per-access validity(address,width,kind), ordered accesses interleaved with writes, and explicit divide/BOUND/FP fault predicates; no page-permission or partial-progress model beyond this bounded rule. Accesses inside the owned private stack extent are assumed valid (stack exhaustion and guard-page faults excluded); each such access is an instantiated H6 assumption. |
 | H7 SegmentRelation | FS and ordinary addresses refer to one linear memory through FS.base; an optional TIB-separation assumption must be explicit and sufficient for every relevant ordinary access. |
 | H8 EnvironmentInterference | No other thread writes memory this function reads or writes between its boundaries. This is the only interference statement; reliance is conditional unless discharged. |
 | H9 FPObservation | Relevant x87 stack/environment, operand addresses and exceptions are modeled; any restriction on callee FNSTENV/FSAVE or FP-environment observation is explicit. |
@@ -149,6 +149,8 @@ Change: validity(address,width,kind) per access, equal ordered accesses interlea
 Acceptance: missing loads, changed access kind/width, reordered first faults around public writes, division/BOUND and WAIT regressions reject; equal supported access sequences establish equal faults and handler-visible memory.
 
 Report: access/fault failures, bounded-model assumptions and standard counts/timings.
+
+Result (tools/equiv_faults.py, Fable approved): counts unchanged (12,875 MATCH, 41 conditional PROVEN, 186 NOT PROVEN, 226 UNSUPPORTED); all 41 proofs now name H6; 288,456 queries uncached and cold. Follow-ups: label H6 whenever any validity or fault predicate is emitted, not only when a private instance exists (a proof with only public accesses now reads as unconditional); a duplicated WAIT rejects (conservative); explicit-fault diagnostics repeat "fault condition".
 
 ### Step 8 — Segment and x87 state
 

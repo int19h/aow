@@ -15,7 +15,7 @@ def cases():
            ('var_out_forwarded_writer',nested,[(0x1180,bytes.fromhex('c70001000000c3'))],True),
            ('var_out_forwarded_indirect',nested,[(0x1180,bytes.fromhex('ff10c3'))],False)]
     return [Case(name,lambda h=h,x=x: (lambda c,f:c.check(f))(*program(h,x)),
-                 'prove:H1,H3' if yes else 'reject','Checked pointer must-write before read') for name,h,x,yes in specs]+per_call_cases()
+                 'prove:H1,H3,H6' if yes else 'reject','Checked pointer must-write before read') for name,h,x,yes in specs]+per_call_cases()
 
 def per_call_cases():
     def run(read_first):
@@ -25,7 +25,7 @@ def per_call_cases():
         c,f=build(body,body,extras_a=[(0x1100,helper)],extras_b=[(0x1100,helper)],bindings=[(0x401100,0x401100)])
         return c.check(f)
     return [Case('per_call_earlier_escape_'+('read_first' if read else 'must_write'),lambda read=read:run(read),
-                 'reject' if read else 'prove:H1,H3','Only frame bytes reachable at this call require must-write coverage') for read in (False,True)]
+                 'reject' if read else 'prove:H1,H3,H6','Only frame bytes reachable at this call require must-write coverage') for read in (False,True)]
 
 class MustWrite(unittest.TestCase):
     def test_four_acceptance_fixtures(self):
