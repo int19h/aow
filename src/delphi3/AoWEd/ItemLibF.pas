@@ -245,7 +245,7 @@ end;
 
 procedure TItemLibraryEditForm.NewItemClick;
 var Dlg: TItemEditForm; Item: TItem;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   if (FLibraryIndex <> 0) or (AoWHSMap = nil) then
   begin
     Item := AoWHSSet.FItemLibraries.GetLibrary(FLibraryIndex).CreateItem;

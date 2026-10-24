@@ -48,7 +48,7 @@ class procedure TChangeSongEditor.UpdatePopupMenu(Obj: Engine.TEObject; AEngine:
 begin Handled := Handled + [emEdit]; end;
 
 procedure TChangeSongEditForm.FormCreate(Sender: TObject);
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   inherited FormCreate(Sender);
   FSongList := TSongList.Create(nil);
   FSongList.Search('SONGS\', 'S3M');

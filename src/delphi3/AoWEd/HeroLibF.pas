@@ -183,7 +183,7 @@ end;
 
 procedure THeroLibraryEditForm.NewHeroClick(Sender: TObject);
 var Dlg: THeroEditForm; Hero: THero;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   if (FLibraryIndex <> 0) or (AoWHSMap = nil) then
   begin
     Hero := AoWHSSet.FHeroLibraries.GetLibrary(FLibraryIndex).CreateHero;

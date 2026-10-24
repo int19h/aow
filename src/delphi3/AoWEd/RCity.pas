@@ -44,7 +44,7 @@ begin
 end;
 
 procedure TCityResourceEditForm.vmt90(Index, X, Y: Integer; SD: TSurfaceDesc);
-begin
+begin { Match trials (3): addressable/absolute locals, Pointer casts, zero-shift scheduling, identity assignments; still differs. }
   if MainPageControl.ActivePage = SettingsSheet then vmt88(Index, X, Y, SD)
   else inherited vmt90(Index, X, Y, SD);
 end;

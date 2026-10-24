@@ -727,7 +727,7 @@ begin
 end;
 
 procedure TDisplayCtrl.ShowError(Msg: string);
-begin
+begin { Match trials (5): named temporaries, with scopes, Pointer casts, zero-shift scheduling, identity assignments; still differs. }
   FDisplay.ShowError(Msg);
 end;
 
@@ -1067,7 +1067,7 @@ end;
 { TUpdateFrameThread }
 
 procedure TUpdateFrameThread.TriggerUpdateFrame;
-begin
+begin { Match trials (4): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   if not Terminated then
     with FDisplay do
       if not (dsFrameLoopPaused in FStatus) and not (csDestroying in ComponentState) and

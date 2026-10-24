@@ -395,13 +395,13 @@ begin
 end;
 
 procedure TMapObjectResourceEditForm.vmt90(Index, X, Y: Integer; SD: TSurfaceDesc);
-begin
+begin { Match trials (3): addressable/absolute locals, with scopes, zero-shift scheduling; still differs. }
   if ComplexBox.Checked then vmt8C(Index, X, Y, SD)
   else vmt88(Index, X, Y, SD);
 end;
 
 procedure TMapObjectResourceEditForm.ComplexBoxClick(Sender: TObject);
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling, identity assignments; still differs. }
   if ComplexBox.Checked then vmt84 else DisableComplex;
 end;
 

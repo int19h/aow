@@ -40,7 +40,7 @@ end;
 
 procedure TStartMenu.SetVisible(Value: Boolean);
 var M: TAOWWinManager; B: TAOWMenuBar;
-begin
+begin { Match trials (4): named temporaries, with scopes, Pointer casts, zero-shift scheduling, identity assignments; still differs. }
   if Value <> FVisible then
   begin
     FVisible := Value;

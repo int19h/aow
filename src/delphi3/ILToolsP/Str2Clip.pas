@@ -17,22 +17,22 @@ function CopyStreamToClipboard(Stream: TStream; const Format: string): Integer;
 var
   SavedPosition: Integer;
   H: THandle;
-  P: PChar;
+  P: PChar; DataSize: Integer;
 begin
   SavedPosition := Stream.Position;
   Result := -1;
   if OpenClipboard(Application.Handle) and (Format <> '') then
   try
     Stream.Position := 0;
-    H := GlobalAlloc(GMEM_MOVEABLE, Length(Format) + 4 + 4 + Stream.Size);
+    DataSize := Length(Format) + 4 + 4 + Stream.Size; H := GlobalAlloc(GMEM_MOVEABLE, DataSize);
     try
       P := GlobalLock(H);
       try
         PInteger(P)^ := Length(Format);
-        Move(Pointer(Format)^, P[4], Length(Format));
+        {$R+} Move(Format[1], P[4], Length(Format)); {$R-} { R+ retains the original first-character address calculation. }
         PInteger(P + 4 + Length(Format))^ := Stream.Size;
-        Inc(P, 4);
-        Stream.ReadBuffer(P[Length(Format) + 4], Stream.Size);
+        { Buffer address contains both length words. }
+        Stream.ReadBuffer(PChar(Length(Format) + (Integer(P) + 4) + 4)^, Stream.Size);
         SetClipboardData(ClipboardFormat, H);
         Result := Stream.Size;
       finally
@@ -53,7 +53,7 @@ var
   H: THandle;
   P: PChar;
   L: Integer;
-  S: string;
+  S: string; Size: Integer;
 begin
   Result := -1;
   if OpenClipboard(Application.Handle) then
@@ -63,11 +63,11 @@ begin
     begin
       P := GlobalLock(H);
       try
-        if GlobalSize(THandle(P)) > 4 then { Original passes the locked pointer as the handle. }
+        Size := GlobalSize(THandle(P)); if Size > 4 then { Original passes the locked pointer as the handle. }
         begin
           L := PInteger(P)^;
           SetLength(S, L);
-          Move(P[4], S[1], L);
+          {$R+} Move(P[4], S[1], L); {$R-} { R+ retains the original first-character address calculation. }
           if S = Format then
           begin
             Inc(P, 4);

@@ -262,7 +262,7 @@ begin
 end;
 
 procedure THeroEditForm.FormCreate;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   if MainForm.HSMEdit.Activated then MainForm.HSMEdit.PauseFrameUpdateLoop;
   MainPageControl.ActivePage := GeneralSheet;
   with AttackLabel do Caption := Caption + ' (' + TranslateRStr(spRStr) + ':' + IntToStr(5) + ')';
@@ -274,7 +274,7 @@ begin
 end;
 
 procedure THeroEditForm.FormDestroy;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   if FSavedHero <> nil then
   begin
     FSavedHero.Free;
@@ -317,7 +317,7 @@ begin
 end;
 
 procedure THeroEditForm.OKBtnClick;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   with FHero do
   begin
     FHeroName := NameEdit.Text;
@@ -672,7 +672,7 @@ end;
 
 function THeroEditForm.EditLibraryHero(Hero: THero): Boolean;
 var Accepted, Active: Boolean;
-begin
+begin { Match trials (8): addressable/absolute locals, record storage, declaration/operand order, named temporaries, with scopes, Pointer casts, Result/modal locals; still differs. }
   MainPageControl.ActivePage := GeneralSheet;
   if usActivated in Hero.FUnitStatus then
   begin
@@ -700,7 +700,7 @@ end;
 
 function THeroEditForm.EditHero(Hero: THero): Boolean;
 var Accepted, Active: Boolean;
-begin
+begin { Match trials (8): addressable/absolute locals, record storage, declaration/operand order, named temporaries, with scopes, Pointer casts, Result/modal locals; still differs. }
   MainPageControl.ActivePage := GeneralSheet;
   CancelBtn.Caption := TranslateRStr(CancelRStr);
   OKBtn.Visible := True;

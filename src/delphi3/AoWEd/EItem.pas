@@ -200,7 +200,7 @@ end;
 
 procedure TItemEditForm.FormCreate(Sender: TObject);
 var List: TStringList; I: Integer;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   with MainForm.HSMEdit do if Activated then PauseFrameUpdateLoop;
   List := TStringList.Create;
   for I := 0 to AoWHSSet.FSpellControl.GetCount - 1 do
@@ -213,7 +213,7 @@ end;
 
 
 procedure TItemEditForm.FormDestroy;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   with MainForm.HSMEdit do if Activated then ResumeFrameUpdateLoop;
   if FItem <> nil then begin FItem.Free; FItem := nil; end;
 end;
@@ -221,7 +221,7 @@ end;
 
 procedure TItemEditForm.EditBtnClick;
 var Index: Integer;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling, identity assignments; still differs. }
   with TItemSelectionDlg.CreateSelection(Self, FItem.FItemType) do
   begin
     SetSelectedIndex(FItem.FItemGFXIndex);

@@ -768,8 +768,8 @@ procedure TDrawImagePanel.DrawLibraryImage(Image: TLibraryImage; Rect: TRect; Se
 var
   R: TRect;
 begin
-  { the third parameter is not used (the callers pass False); differs from the original in one
-    register: it keeps Image in esi (as if Image were used after the call) }
+  { Match trials (3): record storage, Pointer casts, identity assignments; still differs. }
+    { Selected is unused; callers pass False. }
   BltLibraryImage(Canvas, Image, Rect, FBltMode, FScaleX, FScaleY, 0, Color, False, R);
   Rect := R;
   if Focused and FShowFocus then DrawFocus(Rect);
@@ -875,7 +875,7 @@ end;
 
 procedure TLibraryImagePanel.SetLibraryImage(Value: TLibraryImage);
 begin
-  { differs from the original in one register: it keeps the old image in esi and Value in edi }
+  { Match trials (3): named temporaries, Pointer casts, identity assignments; still differs. }
   if FLibraryImage <> nil then FLibraryImage.Destroy;
   FLibraryImage := Value;
   Refresh;

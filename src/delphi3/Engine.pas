@@ -3121,22 +3121,22 @@ function CopyStreamToClipboard(Stream: TStream; const Format: string): Integer;
 var
   SavedPosition: Integer;
   H: THandle;
-  P: PChar;
+  P: PChar; DataSize: Integer;
 begin
   SavedPosition := Stream.Position;
   Result := -1;
   if OpenClipboard(Application.Handle) and (Format <> '') then
   try
     Stream.Position := 0;
-    H := GlobalAlloc(GMEM_MOVEABLE, Length(Format) + 4 + 4 + Stream.Size);
+    DataSize := Length(Format) + 4 + 4 + Stream.Size; H := GlobalAlloc(GMEM_MOVEABLE, DataSize);
     try
       P := GlobalLock(H);
       try
         PInteger(P)^ := Length(Format);
         Move(PChar(Format)^, P[4], Length(Format));
         PInteger(P + 4 + Length(Format))^ := Stream.Size;
-        Inc(P, 4);
-        Stream.ReadBuffer(P[Length(Format) + 4], Stream.Size);
+        { Buffer address contains both length words. }
+        Stream.ReadBuffer(PChar(Length(Format) + (Integer(P) + 4) + 4)^, Stream.Size);
         SetClipboardData(ClipboardFormat, H);
         Result := Stream.Size;
       finally
@@ -3157,7 +3157,7 @@ var
   H: THandle;
   P: PChar;
   L: Integer;
-  S: string;
+  S: string; Size: Integer;
 begin
   Result := -1;
   if OpenClipboard(Application.Handle) then
@@ -3167,7 +3167,7 @@ begin
     begin
       P := GlobalLock(H);
       try
-        if GlobalSize(THandle(P)) > 4 then
+        Size := GlobalSize(THandle(P)); if Size > 4 then
         begin
           L := PInteger(P)^;
           SetLength(S, L);
@@ -9822,7 +9822,7 @@ var
   Outer: TEBufferStream;
   Start, AClassID: Integer;
   O: TEObject;
-begin
+begin { Match trials (3): named temporaries, with scopes, identity assignments, try-entry lifetimes; still differs. }
   if not FPropertyTable.PropertyExist(ID) then
   begin
     Start := FBuffer.Position;
@@ -9898,7 +9898,7 @@ procedure TEWriteStorageStream.rwEObject(Obj: TEObject; ID: Integer);
 var
   Outer: TEBufferStream;
   Start: Integer;
-begin
+begin { Match trials (3): named temporaries, with scopes, identity assignments, try-entry lifetimes; still differs. }
   if not FPropertyTable.PropertyExist(ID) then
   begin
     Start := FBuffer.Position;
@@ -9932,7 +9932,7 @@ procedure TEWriteStorageStream.rwEObjectStream(Obj: TEObject; ID: Integer);
 var
   Outer: TEBufferStream;
   Start, Len: Integer;
-begin
+begin { Match trials (3): named temporaries, with scopes, identity assignments, try-entry lifetimes; still differs. }
   Start := FBuffer.Position;
   Outer := FBuffer;
   FBuffer := TEBufferStream.Create;
@@ -10208,7 +10208,7 @@ end;
 procedure TEReadStorageStream.rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer);
 var
   Offset, SavedBase, AClassID: Integer;
-begin
+begin { Match trials (3): named temporaries, identity assignments, try-entry lifetimes; still differs. }
   Obj := nil;
   Offset := FPropertyTable.FindOffset(ID);
   if Offset <> -1 then
@@ -10368,7 +10368,7 @@ end;
 procedure TEWriteTextStorageStream.rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer);
 var
   O: TEObject;
-begin
+begin { Match trials (4): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   O := Obj;
   if O <> nil then rwEObject(O, ID);
 end;
@@ -10506,7 +10506,7 @@ procedure TDebugWriteStream.rwCreateEObject(var Obj: TEObject; AOwner: TECustomN
 var
   AClassID: Integer;
   O: TEObject;
-begin
+begin { Match trials (3): declaration/operand order, named temporaries, Pointer casts, identity assignments; still differs. }
   if not FPropertyTable.PropertyExist(ID) then
   begin
     O := Obj;
@@ -10741,7 +10741,7 @@ end;
 procedure TEReadTextStorageStream.rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer);
 var
   O: TEObject;
-begin
+begin { Match trials (4): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   O := Obj;
   if O <> nil then rwEObject(O, ID);
 end;
@@ -10857,7 +10857,7 @@ end;
 procedure TTranslateStorageStream.rwCreateEObject(var Obj: TEObject; AOwner: TECustomNode; ID: Integer);
 var
   O: TEObject;
-begin
+begin { Match trials (4): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   O := Obj;
   if O <> nil then rwEObject(O, ID);
 end;

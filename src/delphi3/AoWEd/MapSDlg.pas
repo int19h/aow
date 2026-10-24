@@ -203,7 +203,7 @@ end;
 
 procedure TMapSettingsDlg.FormCreate(Sender: TObject);
 var SongList: TSonglist; Behavior: TPlayerBehavior;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling, identity assignments; still differs. }
   SongList := TSonglist.Create(nil);
   with SongList do
   begin

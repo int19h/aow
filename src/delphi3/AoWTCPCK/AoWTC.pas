@@ -3084,7 +3084,7 @@ var
   Targets: TCombatTargetType;
   SpellInfo: TSpellCombatInfo;
   AbilityInfo: TAbilityCombatInfo;
-begin
+begin { Match trials (8): addressable/absolute locals, record storage, declaration/operand order, with scopes, Pointer casts, zero-shift scheduling, O+; still differs. }
   if AoWCombatMap.FSeatedCombatPlayer = AoWCombatMap.FCurrentCombatPlayer then begin
     if not AoWCombatMap.FPlayers.GetPlayers(AoWCombatMap.FCurrentCombatPlayer).FAuto then
       if AoWCombatMap.Mouse.Button = mbRight then begin

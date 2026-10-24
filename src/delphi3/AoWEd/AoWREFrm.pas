@@ -26,7 +26,7 @@ implementation
 uses MDIForm;
 
 constructor TAoWResourceEditForm.vmt80(AEngine: TEngine; Resource: TEResource; Done: TEditDoneEvent);
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   inherited vmt80(AEngine, Resource, Done);
   with MainForm do
     if HSMEdit.Activated then HSMEdit.PauseFrameUpdateLoop;
@@ -34,7 +34,7 @@ begin
 end;
 
 destructor TAoWResourceEditForm.Destroy;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   with MainForm do
     if HSMEdit.Activated then HSMEdit.ResumeFrameUpdateLoop;
   inherited Destroy;

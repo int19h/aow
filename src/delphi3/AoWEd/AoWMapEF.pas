@@ -68,7 +68,7 @@ end;
 
 
 constructor TAoWMapEditForm.vmt90(Obj: TEObject; Done: TEditDoneEvent);
-begin
+begin { Match trials (3): addressable/absolute locals, named temporaries, with scopes, Pointer casts, zero-shift scheduling, identity assignments; still differs. }
   FEditStream := TMemoryStream.Create;
   FPositionInfo := @EditFormPosition;
   FOnEditDone := Done;
@@ -83,7 +83,7 @@ end;
 
 destructor TAoWMapEditForm.Destroy;
 var Position: PPoint;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling, identity assignments; still differs. }
   Position := FPositionInfo;
   if Position <> nil then
   begin

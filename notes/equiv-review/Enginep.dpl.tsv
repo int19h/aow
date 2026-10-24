@@ -1,6 +1,6 @@
-CopyStreamToClipboard	DIFFERENT	Clipboard format truncated from 32 to 16 bits	O89 reads the full format DWORD; old N87 zero-extended a Word. Original initialization writes EAX to 555329E0. Corrected ClipboardFormat to Cardinal. Still differs only in FS zero register, push/copy and independent address arithmetic; calls/writes and all three cleanup regions now agree.
+CopyStreamToClipboard	MATCHED	matches after rewrite	named allocation size and left-associated read address
 GetEngine	MATCHED	matches after rewrite	separate the pointer result from its class cast
-PasteStreamFromClipboard	DIFFERENT	Clipboard format truncated from 32 to 16 bits	O28 reads the full format DWORD; old N28 zero-extended a Word. Corrected the shared declaration to Cardinal from original initialization/read widths. Still differs only in zero EAX/EDX for the two FS frames; same calls, bounds, payload writes, result and three finally cleanups.
+PasteStreamFromClipboard	MATCHED	matches after rewrite	named global size inside protected region
 SortStringsEx	MATCHED	matches after rewrite	verified existing unsigned open-array guard repair
 TCompareStorageStream.rwCreateEObject	DIFFERENT	Finally replaced the original typed exception handler	O76-96 frees/clears Obj, restores state and invokes HandleException, conditionally reraising. Old N75-76 only ran finally cleanup. Restored the typed except path and normal cleanup inside its protected region. Rebuilt MATCH, including handler table; no lost matches or added findings.
 TCompressStream.SaveToStreamEx	MATCHED	matches after rewrite	stage the compression enum in a local

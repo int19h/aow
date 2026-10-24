@@ -117,7 +117,7 @@ begin
 end;
 
 procedure TArmyEditForm.PlayerComboBoxChange(Sender: TObject);
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   FArmy.SetPlayer(PlayerComboBox.FPlayerIndex);
   if True then
   begin

@@ -37,7 +37,7 @@ class procedure TIsometricHexagonResourceEditor.Edit(Obj: Engine.TEObject; AEngi
 begin TIsometricHexagonEditForm.CreateForm(THSEngine(AEngine), TMapObjectResource(Obj), Done); end;
 
 procedure TIsometricHexagonEditForm.FormCreate(Sender: TObject);
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling, identity assignments; still differs. }
   inherited FormCreate(Sender);
   vmt84;
 end;

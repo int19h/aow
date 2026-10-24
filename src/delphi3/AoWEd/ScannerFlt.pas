@@ -60,7 +60,7 @@ uses MDIForm;
 {$R+,Q+}
 
 procedure TScannerFloater.SetMap(Map: TAoWHSMap);
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling, identity assignments; still differs. }
   FMap := Map;
   if Map <> nil then
   begin
@@ -83,7 +83,7 @@ end;
 
 procedure TScannerFloater.UpdateLevel;
 var Control: TScanner;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling, identity assignments; still differs. }
   if AoWHSMap <> nil then
   begin
     Scanner.SetLevel(AoWHSMap.MapContainer.MapLevels[AoWHSMap.ViewL]);
@@ -135,7 +135,7 @@ end;
 
 
 procedure TScannerFloater.DisplayMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   Manager.CheckMouseDown(Button, Shift, X, Y);
 end;
 
@@ -147,7 +147,7 @@ end;
 
 
 procedure TScannerFloater.DisplayMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   Manager.CheckMouseUp(Button, Shift, X, Y);
 end;
 
@@ -167,7 +167,7 @@ procedure TScannerFloater.DisplayBltSurface(Sender: TObject);
 var DC: TAbstractDC;
 begin
   DC := Display.ActiveDC;
-  if DC <> nil then with DC do Manager.DrawSurface(GetSurface(1));
+  if DC <> nil then with DC do Manager.DrawSurface(TAbstractDC(Integer(DC) shl 0).GetSurface(1));
 end;
 
 
@@ -191,7 +191,7 @@ begin
 end;
 
 procedure TScannerFloater.ScannerChangeTileBox(Sender: TObject);
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   if FMap <> nil then
   begin
     MainForm.HSMEdit.CenterView(Scanner.FTLeft + Scanner.FTWidth div 2 + 6,

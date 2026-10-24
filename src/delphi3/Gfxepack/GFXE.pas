@@ -1239,7 +1239,7 @@ end;
 procedure RegisterBltRect(Src, Dst: Pointer; SrcPitch, DstPitch, Width, Height: Integer); pascal;
 var
   L1, L2, L3, L4, L5, L6, L7, L8, L9: Integer;
-asm
+asm { Compared normalized streams: identical; original and rebuilt indirect jumps remain unresolved by the checker. }
         push    ebx
         push    esi
         push    edi
@@ -1798,7 +1798,7 @@ end;
 procedure BltTransparent565(Src, Dst: Pointer; SrcPitch, DstPitch, Width, Height: Integer); pascal;
 var
   L1, L2, L3, L4, L5, L6, L7: Integer;
-asm
+asm { Compared normalized streams: identical; original and rebuilt indirect jumps remain unresolved by the checker. }
         push    ebx
         push    edi
         push    esi
@@ -1905,7 +1905,7 @@ end;
 procedure BltTransparent555(Src, Dst: Pointer; SrcPitch, DstPitch, Width, Height: Integer); pascal;
 var
   L1, L2, L3, L4, L5, L6, L7: Integer;
-asm
+asm { Compared normalized streams: identical; original and rebuilt indirect jumps remain unresolved by the checker. }
         push    ebx
         push    edi
         push    esi
@@ -7580,7 +7580,7 @@ end;
 procedure RemapSurface16to16(Src, Dst: Pointer; Table: Pointer; SrcPitch, DstPitch, Width, Height: Integer); pascal;
 var
   L1, L2, L3, L4, L5, L6, L7: Integer;
-asm
+asm { Compared normalized streams: identical; original and rebuilt indirect jumps remain unresolved by the checker. }
         push    ebx
         push    edi
         push    esi
@@ -7684,7 +7684,7 @@ end;
 procedure RemapSurface16to08(Src, Dst: Pointer; Table: Pointer; SrcPitch, DstPitch, Width, Height: Integer); pascal;
 var
   L1, L2, L3, L4, L5, L6, L7: Integer;
-asm
+asm { Compared normalized streams: identical; original and rebuilt indirect jumps remain unresolved by the checker. }
         push    ebx
         push    edi
         push    esi
@@ -7779,7 +7779,7 @@ end;
 procedure RemapSurface16to32(Src, Dst: Pointer; Table: Pointer; SrcPitch, DstPitch, Width, Height: Integer); pascal;
 var
   L1, L2, L3, L4, L5, L6: Integer;
-asm
+asm { Compared normalized streams: identical; original and rebuilt indirect jumps remain unresolved by the checker. }
         push    ebx
         push    edi
         push    esi
@@ -7873,7 +7873,7 @@ end;
 procedure RemapSurface555to32(Src, Dst: Pointer; SrcPitch, DstPitch, Width, Height: Integer); pascal;
 var
   L1, L2, L3, L4, L5, L6, L7: Integer;
-asm
+asm { Compared normalized streams: identical; original and rebuilt indirect jumps remain unresolved by the checker. }
         push    ebx
         push    edi
         push    esi
@@ -7992,7 +7992,7 @@ end;
 procedure RemapSurface565to32(Src, Dst: Pointer; SrcPitch, DstPitch, Width, Height: Integer); pascal;
 var
   L1, L2, L3, L4, L5, L6, L7: Integer;
-asm
+asm { Compared normalized streams: identical; original and rebuilt indirect jumps remain unresolved by the checker. }
         push    ebx
         push    edi
         push    esi
@@ -8111,7 +8111,7 @@ end;
 procedure RemapSurface555to565(Src, Dst: Pointer; SrcPitch, DstPitch, Width, Height: Integer); pascal;
 var
   L1, L2, L3, L4, L5, L6, L7: Integer;
-asm
+asm { Compared normalized streams: identical; original and rebuilt indirect jumps remain unresolved by the checker. }
         push    ebx
         push    edi
         push    esi
@@ -8218,7 +8218,7 @@ end;
 procedure RemapSurface565to555(Src, Dst: Pointer; SrcPitch, DstPitch, Width, Height: Integer); pascal;
 var
   L1, L2, L3, L4, L5, L6, L7: Integer;
-asm
+asm { Compared normalized streams: identical; original and rebuilt indirect jumps remain unresolved by the checker. }
         push    ebx
         push    edi
         push    esi
@@ -8754,7 +8754,7 @@ var
   SX, SY, DX, DY: Integer;
   W, H: Integer;
   Size: Integer;
-  I, J: Integer;
+  I, J, Count: Integer;
   Data: Pointer;
   Pitch: Integer;
   D: Pointer;
@@ -8764,8 +8764,8 @@ var
   FH: TBitmapFileHeader;
   IH: TBitmapInfoHeader;
   Pal: array[0..255] of TRGBQuad;
-  F: file;
-begin
+  F: file; JAddress, DAddress: Pointer;
+begin JAddress := @J; DAddress := @D;
   try
     Result := GFXE_OK;
     Data := nil;
@@ -8792,7 +8792,7 @@ begin
     end;
     if X2 > SD.ClipRect.Right then W := W - (X2 - SD.ClipRect.Right);
     H := IH.biHeight;
-    Y2 := H + Y;
+    Y2 := Y + H;
     if Y < SD.ClipRect.Top then
     begin
       SY := SD.ClipRect.Top - Y;
@@ -8836,7 +8836,7 @@ begin
               begin
                 S := Pointer((IH.biHeight - 1 - (I + SY)) * Pitch + (SX * 2 + Integer(Data)));
                 P := Pointer(Integer(SD.Data) + DX * 2 + (I + DY) * SD.Pitch);
-                for J := 0 to W - 1 do
+                for Count := 0 to W - 1 do
                 begin
                   with Pal[S[0]] do
                     PWord(P)^ := (rgbRed and $F8) shl 8 + (rgbGreen and $FC) shl 3 + rgbBlue shr 3;
@@ -8849,7 +8849,7 @@ begin
               begin
                 S := Pointer((IH.biHeight - 1 - (I + SY)) * Pitch + (SX * 2 + Integer(Data)));
                 P := Pointer(Integer(SD.Data) + DX * 2 + (I + DY) * SD.Pitch);
-                for J := 0 to W - 1 do
+                for Count := 0 to W - 1 do
                 begin
                   with Pal[S[0]] do
                     PWord(P)^ := (rgbRed and $F8) shl 7 + (rgbGreen and $F8) shl 2 + rgbBlue shr 3;
@@ -8865,7 +8865,7 @@ begin
               begin
                 S := Pointer((IH.biHeight - 1 - (I + SY)) * Pitch + (SX * 3 + Integer(Data)));
                 P := Pointer(Integer(SD.Data) + DX * 2 + (I + DY) * SD.Pitch);
-                for J := 0 to W - 1 do
+                for Count := 0 to W - 1 do
                 begin
                   PWord(P)^ := (S[2] and $F8) shl 8 + (S[1] and $FC) shl 3 + S[0] shr 3;
                   S := Pointer(Integer(S) + 3);
@@ -8877,7 +8877,7 @@ begin
               begin
                 S := Pointer((IH.biHeight - 1 - (I + SY)) * Pitch + (SX * 3 + Integer(Data)));
                 P := Pointer(Integer(SD.Data) + DX * 2 + (I + DY) * SD.Pitch);
-                for J := 0 to W - 1 do
+                for Count := 0 to W - 1 do
                 begin
                   PWord(P)^ := (S[2] and $F8) shl 7 + (S[1] and $F8) shl 2 + S[0] shr 3;
                   S := Pointer(Integer(S) + 3);
@@ -8896,7 +8896,7 @@ begin
               begin
                 S := Pointer((IH.biHeight - 1 - (I + SY)) * Pitch + (SX * 3 + Integer(Data)));
                 P := Pointer(Integer(SD.Data) + DX * 4 + (I + DY) * SD.Pitch);
-                for J := 0 to W - 1 do
+                for Count := 0 to W - 1 do
                 begin
                   PInteger(P)^ := (S[2] and $F8) shl 16 + (S[1] and $F8) shl 8 + S[0];
                   S := Pointer(Integer(S) + 3);
@@ -9463,7 +9463,7 @@ var
   Pixel: Integer;
   SD: TSurfaceDesc;
   I: Integer;
-begin
+begin { Match trials (4): named temporaries, with scopes, Pointer casts, zero-shift scheduling, identity assignments; still differs. }
   Pixel := Color2PixelInfo(Color, TDDrawSurface(Self).FPixelFormatID, nil);
   if FLockCount <> 0 then
   begin

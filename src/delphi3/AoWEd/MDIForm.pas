@@ -590,7 +590,7 @@ end;
 procedure TMainForm.EditMapSettings(AllowCancel: Boolean);
 var
   Dlg: TMapSettingsDlg;
-begin
+begin { Match trials (4): addressable/absolute locals, declaration/operand order, with scopes; still differs. }
   if HSMEdit.Activated and (AoWHSMap <> nil) then
   begin
     HSMEdit.PauseFrameUpdateLoop;
@@ -642,8 +642,8 @@ var
   Grid: TDrawGrid;
   Cell: TGridCoord;
   Index: Integer;
-  Resource: TEResource;
-begin
+  Resource: TEResource; Receiver: Pointer;
+begin Receiver := Self; with TMainForm(Integer(Receiver) shl 0) do begin
   Grid := TDrawGrid(HintInfo.HintControl);
   if TObject(Grid) is TCustomGrid then
   begin
@@ -677,7 +677,7 @@ begin
     end
     else CanShow := False;
   end;
-end;
+end; end;
 
 procedure TMainForm.DefaultPlayerClick(Sender: TObject);
 begin
@@ -720,7 +720,7 @@ procedure TMainForm.FormCreate(Sender: TObject);
 var
   I, Language: Integer;
   Settings: TSoundSettings;
-begin
+begin { Match trials (3): declaration/operand order, named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   try
     DeveloperItems.Visible := False;
     DeveloperSheet.TabVisible := False;
@@ -1194,7 +1194,7 @@ begin
 end;
 
 procedure TMainForm.About1Click(Sender: TObject);
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   with HSMEdit do if Activated then PauseFrameUpdateLoop;
   with TAboutDlg.Create(Application) do
   begin
@@ -1307,7 +1307,7 @@ end;
 
 procedure TMainForm.OpenHeroLibraryClick(Sender: TObject);
 var Dlg: THeroLibraryEditForm;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   with HSMEdit do if HSMEdit.Activated then PauseFrameUpdateLoop;
   Dlg := THeroLibraryEditForm.Create(Self);
   Dlg.ShowModal;
@@ -1343,7 +1343,7 @@ end;
 
 procedure TMainForm.DeleteHeroBtnClick(Sender: TObject);
 var S: string;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   if HSMEdit.Activated then HSMEdit.PauseFrameUpdateLoop;
   S := DeleteSelectedHeroesRStr;
   if MessageDlg(S, mtConfirmation, [mbYes, mbNo, mbCancel], 0) = mrYes then
@@ -1354,7 +1354,7 @@ end;
 
 procedure TMainForm.RemoveFromMapClick(Sender: TObject);
 var S: string;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   if HSMEdit.Activated then HSMEdit.PauseFrameUpdateLoop;
   S := RemoveSelectedHeroesRStr;
   if MessageDlg(S, mtConfirmation, [mbYes, mbNo, mbCancel], 0) = mrYes then
@@ -1364,7 +1364,7 @@ end;
 
 
 procedure TMainForm.DeleteItemBtnClick(Sender: TObject);
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   if HSMEdit.Activated then HSMEdit.PauseFrameUpdateLoop;
   if MessageDlg(DeleteSelectedItemsRStr, mtConfirmation, [mbYes, mbNo, mbCancel], 0) = mrYes then
   begin
@@ -1376,7 +1376,7 @@ end;
 
 procedure TMainForm.RemoveItemClick(Sender: TObject);
 var S: string;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   if HSMEdit.Activated then HSMEdit.PauseFrameUpdateLoop;
   S := RemoveSelectedItemsRStr;
   if MessageDlg(S, mtConfirmation, [mbYes, mbNo, mbCancel], 0) = mrYes then
@@ -1386,7 +1386,7 @@ end;
 
 
 procedure TMainForm.RemoveLeaderFromMapClick(Sender: TObject); var Leader: TLeader;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling, identity assignments; still differs. }
   Leader := LeaderSelectionGrid.GetSelectedLeader; if (Leader <> nil) and (Leader.Owner <> nil) then
       if MessageDlg(RemoveLeaderRStr, mtConfirmation, [mbYes, mbNo, mbCancel], 0) = mrYes then
         LeaderSelectionGrid.RemoveFromMap;
@@ -1395,7 +1395,7 @@ end;
 
 procedure TMainForm.OpenItemLibraryClick(Sender: TObject);
 var Dlg: TItemLibraryEditForm;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   with HSMEdit do if HSMEdit.Activated then PauseFrameUpdateLoop;
   Dlg := TItemLibraryEditForm.Create(Self);
   Dlg.ShowModal;
@@ -2205,7 +2205,7 @@ end;
 
 
 procedure TMainForm.GameSettingsClick(Sender: TObject);
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   if AoWHSMap <> nil then
   begin
     with HSMEdit do if Activated then PauseFrameUpdateLoop;
@@ -2263,7 +2263,7 @@ end;
 procedure TMainForm.MapTextEditorMIClick(Sender: TObject);
 var
   Dlg: TTextControlEditForm;
-begin
+begin { Match trials (3): named temporaries, with scopes, Pointer casts, zero-shift scheduling; still differs. }
   if AoWHSMap <> nil then
   begin
     with HSMEdit do if HSMEdit.Activated then PauseFrameUpdateLoop;

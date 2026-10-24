@@ -122,7 +122,7 @@ var
   Flags: TDDSCreationFlags;
   Dest, Source, OldPage: TSurfaceDesc;
   R: TRect;
-begin
+begin { Match trials (3): declaration/operand order, named temporaries, zero-shift scheduling; still differs. }
   if FPageSurface <> nil then
     if (FPageSurface.PixelFormatID <> FBackSurface.PixelFormatID) or
       (FPageSurface.Width <> FBackSurface.Width) or
