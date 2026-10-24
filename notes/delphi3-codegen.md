@@ -15,9 +15,11 @@
 | EDX, rather than EAX, zeroed for FS registration | Keep a call result in a local used inside try; storing it to Result first can free EAX (K21). Two Integer assignments inside try before their comparison also select EDX in K77's O+ probe. |
 | A hidden record-result destination | Check exact size: 1,2,4-byte records return in registers here; packed size 3 uses a buffer (K06). |
 | One array string clear versus several scalar clears | Keep allocated strings of the same type together; a distinct `type string` splits cleanup, an unused Integer gap does not (K09). |
+| ECX rather than EDX initializing a managed-string slot under O- | Declare an unused `Sender:TObject` parameter on the method (K09, r6_unused_live). |
 | An immediate OR rather than loading a set literal | Try `Include(S,bit)` instead of `S:=S+[bit]` (K26). |
 | Word set operations instead of generic 32-byte helpers | Type Mask and Empty constants as the same set type as the operand (K26). |
 | A full pointer load without string conversion or uniqueness | Use `Pointer(S)`; PChar and @S[1] can call LStrToPChar or UniqueString depending on storage/constness (K12). |
+| MOV 1 plus LEA for a string's first-character Move operand | Try statement-scoped `{$R+}` around Move; the const-source probe also removes LStrToPChar, without a bounds-check call (K12, r6_move). |
 | LoadResString, a literal pointer, or a pointer-cell load | Distinguish resourcestring, untyped string const, and typed string const (K13). |
 | `cmp al,1` instead of a nonzero test | Write `B=True`; it differs from `if B` for noncanonical Boolean bytes (K27). |
 | A method-pointer high-word test | `Assigned(E)` tests Code high word; `TMethod(E).Code<>nil` tests the whole pointer (K14). |
@@ -27,6 +29,7 @@
 | An extra class check before a field/getter | `as` emits AsClass; a hard class cast does not (K33). |
 | No duplicate AL reload after pure asm | Use a private Byte local if the asm already loads AL, rather than naming Result (K23). |
 | Different integer complement instructions | `xor $FFFFFFFF` emits XOR; `not` emits NOT (K24). |
+| No intermediate copy before shifting a retained priority value | Try `(Yhp+33) shl 13` instead of `(Yhp+33)*$2000`; the copy removal is O+ in this probe (K24, r6_shift_live). |
 | Correct enum sizes in the probe | Use CLI `-$Z-` or source `{$Z1}`; the numeric CLI `-$Z1` is not equivalent (K31). |
 | Direct raw-list loads rather than TList.Get | Use the backing List pointer only when the original did; it also removes checked getter behavior (K32). |
 | Different floating constant loads | Declare Scale as Single, Double or Extended to select dword, qword or xword loads; changing only the number can leave the instructions identical (K25). |
@@ -151,6 +154,19 @@ The earlier worker-report audit is in section 10, with inputs and output under
 under `D:\Build\tmp\cx_cg3`; section 12 audits the latest five, rx1..rx5,
 under `D:\Build\tmp\cx_cg4`. Earlier round counts above and below remain
 historical counts for their respective directories.
+
+The four forms in `D:\Build\tmp\cx_cg5\forms.txt` were audited on
+2026-10-24. The receiver zero shift is already covered by K43. Three new
+refinements are recorded under K09, K12 and K24 below, with motivating
+functions and paired snippets. Their inputs are
+`D:\Build\tmp\cx_cg5\inputs\r6_<name>.pas`; output directories are
+`cx_cg5\r6_<name>_opt` and `_noopt`, with full disassembly in sibling
+`.txt` files. Each input contains both forms, compiled together with
+`python -B tools/dcc_probe.py <input> --out <directory> -- <routines>`;
+`_noopt` additionally uses `--switch O-` before `--`. Other switches are
+the setup defaults. Nothing was executed. Simpler controls and their
+disassemblies are retained in the same directory; the earlier round counts
+remain historical.
 
 ## 1. Branches
 
@@ -1190,6 +1206,38 @@ B: `type TR=record S:ShortString; I:Integer end; procedure Run;`
 O+: A `Run: 0000: push ebp; 0001: mov ebp, esp; ...; 005f: pop ebp; 0060: ret`; B `Run: 0000: add esp, 0xfffffefc; 0006: mov word ptr [esp], 0x7801; ...; 0011: mov dword ptr [esp + 0x100], eax; 0018: add esp, 0x104`.
 O-: A `Run: 0003: add esp, -8; ...; 005e: pop ecx`; B `Run: 0003: add esp, 0xfffffefc; ...; 001d: mov esp, ebp`.
 
+**r6_unused_live: O+: same code; O-: different.**
+Report: `cx_cg5\forms.txt`, am4. Function:
+`TLeaderSetupWin.DefaultBtnClick` (AoW.exe). An unused method parameter
+can change managed-string initialization even though the body never reads it.
+TObj has F:string and virtual `function GetValue:string`, implemented as
+`Result:=F`. The paired declarations and complete bodies are:
+
+```pascal
+{ A } procedure TObj.A;
+begin F:=GetValue end;
+{ B } procedure TObj.B(Sender:TObject);
+begin F:=GetValue end;
+```
+
+The getter needs one hidden string temporary. O- initializes it before
+spilling the incoming parameters:
+
+```text
+A +03: add esp,-8                B +03: add esp,-0c
+  +06: xor edx,edx                 +06: xor ecx,ecx
+  +08: mov [ebp-8],edx             +08: mov [ebp-0c],ecx
+  +0b: mov [ebp-4],eax             +0b: mov [ebp-8],edx
+                                    +0e: mov [ebp-4],eax
+```
+
+The unused Sender still occupies EDX at initialization and gets an O- slot.
+This is the initialization scratch register, not the FS-registration zero
+register (EAX in both). O+ discards Sender, uses `push 0` for the temporary,
+and produces identical bodies. Controls `r6_unused`, `r6_unused_temps`
+and `r6_unused_four` likewise have identical optimized bodies; do not
+generalize the reported EDX-to-ECX effect to every managed prologue.
+
 ### K10. String temporary destinations and lifetimes
 
 Reason: [AoW review](equiv-review/AoW.exe.tsv), TSendEmailGameDlg.ShowSendDialog; [AoWEPACK review](equiv-review/AoWEPACK.dpl.tsv), path/managed-local leftovers.
@@ -1279,6 +1327,38 @@ B: `begin Result:=Pointer(S); end;`
 
 O+: A `Run: 0000: mov eax, image+0x3024; 0005: call System.UniqueString@40929B27`; B `Run: 0000: mov eax, dword ptr [image+0x3024]`.
 O-: A `Run: 0004: mov eax, image+0x3024; 0009: call System.UniqueString@40929B27`; B `Run: 0004: mov eax, dword ptr [image+0x3024]`.
+
+**r6_move: O+: different; O-: different.**
+Report: `cx_cg5\forms.txt`, am5. Functions:
+`CopyStreamToClipboard` and `PasteStreamFromClipboard` (ILToolsP).
+This extends the address/constness probes above with a statement-scoped
+range-check switch. CopyA/B take `const S:string; P:Pointer; L:Integer`;
+PasteA/B take `P:PChar; var S:string; L:Integer`:
+
+```pascal
+{ Copy A } Move(S[1],P^,L);
+{ Copy B } {$R+} Move(S[1],P^,L); {$R-}
+{ Paste A } SetLength(S,L); Move(P[4],S[1],L);
+{ Paste B } SetLength(S,L); {$R+} Move(P[4],S[1],L); {$R-}
+```
+
+Copy A preserves its arguments across `+0b call System.@LStrToPChar`.
+Copy B instead retains the literal index calculation:
+`+01 mov ebx,1; +06 lea eax,[eax+ebx-1]; +0a call System.Move`.
+It saves only EBX rather than EBX/ESI/EDI and has no string conversion.
+Paste A/B both call SetLength and UniqueString; immediately after the latter:
+
+```text
+A +19: mov edx,eax               B +19: mov edx,1
+  +1b: lea eax,[edi+4]              +1e: lea edx,[eax+edx-1]
+                                    +22: lea eax,[edi+4]
+```
+
+Neither B body has a runtime bounds check or range-error call. O- also
+removes Copy's LStrToPChar and emits MOV 1 plus LEA in both B routines.
+This observation concerns the first-character address passed to Move's
+untyped operand; it does not establish that ordinary checked string reads
+omit bounds checks. Paste's writable var string still needs UniqueString.
 
 ### K13. Resource strings and typed constant cells
 
@@ -1689,6 +1769,39 @@ B: `begin Result:=B+A; end;`
 
 O+: A `Run: 0000: add edx, eax; 0002: mov eax, edx`; B `Run: 0000: add eax, edx`.
 O-: A `Run: 000c: mov eax, dword ptr [ebp - 4]; 000f: add eax, dword ptr [ebp - 8]`; B `Run: 000c: mov eax, dword ptr [ebp - 8]; 000f: add eax, dword ptr [ebp - 4]`.
+
+**r6_shift_live: O+: different; O-: same code.**
+Report: `cx_cg5\forms.txt`, am1. Function: `TItemHS.GetShowPriority`
+(AoWEPACK). Unlike the simple doubling controls above, a larger power of
+two can change allocation even though multiplication already becomes SHL.
+TObj has F:Integer, P:TObj and virtual `Priority:Integer` returning F;
+Coords takes `F:Integer; var X,Y:Integer` and assigns X:=F+1, Y:=F+2.
+Both A/B methods return Integer and declare Xhp,Yhp:Integer; HS:TObj:
+
+```pascal
+Coords(F,Xhp,Yhp);
+{ A } Result:=$68000000+(Yhp+33)*$2000+(Xhp+16);
+{ B } Result:=$68000000+((Yhp+33) shl 13)+(Xhp+16);
+HS:=P;
+if (HS<>Self) and (HS<>nil) then
+  if Result<=HS.Priority then Result:=HS.Priority+1;
+```
+
+```text
+A +16: mov eax,[esp+4]           B +16: mov edi,[esp+4]
+  +1a: add eax,21                   +1a: add edi,21
+  +1d: mov edi,eax                  +1d: shl edi,0d
+  +1f: shl edi,0d                   +20: add edi,68000000
+  +22: add edi,68000000
+```
+
+Both retain Result in EDI across the Priority calls; the explicit shift
+removes the intermediate EAX-to-EDI copy, shortening the routine by two
+bytes. O- uses EAX for the computation and agrees completely. Controls
+`r6_shift` (plain Xhp/Yhp parameters) and `r6_shift_slots` (Coords outputs
+but no later calls) have identical O+ bodies. The live result context is
+material; replacing multiplication by a shift is not a universal copy
+removal, and Q+ overflow behavior was not tested.
 
 ### K25. Signed division, x87 helpers and precision barriers
 
@@ -2439,6 +2552,12 @@ it has affected scheduling.
 A receiver shifted by zero works the same way: `TProductionControlList(Integer(P) shl 0).GetPC(I)`
 loads the receiver into EAX before the index into EDX, where `P.GetPC(I)` loads the index first
 (report `mf1.md`; it made `TAutoProduceAIPA.Process` match).
+
+The am1 report in `cx_cg5\forms.txt` repeats this receiver form as
+`TImageSequenceList(Integer(Sequences) shl 0).GetImageSequence(...)` in
+`TCity.GetTopBorderImage`, `GetMiddleBorderImage` and `GetBottomBorderImage`.
+It is already covered here, including receiver-before-index scheduling;
+the literal index does not establish a new mechanism.
 
 ### K44. Casting through Pointer changes an argument's member load timing
 
