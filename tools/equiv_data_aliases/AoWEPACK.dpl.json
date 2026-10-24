@@ -587,7 +587,7 @@
     {
       "id": "batch2-proposal-14",
       "kind": "immutable-data",
-      "disposition": "pending",
+      "disposition": "accepted",
       "origin": "Fable alias-decisions-2.md; batch2-proposals.json batch2-proposal-14",
       "identity": {
         "class": "reviewed-layout",
@@ -598,11 +598,11 @@
       "extent": {
         "size": 8,
         "basis": "type-layout",
-        "evidence": "Delphi TResStringRec: 4-byte module-handle-cell address + 4-byte resource ID"
+        "evidence": "Delphi resourcestring record"
       },
       "review": {
         "reviewer": "Fable",
-        "reason": "BattleWonRStr resourcestring record: export-named on the original, but the record payload is a per-build resource ID (65370 vs 64761); content equality must be the resource string text looked up by ID in each module's resource table. Needs a resourcestring content source (module pointer + ID -> text) before acceptance; H5 would otherwise reject it, correctly"
+        "reason": "BattleWonRStr resourcestring record: export-named on the original, but the record payload is a per-build resource ID (65370 vs 64761); content equality must be the resource string text looked up by ID in each module's resource table. Needs a resourcestring content source (module pointer + ID -> text) before acceptance; H5 would otherwise reject it, correctly; condition discharged by own-module RT_STRING content source; raw IDs opaque, startup module-handle identity checked."
       },
       "source_evidence": [
         {
@@ -646,7 +646,9 @@
         ],
         "content_sha256": "6db70f83ef4b73e5a52fbcfc8ef16bc4a7181df9a68329373067b9db90de286b",
         "access_address": "0x55706c74",
-        "access_offset": 0
+        "access_offset": 0,
+        "scope": "AoWE",
+        "symbol": "BattleWonRStr"
       },
       "compiled": {
         "address": "0x494d2c",
@@ -673,6 +675,11 @@
         "proposal_rationale": "MATCH/CFG operand proposal only; not identity evidence",
         "functions": [
           "TCombat.GetCombatResultText"
+        ],
+        "scope": "AoWE",
+        "symbol": "BattleWonRStr",
+        "resourcestring_text": [
+          "42006100740074006c006500200057006f006e00"
         ]
       }
     },

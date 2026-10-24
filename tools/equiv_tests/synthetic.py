@@ -6,6 +6,9 @@ from .support import Case, build, call, fixture, p32
 
 
 def cases():
+    from .test_resources import fixture as resource_fixture
+    for name,kwargs,expected in [('resourcestring_equal_ids_differ',{},'prove:H1,H3,H5'),('resourcestring_text_differs',{'value':'other'},'reject'),('resourcestring_unresolved',{'missing':True},'reject')]:
+        yield Case(name,lambda kwargs=kwargs:(lambda c,f:c.check(f))(*resource_fixture(**kwargs)),expected,'Resourcestring IDs have meaning only through each module own RT_STRING table.')
     from .test_event_ownership import cases as event_ownership_cases
     yield from event_ownership_cases()
     from .test_public_events import published_private_writes,ordered_pointer_cell,temporary_below_prologue

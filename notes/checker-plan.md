@@ -138,6 +138,8 @@ Result (Fable approved after two revisions): 12,875 MATCH, 41 conditional PROVEN
 
 Follow-ups (accepted conservatism): (1) the eleven need step 7b must-write coverage for callees reached through virtual and IAT calls; (2) pushed words lack the non-derivation fallback that register words have (TDrawImagePanel.DrawLibraryImage); (3) garbage masking still uses the prologue extent, so below-extent temporaries are compared publicly at boundaries. Cosmetic: the H2 witness names the instruction before the call.
 
+Resourcestring content source (tools/equiv_resources.py, Fable approved): a record (module handle, resource ID) is equal when each side's own RT_STRING text for its own ID is equal; IDs stay opaque, the module field is pointer identity with the HInstance cells bound, and the record may only flow into System.LoadResString. Pairs need an independent binding plus equal text, or exactly one record with that text on each side: 721 paired, 0 unequal, 428 unpaired (392 without an equal-text partner, 37 ambiguous) and so UNSUPPORTED. No verdict changed. Follow-ups: no game function proves through this source yet, so recognizing the original's LoadResString thunk is fixture-tested only; Exception.CreateRes-style wrappers fail closed.
+
 ### Step 5b - Bounded synchronous fault predicates
 
 Design box: one session (second of step 5's two); at most 350 handwritten code lines including tests.

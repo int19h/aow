@@ -57,7 +57,7 @@ class Relation:
             if r['status']=='validating':r.update(status='failed',reason=reason)
         raise self.e.Unsupported('H5 ImageRelation at 0x%x: %s' % (self.pc,reason))
     def metadata(self,row):
-        return row[4].startswith(('Delphi VMT','Delphi class','class ','named typeinfo','primitive typeinfo'))
+        return row[4].startswith(('Delphi VMT','Delphi class','class ','named typeinfo','primitive typeinfo','Delphi resourcestring'))
     def class_data(self,side,address):
         return self.d.names[side].get(address,'').startswith(('vmt:','vmtref:')) or any(self.metadata(r) and r[side]<=address<r[side]+r[2] for r in self.rows)
     def code(self, side, address):
@@ -182,6 +182,12 @@ class Relation:
             for vmt,owner in sorted(self.d.vmts[0].items()):
                 if owner==name:self.root(0,vmt-64,False)
         values = {}
+        if evidence == 'Delphi resourcestring record':
+            from equiv_resources import validate,write_witness
+            values.update(validate(self,row))
+            for side,start in enumerate((a,b)):
+                witness=write_witness(self.d,side,start)
+                if witness:self.fail('resourcestring record written at 0x%x %s (side %d)' % (*witness,side))
         self.pointer_targets[row] = set()
         for k in sorted(offsets[0]):
             p,q = (int.from_bytes(v[k:k+4],'little') for v in data)
@@ -199,6 +205,8 @@ class Relation:
                     targets.add((original,original,0,'code-address','code identity does not authorize byte reach'))
                 elif p in self.d.import_bytes[0] or q in self.d.import_bytes[1]:
                     pass  # Named loader cell versus local class-reference cell; no disk IAT content.
+                elif evidence == 'Delphi resourcestring record':
+                    pass  # Mutable HInstance pointee: canonical identity, never startup value.
                 else:
                     child = self.root(side,target,False)
                     if child is not None:targets.add(child)
@@ -283,6 +291,16 @@ class Relation:
             passed = {r for r in passed if r[3] != 'mutable-data'}
             for row in sorted(passed):
                 if row[3] != 'code-address':self.root(0,row[0])
+            resources = {r for r in passed if r[4]=='Delphi resourcestring record'}
+            if resources and ins.mnemonic=='call':
+                target=ins.operands[0].imm if ins.operands[0].type==e.X.X86_OP_IMM else None
+                name=self.d.names[machine.side].get(target,'')
+                if machine.side==1 and target is not None:
+                    name=next((n for n,p in self.d.map_addresses.items() if p==target and n=='LoadResString'),name)
+                if name not in ('System.LoadResString','LoadResString'):
+                    self.fail('resourcestring descriptor passed to non-LoadResString callee at '+hex(ins.address))
+                if not e.prove([e.z3.Implies(getattr(state,'path',e.z3.BoolVal(True)),e.z3.Or(*[state.regs['eax']==e.bv(r[0]) for r in sorted(resources)]))]):
+                    self.fail('resourcestring descriptor argument is not a validated record base at '+hex(ins.address))
             passed = {r for r in passed if not self.metadata(r)}
             if passed:
                 from equiv_summaries import write_body

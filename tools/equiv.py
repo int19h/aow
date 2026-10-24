@@ -473,6 +473,8 @@ class Addresses:
                 if len(aa) == len(bb) == 1:
                     self.bind(aa[0], bb[0])
         self.install_content()
+        from equiv_resources import install as install_resources
+        install_resources(self)
         for name,size in sorted(getattr(inp,'map_sizes',{}).items()):
             b = self.map_addresses.get(name); a = self.reverse.get(b)
             if a is not None and 0 < size <= 65536 and self.readonly(1,b,size):

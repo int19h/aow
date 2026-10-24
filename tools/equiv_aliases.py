@@ -55,7 +55,14 @@ def resolve(entry,inp,addresses):
             cell['address']=hex(next(iter(candidates)))
     elif entry['kind'] in ('immutable-data','mutable-data','bss'):
         original_hash(inp.old,old['address'],size,old['content_sha256'])
-        if 'map_symbol' in new:
+        if 'resourcestring_text' in new:
+            values={a for a,r in addresses.resourcestrings[1].items() if r['text'] is not None
+                    and [v.hex() for _,v in r['text']]==new['resourcestring_text']}
+            if len(values)!=1:raise ValueError('unresolved/ambiguous resourcestring text recipe')
+            address=next(iter(values))
+            if addresses.forward.get(int(old['address'],16))!=address:
+                raise ValueError('resourcestring lacks checked content identity')
+        elif 'map_symbol' in new:
             address=addresses.map_addresses.get(new['map_symbol'])
             if address is None: raise ValueError('unresolved/ambiguous immutable MAP symbol')
         else:
