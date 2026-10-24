@@ -316,7 +316,7 @@ in address order); a stub override of a method that became a function must retur
 global is `ADDR`. A MATCH therefore proves the instruction shapes, not the references. A function
 that calls the wrong routine, reads the wrong global or loads the wrong resource string still
 matches. This happened: a near-miss rewrite of `ShowProductionInfo` matched while showing the wrong
-text (reverted in 08e8d42). The first run of the address check found 337 suspect references over
+text (reverted in 3cac2e4). The first run of the address check found 337 suspect references over
 the game modules; in a sample of 20, 15 were real (`TLeader` for `THero`, swapped VMTs,
 "Holy Woods" for "Holy Ground", `CompareStr` for `CompareText`).
 
@@ -329,7 +329,7 @@ Two tools close the gap. Both take the arguments of `tools/match.py`:
   (identical constant tables placed twice, same-named `Register` routines in different units).
 - `tools/equiv.py` proves a differing function equivalent to the original with z3: cut points at
   block entries, Houdini invariants, calls as uninterpreted functions of their target, arguments
-  and memory. Anything it does not model fails closed. Since 3bf63da it relates the two private
+  and memory. Anything it does not model fails closed. Since 7b3f9b7 it relates the two private
   frames by a slot mapping, accepts different saved-register sets and models constant `rep movs`
   and `rep stos`; it proves 125 of 491 differing functions. Its mutation test (4,093
   single-instruction changes of matching functions, including frame-offset, dropped-restore and
@@ -344,7 +344,7 @@ address check stays clean for it.
 
 The original's Assert filenames show AoWE's original layout: one include file per topic under
 `D:\AoWDev\AoWE\inc\` (`AoWHSMap.PAS`, `Ability.PAS`, `Combat.pas`, `CombatPredictor.pas`,
-`UnitHS.PAS`, `AoWAb.PAS`, `AIGroup.pas`, `MoveT.PAS`, ...). Since 13be695 our AoWE has the same 19 include files in address order
+`UnitHS.PAS`, `AoWAb.PAS`, `AIGroup.pas`, `MoveT.PAS`, ...). Since c6464b5 our AoWE has the same 19 include files in address order
 (Combat.pas, Combat2.pas, CombatPredictor.pas, Diplomacy.pas, AI.pas, AIGroup.pas, MoveT.PAS,
 Ability.PAS, Player.PAS, PlayerC.PAS, Structur.PAS, AoWAb.PAS, AoWHSMap.PAS, Spells.PAS, Unit.PAS,
 UnitHS.PAS, UnitRes.PAS, Hero.PAS, Army.PAS), and all 52 Asserts pass the original file name. The
