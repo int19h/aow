@@ -1172,7 +1172,7 @@ begin
     inherited Up(Button, Shift, X, Y);
 end;
 
-procedure TAoWHSMapMouse.Move(Shift: Classes.TShiftState; X, Y: Integer);
+procedure TAoWHSMapMouse.Move(Shift: Classes.TShiftState; X, Y: Integer); { Tried Self identity, Pointer identity, typed with; parameter spill or local lifetime/receiver staging; still differs. }
 var
   CombatMap: TAbstractAoWCombatMap;
 begin
@@ -1181,7 +1181,7 @@ begin
   else inherited Move(Shift, X, Y);
 end;
 
-procedure TAoWHSMapMouse.DblClick; { Near miss: Three variants retain different global-address caching. }
+procedure TAoWHSMapMouse.DblClick; { Tried Self identity, Pointer identity, typed with; global pointer-cell view; still differs. }
 var
   CombatMap: TAbstractAoWCombatMap;
   SelectStructure: Boolean;
@@ -1644,7 +1644,7 @@ begin
   end;
 end;
 
-function TAoWHSMap.ValidateTerrainObservation(Player, X, Y, L: Shortint; Radius: Integer): Boolean; { Near miss: Three variants retain different parameter/result registers. }
+function TAoWHSMap.ValidateTerrainObservation(Player, X, Y, L: Shortint; Radius: Integer): Boolean; { Tried Self identity, Pointer identity, typed with; named result and addressable Self/X; still differs. }
 var
   MapLevel: TMapLevel;
   Field: TAoWMapField;
@@ -1672,7 +1672,7 @@ begin
   else Result := False;
 end;
 
-function TAoWHSMap.ValidateObservation(Player, X, Y, L: Shortint; Radius: Integer): Boolean; { Near miss: Three variants retain different parameter/result registers. }
+function TAoWHSMap.ValidateObservation(Player, X, Y, L: Shortint; Radius: Integer): Boolean; { Tried Self identity, Pointer identity, typed with; named result and addressable Self/X; still differs. }
 var
   MapLevel: TMapLevel;
   Field: TAoWMapField;
@@ -1901,7 +1901,7 @@ begin
   FExitEvents.TriggerNotifyEvents(Self);
 end;
 
-procedure TAoWHSMap.ExitGame(Mode: TExitGameMode; Done: TExitGameCallBack);
+procedure TAoWHSMap.ExitGame(Mode: TExitGameMode; Done: TExitGameCallBack); { Tried Self identity, Pointer identity, typed with; typed Self exit call; still differs. }
 var
   PlayerControl: TPlayerControl;
 begin
@@ -2085,7 +2085,7 @@ end;
 procedure TAoWHSMap.VerifyAddOnPacks;
 begin end;
 
-function TAoWHSMap.ValidateMap(Messages: TStrings): Boolean;
+function TAoWHSMap.ValidateMap(Messages: TStrings): Boolean; { Tried Self identity, Pointer identity, typed with; base-class casts on Self arguments; still differs. }
 var
   Msg: TEMsg;
 begin
@@ -2287,7 +2287,7 @@ begin
 end;
 
 
-procedure TAoWHSMap.InitializeNewMap; { Original uses a 32-bit map-level loop counter. }
+procedure TAoWHSMap.InitializeNewMap; { Original uses a 32-bit map-level loop counter. } { Tried reuse loop variable and declaration order; one loop index with direct typed controls; still differs. }
 var
   L: Integer;
   I: Integer;
@@ -2499,7 +2499,7 @@ begin
 end;
 
 
-procedure TAoWHSMap.ResetSeatedPlayerView; { Read the fallback army once, as in the original. }
+procedure TAoWHSMap.ResetSeatedPlayerView; { Read the fallback army once, as in the original. } { Tried Self identity, Pointer identity, typed with; scalar coordinates and typed player identity; still differs. }
 var
   Player: TPlayer; Army: TArmy;
   XYL: Integer;
@@ -2794,7 +2794,7 @@ begin
 end;
 
 
-procedure TAoWHSMap.UpdateVisibility;
+procedure TAoWHSMap.UpdateVisibility; { Tried Self identity, Pointer identity, typed with; explicit global with receiver; still differs. }
 var
   Msg: TEMsg;
 begin

@@ -30,6 +30,7 @@ Unresolved addresses, instruction forms and control flow fail closed.
 import collections
 import bisect
 import dataclasses
+import hashlib
 import json
 import pathlib
 import random
@@ -46,6 +47,7 @@ import equiv_image as image_relation
 import equiv_events as public_events
 import equiv_faults as faults
 import equiv_context as context
+import equiv_emit as certificates
 from equiv_ownership import Ownership, outside, guarded, premise as ownership_premise, clone_ownership
 
 try:
@@ -227,8 +229,10 @@ class Function:
 class Inputs:
     """Keep match.py's function selection, truncation and normalization intact."""
     def __init__(self, argv):
+        self.replay_argv=list(argv)
         argv = list(argv)
         self.cache_dir = None; self.cache_files = set()
+        self.certificate_dir = None
         aliases = {}
         alias_dirs = set()
         units = []
@@ -242,6 +246,8 @@ class Inputs:
                 continue
             elif opt == '--cache':
                 self.cache_dir = pathlib.Path(argv.pop(0))
+            elif opt == '--certificate-dir':
+                self.certificate_dir = pathlib.Path(argv.pop(0))
             elif opt == '--mutate':
                 self.mutate = int(argv.pop(0))
                 if self.mutate < 0:
@@ -347,6 +353,7 @@ class Inputs:
                 module_pairs.add((name, on))
         self.module_matches = []  # MATCH positions are not identity evidence.
         self.addresses = Addresses(self)
+        self.replay_inputs={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in self.cache_files}
 
 
 class Addresses:
@@ -2260,6 +2267,7 @@ def verify_frames(checker, a, b, finite=False):
                 next_guard = simp(z3.And(guard, branch))
                 if not z3.is_false(next_guard):
                     pending.append((target, frames.clone(states), next_guard, seen | {i}))
+        certificates.capture(checker,'frames-finite',(a,b),graphs=graphs,pairing=pairing,local=local)
         return 'PROVEN', ''
     samples, todo = {}, [(0, frames.clone(initial))]
     while todo:
@@ -2325,6 +2333,7 @@ def verify_frames(checker, a, b, finite=False):
             goals += [z3.Implies(guard, frames.fact(states, f)) for f in sorted(candidates[target],key=repr)]
         if not prove([z3.Implies(premise, conjunction(goals))]):
             raise NotProven('private frame relation does not prove the transition')
+    certificates.capture(checker,'frames',(a,b),graphs=graphs,pairing=pairing,local=local,candidates=candidates)
     return 'PROVEN', ''
 
 
@@ -2521,8 +2530,17 @@ class Checker:
         self.cache_hit=None
         def run():
             if matched:return 'MATCH',''
-            with verdict_cache.proof_context(self):return self._check(fn,mutated)
-        return self.cache.run(fn,run,matched) if self.cache is not None and mutated is None else run()
+            with verdict_cache.proof_context(self):
+                result=self._check(fn,mutated)
+                if result[0].startswith('PROVEN'):
+                    try:certificates.finish(self,fn,result[0])
+                    except (ValueError,AssertionError,Unsupported,NotProven,limits.SafetyCap) as error:
+                        self.last_contracts['replay']=dict(validated=False,reason=str(error))
+                        return 'NOT PROVEN','certificate replay at '+hex(fn.ova)+': '+str(error)
+                return result
+        result=self.cache.run(fn,run,matched) if self.cache is not None and mutated is None else run()
+        if result[0].startswith('PROVEN'):certificates.save(self,fn)
+        return result
 
     def _check(self, fn, mutated=None):
         self.image_relation = None
@@ -2606,6 +2624,7 @@ class Checker:
         return result
 
     def check_raw(self, fn, mutated=None):
+        self._certificate_recipes=[];self._certificate_local={}
         addresses = self.inp.addresses
         saved = addresses.forward, addresses.reverse, addresses.conflicts, addresses.provenance, [dict(v) for v in addresses.immutable_data]
         addresses.consulted.clear()
@@ -2648,6 +2667,7 @@ class Checker:
                 if a[0].address <= x < max(i.address+i.size for i in a) and b[0].address <= y < fn.nva+fn.nsize:
                     if not addresses.bind(x, y, 'local-cfg'):
                         raise NotProven('local CFG binding conflicts')
+            self._certificate_local=dict(local)
             self.local_cfg_only = any(addresses.provenance.get((v,addresses.forward.get(v)) if side == 0
                                       else (addresses.reverse.get(v),v)) == 'local-cfg'
                                       for side,code in enumerate((a,b)) for ins in code
@@ -2892,6 +2912,7 @@ class Checker:
             if not prove(guarded(states,[z3.Implies(premise, conjunction(goals))])):
                 garbage.failed(tails)
                 raise NotProven('live-location relation does not prove the transition')
+        certificates.capture(self,'relation',(a,b),graphs=graphs,pairing=pairing,local=local,candidates=candidates,entry=entry,entry_candidates=entry_candidates,entry_flags=entry_flags)
         return 'PROVEN', ''
 
     def verify_fast(self, a, b, entry=(0, 0), entry_candidates=DIAG, entry_flags=FLAGS):
@@ -3029,6 +3050,7 @@ class Checker:
                 failure=NotProven('symbolic transition differs')
                 failure.diagnostic=(states,memories,(a[tails[0]].address,b[tails[1]].address),relations)
                 raise failure
+        certificates.capture(self,'fast',(a,b),graphs=graphs,pairing=pairing,local=local,candidates=candidates,flag_candidates=flag_candidates,entry=entry,entry_candidates=entry_candidates,entry_flags=entry_flags)
         return 'PROVEN', ''
 
     def acyclic(self, a, b):
@@ -3156,6 +3178,7 @@ class Checker:
                 choices = [z3.And(q[0], same(p, q)) for q in target]
                 if not prove(guarded([p[1]]+[q[1] for q in target],[z3.Implies(p[0], z3.Or(choices))])):
                     raise NotProven('finite-path traces differ')
+        certificates.capture(self,'acyclic',(a,b))
         return 'PROVEN', ''
 
 
@@ -3410,10 +3433,9 @@ def main(argv=None):
             insns, index, kind = mutation
             status, reason = checker.check(fn, insns)
             tested += 1
-            # A mutant is equivalent only if the same verifier proves it; the
-            # reason includes the edit so dead/ineffective changes are auditable.
-            if status == 'PROVEN':
-                reason = mutation_explanation(b, index, kind)
+            # Survivors need Fable's separate adjudication, even after replay.
+            if status.startswith('PROVEN'):
+                reason = 'UNRESOLVED survivor for Fable: '+mutation_explanation(b,index,kind)
             print('%s MUTANT %s %s [%s at %d]' % (fn.name, status, reason, kind, index), flush=True)
     n = sum(counts.values())
     print('%d differ: %d proven, %d not proven, %d unsupported' % (n, counts['PROVEN'], counts['NOT PROVEN'], counts['UNSUPPORTED']))

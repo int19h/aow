@@ -263,7 +263,7 @@ function TAbstractUnit.GetUnitMoraleValue(Player, IndependentRelation: Shortint)
 var
   Race: Shortint;
   Xhx, Yhx, Lhx: Shortint;
-  TerrainType: TAoWTerrainType;
+  TerrainType: TAoWTerrainType; RawTerrain: Byte; RaceIndex: Integer;
   Morale: Integer;
 begin
   if (Player >= 0) and (GetUnitType <> utMachine) and
@@ -276,9 +276,9 @@ begin
       GetLocation(Xhx, Yhx, Lhx);
       if Xhx <> -1 then
       begin
-        TerrainType := TAoWTerrainType(AoWHSMap.MapContainer.GetField(Xhx, Yhx, Lhx).TerrainType);
-        if Ord(TerrainType) in RaceTerrain[Race].Penalty then Dec(Morale, 10); { Read the original shared table, not the private copy. }
-        if Ord(TerrainType) in RaceTerrain[Race].Bonus then Inc(Morale, 10);
+        RawTerrain := AoWHSMap.MapContainer.GetField(Xhx, Yhx, Lhx).TerrainType; RaceIndex := Race; TerrainType := TAoWTerrainType(RawTerrain);
+        if Ord(TerrainType) in RaceTerrain[RaceIndex].Penalty then Dec(Morale, 10); { Read the original shared table, not the private copy. }
+        if Ord(TerrainType) in RaceTerrain[RaceIndex].Bonus then Inc(Morale, 10);
       end;
     end;
     if GetAbilityEnabled(53) then Dec(Morale, 40);
@@ -624,7 +624,7 @@ begin
 end;
 function P2VMTAbility(List: TAbilityTypeList; Index: Integer): TP2AbilityCalls; assembler;
 asm JMP TAbilityTypeList.GetAbility end;
-procedure TAbstractUnit.UpdateOffensiveStrength; const AssertFile: string = 'D:\AoWDev\AoWE\inc\Unit.PAS'; { Preserve the original diagnostic; asm references both strings so cleanup stays paired. }
+procedure TAbstractUnit.UpdateOffensiveStrength; const AssertFile: string = 'D:\AoWDev\AoWE\inc\Unit.PAS'; { Preserve the original diagnostic; asm references both strings so cleanup stays paired. } { Tried managed local declaration order; hidden managed expression instead of explicit names; still differs. }
 var
   DamageType: TDamageType;
   Ability: TP2AbilityCalls;
@@ -1491,7 +1491,7 @@ begin
   if Data <> nil then
     if Data.FDuration <= 0 then Killed;
 end;
-procedure TAbstractUnit.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); { Near miss: Self/Msg registers differ after three variants. }
+procedure TAbstractUnit.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); { Tried Self identity, Pointer identity, typed with; base sender cast; still differs. }
 begin
   inherited MsgProc(Msg,Sender);
   if Msg.MsgID = $20020002 then
@@ -1516,7 +1516,7 @@ function P2HitPercent(HitPoints, Hits: Shortint): Byte; assembler;
 asm JMP HitPointsToHitPcnt end;
 procedure P2ShowHitPercent(X,Y: Integer; const SD: TSurfaceDesc; Percent: Byte); assembler;
 asm POP EBP; JMP ShowHitPcnt end;
-function TAbstractUnit.ShowEx(X,Y: Integer; const SD: TSurfaceDesc; const Info: TP2UnitShowInfo): Integer; { Near miss: Self and sequence registers differ after three variants. }
+function TAbstractUnit.ShowEx(X,Y: Integer; const SD: TSurfaceDesc; const Info: TP2UnitShowInfo): Integer; { Tried Self identity, Pointer identity, typed with; still differs. }
 var
   Sequence: TImageSequence;
   Frame, TotalFrames, ResourceIndex: Integer;
@@ -2129,7 +2129,7 @@ begin
       UpdateDefaultAbilities(FUnitResource.FAbilities[Rank]);
   end;
 end;
-procedure TUnit.ReadWrite(Stream: Engine.TEStorageStream); { Near miss: resource register allocation after three variants. }
+procedure TUnit.ReadWrite(Stream: Engine.TEStorageStream); { Tried untyped resource result; store lookup in field before named local; still differs. }
 var
   ResourceIndex: Smallint;
   Resource: TUnitResource;

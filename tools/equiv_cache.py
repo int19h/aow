@@ -1,5 +1,5 @@
 """Dependency-validated verdict replay. Cache contents are not proof certificates."""
-import hashlib,json,os,tempfile,sys,gc
+import hashlib,json,os,tempfile,sys,gc,time
 from contextlib import contextmanager
 from pathlib import Path
 from threading import local
@@ -34,6 +34,7 @@ def handles(old,new):
     if r is not None:r.handles=[old,new]
 
 def prepare(checker):
+    checker.last_certificate=None;checker.replay_seconds=0.0
     """Each proof starts from the same analysis state, regardless of replay history."""
     for obj,names in ((checker.inp,('call_summaries',)),(checker,('_cleanup_cache','_cleanup_images','_cleanup_unreadable','_private_call_cache'))):
         for name in names:
@@ -121,7 +122,19 @@ class Cache:
             assert all(handler_name(d,s,t)==v for s,t,v in p['handlers'])
             assert p['handles'] is None or p['handles']==[self.e.match.find_import_thunk(c.inp.old,'System.@HandleOnException'),d.map_addresses.get('@HandleOnException')]
             c.last_contracts=p['explain'];d.consulted={tuple(v) for v in p['consulted']};d.unresolved={tuple(v) for v in p['unresolved']}
+            from equiv_certificate import refresh,check_claims
+            c.last_certificate=refresh(p['certificate'],self.image) if p.get('certificate') else None
+            if p['result'][0].startswith('PROVEN'):
+                from equiv_replay import validate
+                assert c.last_certificate is not None
+                start=time.monotonic()
+                try:validate(c.last_certificate,c.inp);check_claims(p['result'][0],c.last_certificate)
+                finally:c.replay_seconds=time.monotonic()-start
+                assert p['explain']['replay']['hypotheses']==c.last_certificate['hypotheses']
             c.cache_hit=entry['key'];return tuple(p['result'])
+        except self.e.limits.SafetyCap as error:
+            c.last_certificate=None;c.last_contracts['replay']=dict(validated=False,reason=str(error))
+            return 'NOT PROVEN',str(error)+' during certificate replay at '+hex(fn.ova)
         except (OSError,ValueError,KeyError,TypeError,AssertionError,self.e.match.pefile.PEFormatError):pass
         self.reads={};self.imports={};self.handlers={};self.handles=None;saved=[];ACTIVE.record=self
         try:
@@ -147,7 +160,7 @@ class Cache:
                     if any(a<=x<a+width for x,y,_ in d.consulted for x in ([x] if s==0 else [y])):note(im,a,width)
             p=dict(base=base,reads=[[r,a,n,h] for (r,a,n),h in sorted(self.reads.items())],nodes=nodes,
                    identities=identities,imports=list(self.imports.items()),handlers=[[s,t,v] for (s,t),v in self.handlers.items()],handles=self.handles,result=result,explain=c.last_contracts,
-                   consulted=sorted(d.consulted),unresolved=sorted(d.unresolved))
+                   consulted=sorted(d.consulted),unresolved=sorted(d.unresolved),certificate=c.last_certificate)
             entry=dict(schema=self.SCHEMA,key=digest(packed(p).encode()),payload=p)
             self.save(path,entry)
             return result

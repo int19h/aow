@@ -702,12 +702,12 @@ begin
   end;
 end;
 
-procedure TArmy.UpdateUpkeep; { Near miss: comparison operand order differs after three variants. }
+procedure TArmy.UpdateUpkeep;
 var Upkeep, Previous: Byte; I, Delta: Integer;
 begin
   Upkeep := 0;
   for I := 0 to GetCount - 1 do Inc(Upkeep, TAbstractUnit(FChildren.List^[I]).GetUpkeep);
-  Previous := FUpkeep; if (Upkeep <> Previous) and (asActivated in FStatus) then begin Delta := Integer(Upkeep) - Integer(Previous);
+  Previous := FUpkeep; if (Previous <> Upkeep) and (asActivated in FStatus) then begin Delta := Integer(Upkeep) - Integer(Previous);
     AoWHSMap.FPlayers.GetPlayers(FPlayer).SetArmyUpkeep(AoWHSMap.FPlayers.GetPlayers(FPlayer).FArmyUpkeep +
       Delta); end;
   FUpkeep := Upkeep;
@@ -1916,7 +1916,7 @@ begin
     FMode := FMode - [amMoving];
 end;
 
-procedure TArmy.MakeIndependent(Selection: Byte; var Armies: TArmyHSList); { Near miss: Selection spill and loop-counter allocation differ after three variants. }
+procedure TArmy.MakeIndependent(Selection: Byte; var Armies: TArmyHSList); { Tried { Tried Self identity, Pointer identity, typed with; differs.  }
 var X, Y, L: Shortint; GoodArmy, EvilArmy: TArmy; Races, Units: TList;
   I, J, Race: Integer; AUnit: TAbstractUnit; Alignment: TAlignment; ArmyHS: TArmyHS;
   function PlaceIndependentArmy(AX, AY, AL: Shortint; Army: TArmy): TArmyHS;
@@ -2088,7 +2088,7 @@ begin
   else FIndependentRelation := -1;
 end;
 
-procedure TArmy.Desert(Selection: Byte); { Near miss: Three variants retain different selection-mask/register allocation. }
+procedure TArmy.Desert(Selection: Byte); { Tried separate later loop index lifetime; differs. }
 var Units: TList; Player: Shortint; Armies: TArmyHSList; Count, I, Bit: Integer;
   Log: TArmyInfoEventLog; AUnit: TAbstractUnit;
 begin
@@ -3184,7 +3184,7 @@ begin
   FArmy.EndUpdate;
 end;
 
-function TArmyHS.PlaceHX(Map: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean; { Near miss: field receiver spills or register choices after three variants. }
+function TArmyHS.PlaceHX(Map: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean; { Tried zero-shift field receiver; differs. }
 var Field: TMapField; Army: TEObject;
 begin
   if FArmy.CanPlace(Xhx, Yhx, Lhx) then
@@ -3262,7 +3262,7 @@ begin
   end;
 end;
 
-procedure TArmyHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); const AssertFile: string = 'D:\AoWDev\AoWE\inc\Army.PAS'; AssertMessage: string = 'Invalid Unit Index'; { Preserve the original assertion diagnostic. }
+procedure TArmyHS.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); const AssertFile: string = 'D:\AoWDev\AoWE\inc\Army.PAS'; AssertMessage: string = 'Invalid Unit Index'; { Preserve the original assertion diagnostic. } { Tried static assertion strings and sequence identity; differs. }
 var Sequence: TImageSequence; Frame, Xhp, Yhp, DX, DY: Integer; Part: Real;
 begin
   if (WordRec(LongRec(TAoWMapField(Owner).FFieldFlags).Hi).Lo <> 0) or (not AoWHSMap.FFogEnabled) then
@@ -3418,7 +3418,7 @@ begin
   if Msg.MsgID = $20020005 then UpdateFlagID;
 end;
 
-procedure TArmyHS.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); { Near miss: message ID reloads after three variants. }
+procedure TArmyHS.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); { Tried nested Boolean conditions in range checks; differs. }
 begin
   inherited MapFieldMsgProc(Msg);
   if Msg.HN = 0 then
@@ -3792,7 +3792,7 @@ begin
   end;
 end;
 
-procedure TSelectedArmy.SelectPath(X, Y, L: Shortint); { Near miss: path pointer caching after three variants. }
+procedure TSelectedArmy.SelectPath(X, Y, L: Shortint); { Tried typed settings receiver at each path access; differs. }
 var
   Valid: Boolean;
   I: Integer;
@@ -4143,7 +4143,7 @@ begin
   end;
 end;
 
-procedure TSelectedArmy.Center;
+procedure TSelectedArmy.Center; { Tried explicit global receiver; differs. }
 begin
   if GetArmyHS <> nil then
     with AoWHSMap do
@@ -4159,7 +4159,7 @@ begin
   end;
 end;
 
-procedure TSelectedArmy.ToggleGuard; { Near miss: guard field fixed; set/register form differs after three variants. }
+procedure TSelectedArmy.ToggleGuard; { Tried typed Self with block; differs. }
 var ArmyHS: TArmyHS; Army: TArmy;
 begin
   ArmyHS := GetArmyHS;
@@ -4378,7 +4378,7 @@ begin
   end;
 end;
 
-procedure TItem.UpdateFromLibrary;
+procedure TItem.UpdateFromLibrary; { Tried parameter spill or local lifetime/receiver staging; differs. }
 var ID: Integer; Item: TItem;
 begin
   if FLibraryID <> -1 then
@@ -5237,11 +5237,11 @@ begin
   Result := 26;
 end;
 
-function TItemHS.GetShowPriority: Integer; { Near miss: arithmetic register allocation after three variants. }
+function TItemHS.GetShowPriority: Integer;
 var Xhp, Yhp: Integer; HS: THexagonSprite;
 begin
   HXtoHP(TMapField(Owner).Xhx, TMapField(Owner).Yhx, Xhp, Yhp);
-  Result := $68000000 + (Yhp + 33) * $2000 + (Xhp + 16);
+  Result := $68000000 + ((Yhp + 33) shl 13) + (Xhp + 16);
   HS := TMapField(Owner).GetMaxLevelNoneTransparentHS;
   if (HS <> Self) and (HS <> nil) then
     if Result <= HS.GetShowPriority then Result := HS.GetShowPriority + 1;
@@ -5355,7 +5355,7 @@ begin
   Result := $6C000000;
 end;
 procedure P2RegisterRangedGroup2(Control: TAbilityControl); begin Control.RegisterAbility(P2CreateBreath(88, TranslateRStr(P2RegisterBlackBreathRStr), dtDeath, -1)); Control.RegisterAbility(P2CreateBreath(89, TranslateRStr(P2RegisterDivineBreathRStr), dtHoly, -1)); Control.RegisterAbility(P2CreateBreath(90, TranslateRStr(P2RegisterGasBreathRStr), dtPoison, -1)); Control.RegisterAbility(TFlameThrowingAbility.Create(nil)); Control.RegisterAbility(P2CreateRangedAttack(57, TranslateRStr(P2RegisterShootJavelinRStr), 5, 5, 2, crLong, [dtPhysical], 122)); Control.RegisterAbility(P2CreateRangedAttack(58, TranslateRStr(P2RegisterShootBlackJavelinRStr), 5, 5, 2, crLong, [dtDeath,dtPhysical], 123)); Control.RegisterAbility(P2CreateRangedAttack(25, TranslateRStr(P2RegisterHurlStonesRStr), 3, 1, 4, crMedium, [dtPhysical], 111)); end;
-procedure TWorldFXHS.NewFrame(Sender: TObject); { Original water angle uses 0.005 and earth radius follows FFrame. }
+procedure TWorldFXHS.NewFrame(Sender: TObject); { Original water angle uses 0.005 and earth radius follows FFrame. } { Tried separate early particle loop variable; differs. }
 var Effect: TWorldFXHS; I, J, Count, RadiusX, RadiusY: Integer; Gravity, VZ, Speed, Z: Single;
 begin
   try
@@ -5762,7 +5762,7 @@ procedure P2RegisterGroupControls; begin AoWEngine.RegisterEClasses([TGuardGC, T
 procedure P2RegisterMoveEvents(AEngine: TAoWEngine); begin AEngine.RegisterEClasses([TEndTurnTE, TGameOverTE, TMultiMoveTE, TCheatTE, TDisbandUnitTE, TChangePlayerSettingsTE, TCombatFlowControlTE, TTerminatePlayerTE]); end;
 procedure P2RegisterAbilities(Control: TAbilityControl); begin AoWEngine.RegisterEClasses([TCosmeticSurgeryEnchantment, TLeadershipAbilityData, TDispelMagicAbilityCA]); AoWEngine.RegisterEClasses([TDurationAbilityData, TMultiLevelAbilityData, TRangedAttackCA, TSelfDestructCA, TStrikeCA]); AoWEngine.RegisterEClasses([TUnitEnchantmentAbilityData, TUnitEnchantment, TDispelMagicAbilityTE, TPossessedAbilityData]); AoWEngine.RegisterEClasses([TCommandCA, TCommandedAbilityData, TCommandAbilityData, THealingTE, TDispelMagicAbilityData]); AoWEngine.RegisterEClasses([TPossessCA, TWebCA, THealingCA, TEntangleCA, THealingAbilityData, TTurnUndeadCA, TInvokeDeathCA]); Control.RegisterAbility(TLeadershipAbility.Create(nil)); Control.RegisterAbility(TEntangleAbility.Create(nil)); Control.RegisterAbility(TWebAbility.Create(nil)); Control.RegisterAbility(TSelfDestructAbility.Create(nil)); Control.RegisterAbility(TRoundAttackAbility.Create(nil)); Control.RegisterAbility(TCharmAbility.Create(nil)); Control.RegisterAbility(TCharmedAbility.Create(nil)); Control.RegisterAbility(TDominateAbility.Create(nil)); Control.RegisterAbility(TDominatedAbility.Create(nil)); Control.RegisterAbility(TSeduceAbility.Create(nil)); Control.RegisterAbility(TSeducedAbility.Create(nil)); Control.RegisterAbility(THealingAbility.Create(nil)); Control.RegisterAbility(TSpellCastingAbility.Create(nil)); Control.RegisterAbility(TTurnUndeadAbility.Create(nil)); Control.RegisterAbility(TInvokeDeathAbility.Create(nil)); Control.RegisterAbility(TConstructAbility.Create(nil)); Control.RegisterAbility(TDispelMagicAbility.Create(nil)); Control.RegisterAbility(TWallCrushingAbility.Create(nil)); Control.RegisterAbility(TTransportAbility.Create(nil)); Control.RegisterAbility(TPossessAbility.Create(nil)); Control.RegisterAbility(TPossessedAbility.Create(nil)); P2RegisterEnhancements(Control); P2RegisterTouches(Control); end;
 procedure P2RegisterSpells(AEngine: TAoWEngine); begin AEngine.RegisterEClasses([TSpellTE]); AEngine.RegisterEClasses([TSpellCastEventLog]); AEngine.RegisterEClasses([TUnitSpellTE, TUnitSpellCA]); end;
-constructor TAoWEngine.Create(AOwner: Engine.TECustomNode); { Near miss: Original SetLanguage uses or edx,1; three source variants emit or edx,-1. }
+constructor TAoWEngine.Create(AOwner: Engine.TECustomNode); { Tried typed language selector; still differs. }
 begin
   AoWEngine := Self;
   SetVersion(1, 36, 53);
@@ -5898,7 +5898,7 @@ begin
   FRegistry.Free;
 end;
 
-procedure TAoWEngine.UpdateStartupDirectory; { Near miss: Self register differs after three source variants. }
+procedure TAoWEngine.UpdateStartupDirectory; { Tried Self identity, Pointer identity, typed with; parameter spill or local lifetime/receiver staging; still differs. }
 begin
   if FRegistry.GetStartupDirectory <> '' then SetStartupDirectory(FRegistry.GetStartupDirectory)
   else SetStartupDirectory(ExtractFilePath(Application.ExeName));

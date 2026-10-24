@@ -174,7 +174,7 @@ begin
   AoWHSMap.TriggerRelationsChanged;
 end;
 
-procedure TPlayerControl.NewTurn(Player: Shortint); { Near miss: parameter spill and arithmetic registers differ after three variants. }
+procedure TPlayerControl.NewTurn(Player: Shortint); { Tried Self identity, Pointer identity, typed with; parameter spill or local lifetime/receiver staging; still differs. }
 var
   Msg: TEMsg;
 begin
@@ -851,7 +851,7 @@ begin
   end;
 end;
 
-procedure TTurnPlayerControl.SetPlayerGameOverStatus(Player: Shortint; Status: TGameOverStatus); { Near miss: player/status parameter spill differs after three variants. }
+procedure TTurnPlayerControl.SetPlayerGameOverStatus(Player: Shortint; Status: TGameOverStatus); { Tried Self identity, Pointer identity, typed with; named enum status local; still differs. }
 begin
   inherited SetPlayerGameOverStatus(Player, Status);
   if not AoWHSMap.FRequestCombatType or (AoWHSMap.FPlayers.GetPlayers(Player).FPlayerType <> ptHuman) then
@@ -1133,7 +1133,7 @@ begin
   else AoWHSMap.ExecuteExitGame;
 end;
 
-procedure TPBEMPlayerControl.ValidateLoadedMap; { Near miss: global address caching and Boolean spill differ after three variants. }
+procedure TPBEMPlayerControl.ValidateLoadedMap; { Tried Self identity, Pointer identity, typed with; global pointer-cell view; still differs. }
 var
   Restarted: Boolean;
   Log: TMessageEventLog;
@@ -1255,7 +1255,7 @@ end;
 class function TSimultaniousPlayerControl.ClassID: Integer;
 begin Result := $20251; end;
 
-procedure TSimultaniousPlayerControl.NewTurn(Player: Shortint); { Near miss: player index caching after three variants. }
+procedure TSimultaniousPlayerControl.NewTurn(Player: Shortint); { Tried Self identity, Pointer identity, typed with; named signed player index; still differs. }
 var
   Log: TEventLog;
   Spells: TSpellList;
@@ -2023,7 +2023,7 @@ begin
 end;
 
 
-procedure ShowDamageIcon(X, Y: Integer; const Surface: TSurfaceDesc; Damage: Integer; DamageType: TDamageType); { Near miss: Three variants retain different saved parameters. }
+procedure ShowDamageIcon(X, Y: Integer; const Surface: TSurfaceDesc; Damage: Integer; DamageType: TDamageType); { Tried enum local before calls; enum identity assignment; still differs. }
 begin
   if DamageType <> dtNone then
   begin

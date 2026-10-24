@@ -1,7 +1,9 @@
 """Bounded frame-entry extent and definite-initialization obligations (H4)."""
 import sys
+ACTIVE_MODEL = None
 
 def model():
+    if ACTIVE_MODEL is not None:return ACTIVE_MODEL
     return sys.modules.get('equiv') or sys.modules['__main__']
 
 def private_extent(code):

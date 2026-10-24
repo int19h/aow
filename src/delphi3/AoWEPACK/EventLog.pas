@@ -400,7 +400,7 @@ begin
   Result := -1;
 end;
 
-function TEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; { Near miss: Self/global register allocation differs after three variants. }
+function TEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; { Tried Self identity, Pointer identity, typed with; still differs. }
 begin
   if (Trigger = etUser) or
     (((Trigger = etEvent) or ((Trigger = etNewTurn) and AoWHSMap.FRequestCombatType)) and
@@ -791,7 +791,7 @@ end;
 procedure TGameOverEventLog.Handled;
 begin AoWHSMap.GameOverEventHandled(FPlayer); end;
 
-function TGameOverEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; { Near miss: Three variants retain the saved Self register. }
+function TGameOverEventLog.Execute(Mode: Boolean; Trigger: TExecuteTrigger; Done: TExecuteDoneEvent): Boolean; { Tried Self identity, Pointer identity, typed with; still differs. }
 begin
   case Trigger of
     etUser:
@@ -902,7 +902,7 @@ begin
   end;
 end;
 
-procedure DistributeLocationEventLog(Log: TEventLog; Player: Shortint; X, Y, L: Shortint; Execute: Boolean); { Near miss: loop count/player registers differ after three variants. }
+procedure DistributeLocationEventLog(Log: TEventLog; Player: Shortint; X, Y, L: Shortint; Execute: Boolean); { Tried integer player local; parameter spill or local lifetime/receiver staging; still differs. }
 var I: Integer; TargetPlayer: TPlayer; CopyLog: TEventLog;
 begin
   for I := 0 to AoWHSMap.FPlayers.GetCount - 1 do

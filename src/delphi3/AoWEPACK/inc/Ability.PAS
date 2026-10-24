@@ -852,7 +852,7 @@ begin
   for I := 0 to FTypesEnabled.Count - 1 do FTypesEnabled[I] := False;
 end;
 
-procedure TUnitSelectionControl.UpdateSelection; { Near miss: nested loop registers and local slots differ after three variants. }
+procedure TUnitSelectionControl.UpdateSelection; { Tried Self identity, Pointer identity, typed with; parameter spill or local lifetime/receiver staging; still differs. }
 var
   Index: Integer;
   Resources: TUnitResourceList;

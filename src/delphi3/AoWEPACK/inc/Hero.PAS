@@ -547,7 +547,7 @@ begin
   end;
 end;
 
-function THeroItems.GetPositionItem(Position: THeroItemPosition): TItem;
+function THeroItems.GetPositionItem(Position: THeroItemPosition): TItem; { Tried unmasked enum index after parameter identity; explicit ordinal copy with self identity; still differs. }
 var Index: Integer;
 begin
   Index := Ord(Position) and $7F;
@@ -1068,7 +1068,7 @@ begin
   else Result := LevelToExperience(Level);
 end;
 
-function THero.GetLevel: Shortint;
+function THero.GetLevel: Shortint; { Tried cast Self at field read; Self copy through untyped local; still differs. }
 begin
   with Self do Result := ExperienceToLevel(FExperience);
 end;
@@ -2564,7 +2564,7 @@ begin
   end;
 end;
 
-procedure THeroControl.MsgProc(var Msg: TEMsg; Sender: TEObject);
+procedure THeroControl.MsgProc(var Msg: TEMsg; Sender: TEObject); { Tried Self identity, Pointer identity, typed with; parameter spill or local lifetime/receiver staging; still differs. }
 var I: Integer;
 begin
   inherited MsgProc(Msg, Sender);

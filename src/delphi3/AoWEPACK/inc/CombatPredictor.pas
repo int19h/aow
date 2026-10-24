@@ -325,7 +325,7 @@ end;
 function TCombatPredictor.CreateUniqueCPUID: Integer;
 begin Result := FNextCPUID; Inc(FNextCPUID); end;
 
-procedure TCombatPredictor.EnableAllUnits; { Near miss: item register and common-load reuse differ after three variants. }
+procedure TCombatPredictor.EnableAllUnits; { Tried Self identity, Pointer identity, typed with; named candidate pointer; still differs. }
 var I: Integer;
 begin
   for I := TList(FAllUnits).Count - 1 downto 0 do
@@ -523,7 +523,7 @@ end;
 
 procedure TCombatPredictor.AddWall(A1: TWallType);
 type TOriginalAssertText = packed record RefCount, Len: Integer; Text: array[0..127] of Char; end; const OriginalAssertFile: TOriginalAssertText = (RefCount:-1; Len:38; Text:'D:\AoWDev\AoWE\inc\CombatPredictor.pas'#0); OriginalAssertMessage: TOriginalAssertText = (RefCount:-1; Len:23; Text:'Use DeleteWall instead!'#0); var Wall: TWallUnit; UnitObj: TCombatPredictorUnit;
-begin
+begin Self := Self;
 
 
 
@@ -697,7 +697,7 @@ begin
 
 
 
-  if A1 = wtNone then asm MOV ECX,$47D7; LEA EDX,OriginalAssertFile.Text; LEA EAX,OriginalAssertMessage.Text; CALL System.@Assert end; { Preserve the original assertion diagnostic. }
+  if A1 = wtNone then asm MOV ECX,$47D7; MOV EDX,OFFSET OriginalAssertFile.Text; MOV EAX,OFFSET OriginalAssertMessage.Text; CALL System.@Assert end; { Preserve the original assertion diagnostic. }
   UnitObj := TCombatPredictorUnit(FWall);
   if UnitObj = nil then
   begin

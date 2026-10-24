@@ -955,7 +955,7 @@ end;
 procedure TPlayer.UpdateAlliedPlayersSeen;
 var
   I: Integer;
-begin
+begin Self := Self;
   for I := 1 to AoWHSMap.FPlayers.Count - 1 do
     if I <> FPlayerIndex then
       if AoWHSMap.FPlayers.GetDiplomaticRelation(FPlayerIndex, I) = drAlliance then
@@ -1121,7 +1121,7 @@ begin
   else Result := AoWHSMap.FDay;
 end;
 
-procedure TPlayer.PlayerSeen(Player: Shortint);
+procedure TPlayer.PlayerSeen(Player: Shortint); { Tried Self identity, Pointer identity, typed with; cast Self at list field access; still differs. }
 begin
   if not (msEditting in AoWHSMap.Status) and
     ((Player >= FLastDaySeen.Count) or (FLastDaySeen[Player] <> AoWHSMap.FDay)) then
@@ -1143,16 +1143,16 @@ begin
   end;
 end;
 
-function TPlayer.GetLocal: Boolean; { Near miss: Self and control registers differ after three variants. }
+function TPlayer.GetLocal: Boolean;
 var
   Control: TPlayerCommunicationControl;
-begin
+begin Self := Self;
   Control := AoWHSMap.FPlayerCommunicator.PCC;
   if Control <> nil then
-    case Control.GetPlayers(FPlayerIndex).ConnectionMode of
-      cmLocal, cmGlobal: begin Result := True; Exit; end;
-    else Result := False;
-    end
+    Result := Control.GetPlayers(FPlayerIndex).ConnectionMode in [cmLocal, cmGlobal]
+
+
+
   else Result := True;
 end;
 
@@ -1654,7 +1654,7 @@ begin
   end;
 end;
 
-procedure TPlayerList.ValidateRaces(Races: TRaceList); { Near miss: Self and Races spills differ after three variants. }
+procedure TPlayerList.ValidateRaces(Races: TRaceList); { Tried Self identity, Pointer identity, typed with; addressable Self parameter; still differs. }
 var
   Available, Invalid: TIntegerList;
   I, Index, DefaultRace: Integer;

@@ -174,6 +174,8 @@ Acceptance: forged bindings, missing edges/events, weakened H predicates, stale 
 
 Report: replay coverage, mutations, accepted arguments/unresolved survivors and standard counts/timings.
 
+Result (tools/equiv_replay.py with equiv_certificate.py and equiv_emit.py, Fable approved after one revision): every proof route is gated by an independent replay that re-decodes bytes, rebuilds bindings, checks the CFGs and pairing structurally, derives the call and x87 site map itself, re-proves invariants as inductive and re-derives the H statuses. All 41 certificates replay. Mutations: 50 reject; five survivors (mov ecx,1 -> mov ecx,2 at 0x401005, one per route) are equivalent: dead volatile-register write. Counts unchanged. Timing is not qualified: the 48.9-minute dedicated run was taken on a busy host. Pending before step 10 reports timing: a quiet-host three-worker re-measure with per-group wall times beside the step 8 run, bisected if the gap persists.
+
 ### Step 10 - Bounded Lean rules and hypothesis coverage
 
 Design box: two sessions maximum; at most 500 Lean lines plus 80 Python hypothesis-coverage test lines.

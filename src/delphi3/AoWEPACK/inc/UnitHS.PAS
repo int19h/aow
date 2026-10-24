@@ -713,7 +713,7 @@ begin
 end;
 
 
-procedure TUnitHS.Disconnect; { Near miss: owner pointer register allocation after three variants. }
+procedure TUnitHS.Disconnect; { Tried Self identity assignment; Pointer-cast Self identity; still differs. }
 var
   Field: TMapField;
   Level: TMapLevel;
@@ -790,7 +790,7 @@ begin
 end;
 
 
-function TUnitHS.PlaceHX(Map: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean; { Near miss: Self/field/result allocation differs after three variants. }
+function TUnitHS.PlaceHX(Map: TMapContainer; Xhx, Yhx, Lhx: Shortint): Boolean; { Tried addressable result with untyped field pointer; addressable result and deferred typed field cast; still differs. }
 var
   Field: TMapField;
   Success: Boolean;

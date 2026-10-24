@@ -1084,7 +1084,7 @@ end;
 class function TCombatUnit.ClassID: Integer;
 begin Result := $202A1; end;
 
-procedure TCombatUnit.Setup(A1: Byte; A2: Byte; A3: TAbstractUnit; A4: Byte; A5: Byte); { Near miss: Self uses ESI rather than EBX after three variants. }
+procedure TCombatUnit.Setup(A1: Byte; A2: Byte; A3: TAbstractUnit; A4: Byte; A5: Byte); { Tried Self identity, Pointer identity, typed with; uncast unit argument; still differs. }
 begin
   FID := A1;
   FPosition := A4;
@@ -1197,7 +1197,7 @@ begin
     TByteList(TCombatData(TCombat(A1).FCombatData).F_CombatData_28).Add(FCombatPlayer);
 end;
 
-procedure TCombatUnit.Finalize(A1: TFinalizeMode); { Near miss: saved registers differ after three variants. }
+procedure TCombatUnit.Finalize(A1: TFinalizeMode); { Tried Self identity, Pointer identity, typed with; remove placed-army local; still differs. }
 var Party: TCombatParty; Placed: TArmyHS;
 begin
   if not (csDestroyed in FStatus) and not FUnit.GetAbilityEnabled($82) and not FUnit.GetAbilityEnabled($83) then
@@ -1393,7 +1393,7 @@ begin
   Stream.rwBool(FDisabled, $15);
 end;
 
-procedure TCombatUnit.ObjectDestroyed(A1: TCombatObject); { Near miss: cast-local register allocation differs after three variants. }
+procedure TCombatUnit.ObjectDestroyed(A1: TCombatObject); { Tried Self identity, Pointer identity, typed with; untyped object before class cast; still differs. }
 var C: TCombatUnit; U: TAbstractUnit;
 begin
   inherited ObjectDestroyed(A1);
@@ -1522,7 +1522,7 @@ end;
 procedure TCombatUnit.KillUnit;
 begin FUnit.Killed; end;
 
-procedure TCombatUnit.DestroyObject;
+procedure TCombatUnit.DestroyObject; { Tried Self identity, Pointer identity, typed with; loop local order; still differs. }
 var U: TAbstractUnit; I: Integer;
 begin
   if GetHitPoints <> 0 then SetHitPoints(0);
@@ -1811,9 +1811,9 @@ begin
   else Result := 0;
 end;
 
-function DMDCtoDV(Damage, AttackDefense: Integer): Integer; { Near miss: LEA versus ADD and INC after three variants. }
+function DMDCtoDV(Damage, AttackDefense: Integer): Integer;
 var
-  Threshold: Integer;
+  Threshold, Correction: Integer;
 begin
   if Damage > 0 then
   begin
@@ -1830,8 +1830,8 @@ begin
       Result := Damage + 1 + (18 - Threshold) +
         (((Damage - 1) * (18 - Threshold) + 1) shr 1);
       Threshold := -Threshold;
-      Threshold := Threshold + ((((Damage - 1) * Threshold * Threshold + (Threshold + 19)) div
-        (Threshold + 19)) shr 1) + 1;
+      Correction := (((( Damage - 1) * Threshold * Threshold + (Threshold + 19)) div
+        (Threshold + 19)) shr 1); Threshold := Correction + Threshold + 1;
       Result := Result - Threshold;
     end;
     Result := Result * 5;
@@ -5866,14 +5866,14 @@ function TCombatObject.ExecuteDamageEffectsRole(A1: TDamageTypes): TDamageTypes;
 begin Result := []; end;
 
 function TCombatObject.DoDamage(A1: TCombatObject; A2: Integer): Integer;
-begin
-  if (A2 <> 0) and TCombatObject(A1).GetEnabled then
+begin A2 := A2;
+  if (A2 <> 0) and A1.GetEnabled then
   begin
-    Result := TCombatObject(A1).ExecuteDamage(A2);
-    if (csDestroyed in TCombatObject(A1).FStatus) and
-      not TCombatObject(A1).GetAbilityEnabled($81) and
-      not TCombatObject(A1).GetAbilityEnabled($80) then
-      SetExperience(GetExperience + TCombatObject(A1).GetLevel);
+    Result := A1.ExecuteDamage(A2);
+    if (csDestroyed in A1.FStatus) and
+      not A1.GetAbilityEnabled($81) and
+      not A1.GetAbilityEnabled($80) then
+      begin A2 := GetExperience; Inc(A2, A1.GetLevel); SetExperience(A2); end;
   end
   else Result := 0;
 end;
@@ -6300,7 +6300,7 @@ begin
   Result := TCombatPlayerList(FCombatData.FPlayers).Count - 1;
 end;
 
-function TCombat.AddArmy(A1: TArmy; A2: TCombatSideIndex; A3: Integer; A4: Integer; A5: Integer): TCombatParty; { Near miss: three variants keep the combat data in EBX instead of ESI. }
+function TCombat.AddArmy(A1: TArmy; A2: TCombatSideIndex; A3: Integer; A4: Integer; A5: Integer): TCombatParty; { Tried Self identity, Pointer identity, typed with; combat-data local before other locals; still differs. }
 var Party: TCombatParty; Valid, Transport: Boolean; Player, Position: Byte;
     Index, I: Integer; UnitObj: TCombatUnit; Msg: TMapFieldMsg; Data: TCombatData;
     Transporter: TAbstractUnit;
@@ -6402,7 +6402,7 @@ begin
   else AddAdjacentArmies;
 end;
 
-procedure TCombat.Initialize; { Near miss: loop and Self registers differ after three variants. }
+procedure TCombat.Initialize; { Tried Self identity, Pointer identity, typed with; reuse search loop counter; still differs. }
 var I, J: Integer; Wall: TCombatWall; WallType, Player: Byte;
 begin
   LockExecuted;
@@ -6646,8 +6646,8 @@ begin
   Msg.MsgID := $1109;
   Msg.Result := Integer(@Result);
   Msg.Param[0] := Integer(Self);
-  Data := FCombatData;
-  AoWHSMap.MapContainer.GetField(Data.FX, Data.FY, Data.FL).SendMapFieldMsg(Msg);
+  { direct combat data }
+  AoWHSMap.MapContainer.GetField(FCombatData.FX, FCombatData.FY, FCombatData.FL).SendMapFieldMsg(Msg);
   if Result = '' then
     if FCombatResult = crVictory then Result := TranslateRStr(BattleWonRStr)
     else if FCombatResult = crDefeat then Result := TranslateRStr(BattleLostRStr)

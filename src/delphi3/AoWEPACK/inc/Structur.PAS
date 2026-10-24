@@ -604,7 +604,7 @@ end;
 function TProductionControl.CanProduceUnit(Index: Integer; Queue: Boolean; var Reason: string): Boolean;
 begin Result := True; end;
 
-function TProductionControl.ProduceUnitEx(Index, GroupID: Integer; Queue: Boolean): Boolean; { Near miss: Self/event/item registers differ after three variants. }
+function TProductionControl.ProduceUnitEx(Index, GroupID: Integer; Queue: Boolean): Boolean;
 var
   Event: TProductionTE;
   Reason: string;
@@ -615,11 +615,11 @@ begin
     Event.FCommand := 0;
     Event.FQueue := Queue;
     Event.FItem := TProductionItem.Create(nil);
-    with Event.FItem do
+    { explicit item receiver }
     begin
-      FProductionID := 1;
-      FParameter := Index;
-      FGroupID := GroupID;
+      Event.FItem.FProductionID := 1;
+      Event.FItem.FParameter := Index;
+      Event.FItem.FGroupID := GroupID;
     end;
     AoWHSMap.FTokenManager.GetTokenControl(GetPlayer).AddEvent(Event);
     Event.Release;
@@ -667,7 +667,7 @@ begin
   end;
 end;
 
-function TProductionControl.ResearchUnit(Index: Integer; Queue: Boolean): Boolean; { Near miss: Self/event/item registers differ after three variants. }
+function TProductionControl.ResearchUnit(Index: Integer; Queue: Boolean): Boolean;
 var
   Event: TProductionTE;
   Reason: string;
@@ -678,10 +678,10 @@ begin
     Event.FCommand := 0;
     Event.FQueue := Queue;
     Event.FItem := TProductionItem.Create(nil);
-    with Event.FItem do
+    { explicit item receiver }
     begin
-      FProductionID := 2;
-      FParameter := Index;
+      Event.FItem.FProductionID := 2;
+      Event.FItem.FParameter := Index;
     end;
     AoWHSMap.FTokenManager.GetTokenControl(GetPlayer).AddEvent(Event);
     Event.Release;
@@ -997,7 +997,7 @@ begin
   Result := (FStructure.GetShowPriority and $03FFFFFF) + $30000000;
 end;
 
-procedure TStructureShadow.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc);
+procedure TStructureShadow.Show(XhpSurf: Integer; YhpSurf: Integer; const SurfaceDesc: GFXE.TSurfaceDesc); { Tried coordinate identity assignment; zero-shift Y argument; still differs. }
 begin
   FStructure.ShowShadow(XhpSurf, YhpSurf, SurfaceDesc);
 end;
@@ -1203,7 +1203,7 @@ begin
     Sound.PlaySample(TStructureResource(FResource).FSelectSFX);
 end;
 
-procedure TStructure.Select; { Near miss: Self stays in ESI rather than EBX after three variants. }
+procedure TStructure.Select; { Tried Self identity, Pointer identity, typed with; Pointer identity after inherited call; still differs. }
 begin
   inherited Select;
   if not (msEditting in AoWHSMap.Status) then PlaySelectSample;
@@ -1236,37 +1236,37 @@ begin
   end;
 end;
 
-function TStructure.GetTopBorderImage: TLibraryImage; { Near miss: receiver and index load order after three variants. }
+function TStructure.GetTopBorderImage: TLibraryImage;
 var
   Sequences: TImageSequenceList;
 begin
   Sequences := FResource.ImageSequenceList;
   if Sequences <> nil then
-    if Sequences.GetImageSequence(30) <> nil then
+    if TImageSequenceList(Integer(Sequences) shl 0).GetImageSequence(30) <> nil then
       Result := FResource.ImageSequenceList.GetImageSequence(30).GetPreviewImage
     else Result := nil
   else Result := FResource.ImageLibrary.GetSafe(30);
 end;
 
-function TStructure.GetMiddleBorderImage: TLibraryImage; { Near miss: receiver and index load order after three variants. }
+function TStructure.GetMiddleBorderImage: TLibraryImage;
 var
   Sequences: TImageSequenceList;
 begin
   Sequences := FResource.ImageSequenceList;
   if Sequences <> nil then
-    if Sequences.GetImageSequence(31) <> nil then
+    if TImageSequenceList(Integer(Sequences) shl 0).GetImageSequence(31) <> nil then
       Result := FResource.ImageSequenceList.GetImageSequence(31).GetPreviewImage
     else Result := nil
   else Result := FResource.ImageLibrary.GetSafe(31);
 end;
 
-function TStructure.GetBottomBorderImage: TLibraryImage; { Near miss: receiver and index load order after three variants. }
+function TStructure.GetBottomBorderImage: TLibraryImage;
 var
   Sequences: TImageSequenceList;
 begin
   Sequences := FResource.ImageSequenceList;
   if Sequences <> nil then
-    if Sequences.GetImageSequence(32) <> nil then
+    if TImageSequenceList(Integer(Sequences) shl 0).GetImageSequence(32) <> nil then
       Result := FResource.ImageSequenceList.GetImageSequence(32).GetPreviewImage
     else Result := nil
   else Result := FResource.ImageLibrary.GetSafe(32);
@@ -1596,7 +1596,7 @@ begin
   inherited Deactivate;
 end;
 
-procedure TStructure.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); { Near miss: Self, message and VMT registers differ after three variants. }
+procedure TStructure.MapFieldMsgProc(var Msg: HSEngine.TMapFieldMsg); { Tried Self identity, Pointer identity, typed with; parameter spill or local lifetime/receiver staging; still differs. }
 begin
   inherited MapFieldMsgProc(Msg);
   if FResource.TerrainList.Terrain[Msg.HN] >= 0 then
@@ -1626,7 +1626,7 @@ begin
     end;
 end;
 
-procedure TStructure.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); { Near miss: message fields fixed; Self/Msg registers differ after three variants. }
+procedure TStructure.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); { Tried Self identity, Pointer identity, typed with; base sender cast; still differs. }
 begin
   inherited MsgProc(Msg, Sender);
   if Msg.MsgID = $20020001 then NewDay
@@ -1792,7 +1792,7 @@ begin
   Defenders.Free;
 end;
 
-procedure TStructure.ShowRazeAnimation(Animation: TAnimation; X, Y: Integer; const SurfaceDesc: TSurfaceDesc);
+procedure TStructure.ShowRazeAnimation(Animation: TAnimation; X, Y: Integer; const SurfaceDesc: TSurfaceDesc); { Tried with animation receiver; same animation cast for frame argument; still differs. }
 begin
   if (TImageSequenceAnimation(Animation).FImageSequence.GetUnloopedFrameIndex(Animation.FFrameCounter) = 0) and
     (AoWEngine.FAnimationDetail <> Byte(dtlLow)) then Sound.PlaySample(ExplosionSFX[System.Random(2)]);
@@ -2325,7 +2325,7 @@ begin
   else Result := 1;
 end;
 
-procedure TPlayerStructure.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject);
+procedure TPlayerStructure.MsgProc(var Msg: Engine.TEMsg; Sender: Engine.TEObject); { Tried Self identity, Pointer identity, typed with; base sender cast; still differs. }
 begin
   inherited MsgProc(Msg, Sender);
   if Msg.MsgID = $20020005 then
@@ -3481,7 +3481,7 @@ begin
   if Result then TMapField(Owner).UpdateMapField;
 end;
 
-procedure TFire.RemoveFromMap;
+procedure TFire.RemoveFromMap; { Tried guarded untyped owner pointer; guarded owner with typed explicit receiver; still differs. }
 var
   MapField: TMapField;
 begin
@@ -3818,7 +3818,7 @@ begin
   if tsActivated in FStatus then Deactivate;
 end;
 
-procedure TTargetSelectionControl.MouseDownEvent(Sender: TObject);
+procedure TTargetSelectionControl.MouseDownEvent(Sender: TObject); { Tried Self identity, Pointer identity, typed with; typed mouse receiver; still differs. }
 var
   Mouse: THSMapMouse;
 begin
@@ -3888,7 +3888,7 @@ begin
   end;
 end;
 
-procedure TTargetSelectionControl.ShowSelection(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); { Near miss: Three variants retain different coordinate/register allocation. }
+procedure TTargetSelectionControl.ShowSelection(XhpSurf, YhpSurf: Integer; const SurfaceDesc: TSurfaceDesc); { Tried Self identity, Pointer identity, typed with; addressable coordinates and X parameter identity; still differs. }
 var
   I, DX, DY, X, Y, XS, YS: Integer;
 begin
@@ -4197,7 +4197,7 @@ end;
 procedure TMoveSelector.CalculateMovePath(Index: Integer; X, Y, L: Shortint);
 begin end;
 
-procedure TMoveSelector.SelectPath(X, Y, L: Shortint);
+procedure TMoveSelector.SelectPath(X, Y, L: Shortint); { Tried Self identity, Pointer identity, typed with; typed settings receiver at each path access; still differs. }
 begin
   if (FCurrentMove <> -1) and (X <> -1) then
   begin
@@ -4250,7 +4250,7 @@ begin
   end;
 end;
 
-procedure TMoveSelector.ShowMovePaths(const Surface: TSurfaceDesc); { Near miss: Transparent draw coordinate evaluation differs after three variants. }
+procedure TMoveSelector.ShowMovePaths(const Surface: TSurfaceDesc); { Tried Self identity, Pointer identity, typed with; still differs. }
 var
   X1, Y1, X2, Y2, I, J, ImageIndex, MaxX, MaxY, Xhp, Yhp, PointsLeft, Direction: Integer;
   Settings: TMoveSettings;

@@ -256,7 +256,7 @@ class Relation:
         valid = [r for r in sorted(self.checked) if self.checked[r]['status']=='validated']
         return dict(objects=len(valid),bytes=sum(r[2] for r in valid),pointers=self.pointers,
                     storage_ranges=[self.checked[r] for r in valid],failure=getattr(self,'failure',None),
-                    remaining_assumed='Module-wide reach/initial relation outside validated storage; mutable runtime bytes remain arbitrary. Certificates remain incomplete.')
+                    remaining_assumed='Module-wide reach/initial relation outside validated storage; mutable runtime bytes remain arbitrary. Unvalidated module-wide facts remain explicit H5 assumptions.')
     def step(self, machine, state, ins, execute):
         self.pc = ins.address; self.side = machine.side
         e = self.e; tags = dict(self.seeds[machine.side].get(ins.address,{}));tags.update(getattr(state,'image_origins',{}))

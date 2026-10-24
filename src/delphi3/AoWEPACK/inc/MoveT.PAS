@@ -3143,7 +3143,7 @@ begin
   Settings.Release;
 end;
 
-function MoveArmyEx(Army: TArmyHS; Selection: Byte; Path: TMovepath; Mode: TArmyMoveMode; Force: Boolean): Boolean; { Near miss: Three variants retain different local/register allocation. }
+function MoveArmyEx(Army: TArmyHS; Selection: Byte; Path: TMovepath; Mode: TArmyMoveMode; Force: Boolean): Boolean; { Tried Boolean local before other locals; parameter spill or local lifetime/receiver staging; still differs. }
 var
   Pos: Integer;
   Move: TMoveArmyTE;
