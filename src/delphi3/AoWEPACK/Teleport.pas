@@ -87,20 +87,12 @@ resourcestring
   TeleportWarningRStr = 'Warning'; { original RT_STRING $FEB4 }
 
 { needs: draft AoWE result declarations; retain their proven register ABI. }
-function TeleportVisible(Map: TAoWHSMap; X, Y: Integer; Player: Shortint; L: Integer): Boolean; assembler;
-asm JMP TAoWHSMap.VisibleForPlayer end;
 function TeleportValidTerrain(Army: TArmy; Terrain, Overlay: Shortint): Boolean; assembler;
 asm JMP TArmy.ValidTerrain end;
 function TeleportCanAdd(Army: TArmy; Units: TUnitList): Boolean; assembler;
 asm JMP TArmy.CanAddUnits end;
 function TeleportMoveAction(Field: TAoWMapField; Player: Byte): Byte; assembler;
 asm JMP TAoWMapField.GetMoveAction end;
-function TeleportMoveArmy(ArmyHS: TArmyHS; Mode: Shortint; Path: TMovepath;
-  Flags: TTeleportMoveFlags; Extra: Integer): Boolean; assembler;
-asm JMP AoWE.MoveArmyEx end;
-function TeleportCreateMove(ArmyHS: TArmyHS; Mode: Shortint; Path: TMovepath;
-  Flags: TTeleportMoveFlags; Extra: Integer): TTokenEvent; assembler;
-asm JMP AoWE.CreateArmyMoveTE end;
 
 constructor TTeleport.Create(AOwner: Engine.TECustomNode);
 begin

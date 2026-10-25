@@ -48,9 +48,6 @@ procedure RegisterManaCrystals(AEngine: TEngine);
 implementation
 
 type
-  TCrystalLog = class(TLocationTextEventLog)
-    procedure Location(X, Y, L: Shortint);
-  end;
   TCrystalMagic = class(TPlayerMagicControl)
     property Mana: Integer read FMana write SetMana;
   end;
@@ -65,14 +62,10 @@ type
   end;
 const WorldMap: PCrystalMap = @AoWE.AoWHSMap;
 { needs: the draft methods return integers and objects, and Watching returns Boolean. }
-procedure TCrystalLog.Location(X, Y, L: Shortint); assembler;
-asm JMP TLocationTextEventLog.SetLocation end;
 function CrystalRandom(Map: TAoWHSMap; Range: Integer): Integer; assembler;
 asm JMP TAoWHSMap.Random end;
 function CrystalPlayer(List: TPlayerList; Player: Integer): TPlayer; assembler;
 asm JMP TPlayerList.GetPlayers end;
-function CrystalWatching(Map: TAoWHSMap; X, Y, L: Shortint; Radius: Integer): Boolean; assembler;
-asm JMP TAoWHSMap.Watching end;
 function TranslateCrystalName(const S: string): string; assembler;
 asm JMP AoWE.TranslateRStr end;
 

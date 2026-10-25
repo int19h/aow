@@ -216,7 +216,7 @@ resourcestring
   ItemsRStr = 'Items';
   LevelRStr = 'Level';
   ExpRStr = 'Exp';
-const ShowAbilitiesRStr: PResStringRec = @AbilitiesRStr; ShowExpRStr: PResStringRec = @ExpRStr;
+const ShowAbilitiesRStr: PResStringRec = @AbilitiesRStr; ShowExpRStr: PResStringRec = @ExpRStr; ShowInfoRStr: PResStringRec = @InfoRStr; ShowNoneRStr: PResStringRec = @NoneRStr; ShowCreatureRStr: PResStringRec = @CreatureRStr; ShowMachineRStr: PResStringRec = @MachineRStr; ShowUnitRStr: PResStringRec = @UnitRStr; ShowLeaderRStr: PResStringRec = @LeaderRStr; ShowHeroRStr: PResStringRec = @HeroRStr; ShowItemsRStr: PResStringRec = @ItemsRStr; ShowLevelRStr: PResStringRec = @LevelRStr;
 function CompareUnitAbilities(const S1, S2: string; O1, O2: TObject): Integer;
 var
   A1, A2: TAbility;
@@ -256,7 +256,7 @@ begin
     UnitWindow.Mana.Visible := False; UnitWindow.ManaIcon.Visible := False;
     UnitWindow.UnitTab.Items.Clear;
     UnitWindow.UnitTab.Items.Add(TranslateRStr(LoadResString(ShowAbilitiesRStr)));
-    UnitWindow.UnitTab.Items.Add(TranslateRStr(AoWE.InfoRStr));
+    UnitWindow.UnitTab.Items.Add(TranslateRStr(LoadResString(ShowInfoRStr)));
     if U.GetRace > -1 then
     begin
       UnitWindow.TypeV.Text := TranslateRStr(RaceNamesRStr[U.GetRace]);
@@ -268,7 +268,7 @@ begin
     begin
       UnitWindow.TypeV.Text := '';
       UnitWindow.RelationIcn.Visible := False;
-      UnitWindow.RelationV.Text := TranslateRStr(AoWE.NoneRStr);
+      UnitWindow.RelationV.Text := TranslateRStr(LoadResString(ShowNoneRStr));
     end;
     if (AoWHSMap.FSeatedPlayer = U.FPlayer) and not (U is TLeader) and (AoWHSMap.FCombatMap = nil) then
     begin
@@ -282,23 +282,23 @@ begin
     case U.GetUnitType of
       utCreature:
         begin
-          UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(AoWE.CreatureRStr);
+          UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(LoadResString(ShowCreatureRStr));
           UnitWindow.TypeIcn.CurrentImage := 21;
         end;
       utMachine:
         begin
-          UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(AoWE.MachineRStr);
+          UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(LoadResString(ShowMachineRStr));
           UnitWindow.TypeIcn.CurrentImage := 22;
         end;
     else
-      if H = nil then UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(AoWE.UnitRStr)
-      else if H is TLeader then UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(AoWE.LeaderRStr)
-      else UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(AoWE.HeroRStr);
+      if H = nil then UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(LoadResString(ShowUnitRStr))
+      else if H is TLeader then UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(LoadResString(ShowLeaderRStr))
+      else UnitWindow.TypeV.Text := UnitWindow.TypeV.Text + ' ' + TranslateRStr(LoadResString(ShowHeroRStr));
       UnitWindow.TypeIcn.CurrentImage := 23;
     end;
     if H = nil then
     begin
-      UnitWindow.Level.Text := TranslateRStr(AoWE.LevelRStr) + ' ' + IntToStr(U.GetUnitLevel);
+      UnitWindow.Level.Text := TranslateRStr(LoadResString(ShowLevelRStr)) + ' ' + IntToStr(U.GetUnitLevel);
       UnitWindow.T2Leader.Visible := False; UnitWindow.T2Text.Visible := True;
       UnitWindow.T2Memo.Items.Assign(U.GetDescription); UnitWindow.T2SBar.Position := 0;
       UnitWindow.UnitName.Text := U.GetName;
@@ -360,7 +360,7 @@ begin
       if ((AoWHSMap.FCombat = nil) and (H.FPlayer = AoWHSMap.FSeatedPlayer)) or
         ((AoWHSMap.FCombat <> nil) and
         (AoWHSMap.FCombat.FCombatData.FPlayers.GetPlayers(AoWHSMap.FCombat.FCombatData.FCurrentPlayer).FPlayer = H.FPlayer)) then
-        UnitWindow.UnitTab.Items.Add(TranslateRStr(AoWE.ItemsRStr));
+        UnitWindow.UnitTab.Items.Add(TranslateRStr(LoadResString(ShowItemsRStr)));
       if H.GetCastingPointsMax > 0 then
       begin
         UnitWindow.Mana.Visible := True;
@@ -368,7 +368,7 @@ begin
         UnitWindow.ManaIcon.Visible := True;
       end;
       UnitWindow.ItemUseBtn.Visible := False; UnitWindow.FGroundOffset := 0;
-      UnitWindow.Level.Text := TranslateRStr(AoWE.LevelRStr) + ' ' + IntToStr(H.GetLevel);
+      UnitWindow.Level.Text := TranslateRStr(LoadResString(ShowLevelRStr)) + ' ' + IntToStr(H.GetLevel);
       UnitWindow.T2Leader.Visible := True; UnitWindow.T2Text.Visible := False;
       UnitWindow.UnitName.Text := H.FHeroName + ' ' + H.GetNickname;
     end;

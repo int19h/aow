@@ -104,18 +104,9 @@ function CavePlayerBusy(Player: TPlayer): Boolean; assembler;
 asm JMP TPlayer.GetBusy end;
 function CaveRelation(List: TPlayerList; PlayerA, PlayerB: Shortint): Byte; assembler;
 asm JMP TPlayerList.GetDiplomaticRelation end;
-function CaveMoveArmy(ArmyHS: TArmyHS; Mode: Shortint; Path: TMovepath;
-  Flags: TCaveMoveFlags; Extra: Integer): Boolean; assembler;
-asm JMP AoWE.MoveArmyEx end;
-function CaveCreateMove(ArmyHS: TArmyHS; Mode: Shortint; Path: TMovepath;
-  Flags: TCaveMoveFlags; Extra: Integer): TTokenEvent; assembler;
-asm JMP AoWE.CreateArmyMoveTE end;
 
 
 type
-  TCaveLevel = class(TAoWMapLevel)
-    procedure Explore(X, Y, Radius: Integer; Player: Byte);
-  end;
   TCaveMoveData = packed record
     Reserved: array[0..48] of Byte;
     Costs: array[0..15, 0..15] of Shortint;
@@ -125,13 +116,13 @@ asm JMP TUnitList.GetUnit end;
 function CaveUnitCost(AUnit: TAbstractUnit; Terrain, Overlay: Shortint): Integer; assembler;
 asm JMP TAbstractUnit.MovePointCost end;
 function CaveArmyMovePoints(Army: TArmy; Selection: Byte; Terrain, Overlay: Shortint): Shortint; assembler;
-asm JMP TArmy.MoveOnMovePoints end;
+{ Overlay is a stack parameter, so DCC32 builds a frame before the body: drop it before the
+  jump, so that MoveOnMovePoints returns to the caller. }
+asm POP EBP; JMP TArmy.MoveOnMovePoints end;
 function CaveValidateSelection(Army: TArmy; Selection: Byte): Byte; assembler;
 asm JMP TArmy.ValidateSelection end;
 function CaveVisibility(Army: TArmy): Byte; assembler;
 asm JMP TArmy.VisibilityRange end;
-procedure TCaveLevel.Explore(X, Y, Radius: Integer; Player: Byte); assembler;
-asm JMP TAoWMapLevel.ExploreArea end;
 
 
 constructor TCave.Create(AOwner: Engine.TECustomNode);

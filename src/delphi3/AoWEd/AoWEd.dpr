@@ -126,7 +126,7 @@ begin
   try
     if (InstanceMapping <> 0) and (GetLastError = ERROR_ALREADY_EXISTS) then
     begin
-      ShowMessage('Age of Wonders Editor is already running.');
+      ShowMessage(MDIForm.AlreadyRunningRStr);
       Exit;
     end;
     Splash := SplashFrm.TSplashForm.Create(Application);

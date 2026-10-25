@@ -97,8 +97,6 @@ function UnitAlignment(AUnit: TAbstractUnit): TAlignment; assembler;
 asm mov ecx,[eax]; jmp dword ptr [ecx+$FC] end;
 function TranslateABI(const S: string): string; assembler;
 asm jmp AoWE.TranslateRStr end;
-function FormatABI(const S: string; const Args: array of const): string; assembler;
-asm jmp AoWE.Format end;
 
 function ResourceName(Resource: TUnitResource): string; assembler;
 asm jmp TUnitResource.GetUnitName end;

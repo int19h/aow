@@ -602,7 +602,7 @@ resourcestring
   P2XUnitsJoinedTheForcesofYRStr = '%d units joined the forces of %s';
   P2XJoinedRStr = '%s joined';
   P2XJoinedTheForcesOfYRStr = '%0:s joined the forces of %1:s';
-  P2FireDamageRStr = 'Fire damage';
+  P2FireDamageRStr = 'Fire Damage';
 const
   TStormTypeRStr: array[TStormType] of string =
     (NoneRStr, FireStormRStr, DeathStormRStr, DivineStormRStr, IceStormRStr, LightningStormRStr, PestilenceStormRStr);

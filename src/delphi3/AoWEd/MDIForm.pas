@@ -477,7 +477,7 @@ type
   end;
 
 function GetEditorVersion: string;
-
+resourcestring AlreadyRunningRStr = 'AoWEd is already running';
 var MainForm: TMainForm; { AoWEd 00415A7A }
 implementation
 
