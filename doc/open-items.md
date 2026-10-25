@@ -45,11 +45,14 @@ Keep them.
 
 `tools/buildgame.py` reads the unit initialization table of each original module, and
 `PACKAGEINFO`. It compares both with the rebuilt modules and writes `initialization-order.json`.
-No generated copy of that file exists yet. The source port needs it, because the initialization
-order follows the uses graph and is not `PACKAGEINFO` in reverse.
+The order read from the original modules is in `data/initialization-order.json` (`tools/portdata/make_init_order.py`). In modules that import AoWEPACK, some units come before units that their recovered uses clauses name, for example AoWReg and Sound in AoW.exe. Either the table is not strict dependency order, or our uses clauses differ from the originals; check this.
 
 ## classes.json is incomplete
 
 [../data/classes.json](../data/classes.json) lists only some fields of some classes. For example,
 it lists 84 fields of `TAoWHSMap`, where the source declares 120 with offsets. The source class
 declarations are the authority for field names and offsets.
+
+## Forms that do not convert back exactly
+
+`tools/buildgame.py` converts the text forms in `data/forms/` with `convert.exe`. Three AoWEd forms come back 3 bytes shorter than the originals, because `convert.exe` drops the child position `[n]` of a non-inherited `object`. The build does not compare the rebuilt forms with the originals.
