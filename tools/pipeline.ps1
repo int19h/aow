@@ -10,12 +10,12 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$notes = Join-Path $repo 'notes'
+$data = Join-Path $repo 'data'
 $tools = Join-Path $repo 'tools'
-if (-not $Rtti) { $Rtti = Join-Path $notes "rtti\$Module.txt" }
-$dump = Join-Path $notes "decomp\$($Module -replace '\.dpl$|\.exe$','')-typed"
-$tables = @((Join-Path $notes 'persisted-fields.md'), (Join-Path $notes 'persisted-fields-base.md'), (Join-Path $notes 'field-names.md'), (Join-Path $notes 'field-overrides.md'))
-$classes = Join-Path $notes 'classes.json'
+if (-not $Rtti) { $Rtti = Join-Path $data "rtti\$Module.txt" }
+$dump = Join-Path $data "decomp\$($Module -replace '\.dpl$|\.exe$','')-typed"
+$tables = @((Join-Path $data 'persisted-fields.md'), (Join-Path $data 'persisted-fields-base.md'), (Join-Path $data 'field-names.md'), (Join-Path $data 'field-overrides.md'))
+$classes = Join-Path $data 'classes.json'
 
 python (Join-Path $tools 'build_classdb.py') $GameDir $classes @tables
 if (-not $SkipGhidra) {
@@ -27,5 +27,5 @@ Copy-Item $classes (Join-Path $dump 'classes.json') -Force
 python (Join-Path $tools 'readwrite_table.py') $dump $tables[0]
 python (Join-Path $tools 'field_names.py') $dump $tables[2]
 python (Join-Path $tools 'build_classdb.py') $GameDir $classes @tables
-python (Join-Path $tools 'class_layout.py') $Rtti $tables[0] $tables[2] (Join-Path $notes 'engine-classes.md')
+python (Join-Path $tools 'class_layout.py') $Rtti $tables[0] $tables[2] (Join-Path (Join-Path $repo 'doc') 'engine-classes.md')
 "indirect rows: " + ((Get-Content $tables[0]) | Where-Object { $_ -match 'indirect' }).Count

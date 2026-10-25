@@ -116,7 +116,7 @@ def prepare_resources(name, build):
         forms = build / 'forms' / name
         forms.mkdir(parents=True, exist_ok=True)
         compiled = {}
-        for source in sorted((REPO / 'notes' / 'forms' / name).glob('*.txt')):
+        for source in sorted((REPO / 'data' / 'forms' / name).glob('*.txt')):
             target = forms / source.name
             shutil.copy2(source, target)
             dfm = target.with_suffix('.dfm')
